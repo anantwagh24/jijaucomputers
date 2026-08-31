@@ -76,13 +76,18 @@ export default function ProductDetailClient({
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
+    setIsCartOpen(true);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
   const handleBuyNow = () => {
     addToCart(product, quantity);
-    router.push("/checkout");
+    if (typeof window !== "undefined") {
+      window.location.href = "/checkout";
+    } else {
+      router.push("/checkout");
+    }
   };
 
   const handleWhatsApp = () => {
