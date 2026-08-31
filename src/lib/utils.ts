@@ -28,9 +28,9 @@ export function slugify(text: string): string {
     .replace(/\-\-+/g, "-");
 }
 
-export function generateWhatsAppUrl(phone: string, text: string): string {
-  const cleanPhone = phone.replace(/[^0-9]/g, "");
-  const encodedText = encodeURIComponent(text);
+export function generateWhatsAppUrl(phone: string = "918805607908", text: string = ""): string {
+  const cleanPhone = (phone || "918805607908").replace(/[^0-9]/g, "");
+  const encodedText = encodeURIComponent(text || "");
   return `https://wa.me/${cleanPhone}?text=${encodedText}`;
 }
 

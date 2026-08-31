@@ -267,12 +267,13 @@ export default function ProductDetailClient({
             </div>
 
             {/* Main CTAs */}
-            <div className="space-y-3">
+            <div className="space-y-3 relative z-20">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
+                  type="button"
                   onClick={handleAddToCart}
                   disabled={!product.inStock}
-                  className="py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50"
+                  className="py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
                 >
                   {added ? (
                     <>
@@ -288,9 +289,10 @@ export default function ProductDetailClient({
                 </button>
 
                 <button
+                  type="button"
                   onClick={handleBuyNow}
                   disabled={!product.inStock}
-                  className="py-3.5 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50"
+                  className="py-3.5 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 cursor-pointer"
                 >
                   <Zap className="w-4 h-4 fill-slate-950" />
                   <span>Buy Now</span>
@@ -300,16 +302,18 @@ export default function ProductDetailClient({
               {/* WhatsApp Enquiry & Wishlist / Quote Trigger */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                 <button
+                  type="button"
                   onClick={handleWhatsApp}
-                  className="sm:col-span-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow flex items-center justify-center gap-2 transition-colors"
+                  className="sm:col-span-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>Enquire on WhatsApp</span>
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setIsQuoteModalOpen(true)}
-                  className="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                  className="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <FileText className="w-4 h-4 text-blue-600" />
                   <span>Get Quote</span>
