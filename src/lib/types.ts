@@ -42,6 +42,7 @@ export interface ProductItem {
   isNewArrival: boolean;
   isTrending: boolean;
   isGamingDeal: boolean;
+  videoUrl?: string | null;
   specsJson?: string | null;
   categoryId: string;
   category?: {

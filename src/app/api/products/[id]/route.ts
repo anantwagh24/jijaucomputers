@@ -59,6 +59,7 @@ export async function PUT(
         isNewArrival: Boolean(data.isNewArrival),
         isTrending: Boolean(data.isTrending),
         isGamingDeal: Boolean(data.isGamingDeal),
+        videoUrl: data.videoUrl !== undefined ? data.videoUrl : undefined,
         specsJson: data.specsJson || null,
         categoryId: data.categoryId,
         brandId: data.brandId || null,

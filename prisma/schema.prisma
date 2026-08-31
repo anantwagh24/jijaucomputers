@@ -88,6 +88,7 @@ model Product {
   isNewArrival  Boolean        @default(false)
   isTrending    Boolean        @default(false)
   isGamingDeal  Boolean        @default(false)
+  videoUrl      String?        // YouTube or Instagram video link
   specsJson     String?        // JSON string of key-value specs
   categoryId    String
   category      Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)

@@ -44,6 +44,7 @@ export default function AdminProductsPage() {
     description: "",
     imageUrl: "",
     specsJson: "",
+    videoUrl: "",
     isFeatured: false,
     isBestseller: false,
     isNewArrival: false,
@@ -97,6 +98,7 @@ export default function AdminProductsPage() {
       description: "",
       imageUrl: "",
       specsJson: "",
+      videoUrl: "",
       isFeatured: false,
       isBestseller: false,
       isNewArrival: false,
@@ -123,6 +125,7 @@ export default function AdminProductsPage() {
       description: p.description || "",
       imageUrl: p.images?.[0]?.url || "",
       specsJson: p.specsJson || "",
+      videoUrl: p.videoUrl || "",
       isFeatured: p.isFeatured,
       isBestseller: p.isBestseller,
       isNewArrival: p.isNewArrival,
@@ -447,6 +450,20 @@ export default function AdminProductsPage() {
                   onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                   placeholder="https://images.unsplash.com/..."
                   className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-300 block mb-1 flex items-center justify-between">
+                  <span>Product Video URL (YouTube / Instagram Reel)</span>
+                  <span className="text-[10px] text-rose-400 font-mono font-normal">Optional</span>
+                </label>
+                <input
+                  type="url"
+                  value={formData.videoUrl}
+                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                  placeholder="e.g. https://www.youtube.com/watch?v=... or https://instagram.com/reel/..."
+                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono text-xs"
                 />
               </div>
 

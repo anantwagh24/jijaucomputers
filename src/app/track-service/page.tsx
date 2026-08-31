@@ -54,6 +54,7 @@ export default function ServiceTrackerPage() {
   const { settings } = useSettings();
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [ticketsList, setTicketsList] = useState<ServiceTicket[]>([]);
   const [ticket, setTicket] = useState<ServiceTicket | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -69,7 +70,7 @@ export default function ServiceTrackerPage() {
     serialNo: "",
     issueDesc: "",
   });
-  const [newTicketCreated, setNewTicketCreated] = useState<ServiceTicket | null>(null);
+  const [newTicketCreated, setNewTicketCreated] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -80,14 +81,16 @@ export default function ServiceTrackerPage() {
       setLoading(true);
       setErrorMsg("");
       setTicket(null);
+      setTicketsList([]);
 
       const res = await fetch(`/api/service-requests?query=${encodeURIComponent(searchQuery.trim())}`);
       const data = await res.json();
 
       if (Array.isArray(data) && data.length > 0) {
+        setTicketsList(data);
         setTicket(data[0]);
       } else {
-        setErrorMsg(`No service records found for "${searchQuery}". Please verify your ticket ID (e.g. JC-SRV-1001) or 10-digit phone number.`);
+        setErrorMsg(`No service records found for "${searchQuery}". Please verify your 10-digit registered mobile number.`);
       }
     } catch (e) {
       setErrorMsg("Failed to connect to service server. Please try again.");
@@ -110,6 +113,7 @@ export default function ServiceTrackerPage() {
         const created = await res.json();
         setNewTicketCreated(created);
         setTicket(created);
+        setTicketsList([created]);
       }
     } catch (e) {
       console.error("Create request error:", e);
@@ -149,7 +153,7 @@ export default function ServiceTrackerPage() {
             Track Laptop & PC Repair Status
           </h1>
           <p className="text-sm text-slate-600 mt-2">
-            Enter your Service Ticket ID or Registered Mobile Number to check real-time diagnosis, parts updates, and pickup availability.
+            Enter your Registered Mobile Number to check real-time diagnosis, parts updates, and pickup availability without needing complex ticket numbers.
           </p>
         </div>
 
@@ -159,8 +163,8 @@ export default function ServiceTrackerPage() {
             <div className="relative flex-1">
               <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
               <input
-                type="text"
-                placeholder="Enter Ticket ID (e.g. JC-SRV-1001) or Phone"
+                type="tel"
+                placeholder="Enter 10-digit Mobile Number (e.g. 9876543210)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-11 pr-4 py-3.5 text-sm bg-slate-50 border border-slate-300 rounded-2xl outline-none focus:border-blue-600 focus:bg-white font-medium transition-all"
@@ -169,18 +173,19 @@ export default function ServiceTrackerPage() {
             <button
               type="submit"
               disabled={loading}
-              className="py-3.5 px-8 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="py-3.5 px-8 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
             >
-              {loading ? "Searching..." : "Track Status"}
+              {loading ? "Searching..." : "Track by Phone"}
             </button>
           </form>
 
           {/* Quick Demo Search Hint */}
           <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Demo tickets: <button type="button" onClick={() => setSearchQuery("JC-SRV-1001")} className="font-mono text-blue-600 hover:underline">JC-SRV-1001</button> or <button type="button" onClick={() => setSearchQuery("9876543210")} className="font-mono text-blue-600 hover:underline">9876543210</button></span>
+            <span>Demo lookup: <button type="button" onClick={() => setSearchQuery("9876543210")} className="font-mono text-blue-600 font-bold hover:underline">9876543210</button> or <button type="button" onClick={() => setSearchQuery("8805607908")} className="font-mono text-blue-600 font-bold hover:underline">8805607908</button></span>
             <button
+              type="button"
               onClick={() => setIsFormOpen(!isFormOpen)}
-              className="text-emerald-600 font-bold hover:underline flex items-center gap-1"
+              className="text-emerald-600 font-bold hover:underline flex items-center gap-1 cursor-pointer"
             >
               <PlusCircle className="w-3.5 h-3.5" />
               Book New Repair
@@ -195,6 +200,27 @@ export default function ServiceTrackerPage() {
           )}
         </div>
 
+        {/* Multi-Ticket Switcher (If multiple devices belong to same phone number) */}
+        {ticketsList.length > 1 && (
+          <div className="max-w-5xl mx-auto mb-6 bg-blue-50/80 p-4 rounded-2xl border border-blue-200 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold text-blue-900 mr-2">Registered Devices for {searchQuery}:</span>
+            {ticketsList.map((t, idx) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTicket(t)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  ticket?.id === t.id
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+                }`}
+              >
+                {t.deviceType} ({t.brand} {t.model}) • {t.status}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Live Ticket Details & Visual Timeline */}
         {ticket && (
           <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl space-y-8 animate-in fade-in duration-300">
@@ -203,7 +229,7 @@ export default function ServiceTrackerPage() {
               <div>
                 <div className="flex items-center gap-3">
                   <span className="text-xl sm:text-2xl font-mono font-black text-slate-900">
-                    {ticket.ticketId}
+                    Phone: {ticket.phone}
                   </span>
                   <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
                     ticket.status === "Ready for Delivery" || ticket.status === "Completed"

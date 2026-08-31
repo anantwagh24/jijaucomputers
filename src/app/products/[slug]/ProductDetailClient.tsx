@@ -22,7 +22,19 @@ import {
   Zap,
   Info,
   CheckCircle2,
+  Play,
+  Video,
+  ExternalLink,
 } from "lucide-react";
+
+function getYouTubeEmbedUrl(url?: string | null): string | null {
+  if (!url) return null;
+  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  if (ytMatch && ytMatch[1]) {
+    return `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?autoplay=0&rel=0`;
+  }
+  return null;
+}
 
 export default function ProductDetailClient({
   product,
@@ -37,7 +49,7 @@ export default function ProductDetailClient({
   const [selectedImgIndex, setSelectedImgIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  const [activeTab, setActiveTab] = useState<"specs" | "desc">("specs");
+  const [activeTab, setActiveTab] = useState<"specs" | "desc" | "video">("specs");
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [quoteFormData, setQuoteFormData] = useState({
     name: "",
@@ -360,6 +372,19 @@ export default function ProductDetailClient({
           >
             Product Overview & Description
           </button>
+          {product.videoUrl && (
+            <button
+              onClick={() => setActiveTab("video")}
+              className={`pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-1.5 ${
+                activeTab === "video"
+                  ? "border-rose-600 text-rose-600"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <Play className="w-3.5 h-3.5 fill-rose-600 text-rose-600" />
+              <span>Video Review / Reel</span>
+            </button>
+          )}
         </div>
 
         {activeTab === "specs" && (
@@ -395,6 +420,49 @@ export default function ProductDetailClient({
         {activeTab === "desc" && (
           <div className="prose prose-sm max-w-none text-xs text-slate-700 leading-relaxed space-y-4">
             <p>{product.description}</p>
+          </div>
+        )}
+
+        {activeTab === "video" && product.videoUrl && (
+          <div>
+            {getYouTubeEmbedUrl(product.videoUrl) ? (
+              <div className="space-y-4">
+                <div className="relative w-full aspect-video rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-black">
+                  <iframe
+                    src={getYouTubeEmbedUrl(product.videoUrl)!}
+                    title={product.name}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 text-center font-medium">
+                  Official hands-on demo and performance review for {product.name}
+                </p>
+              </div>
+            ) : (
+              <div className="p-8 rounded-3xl bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 border border-pink-200 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-pink-500/20">
+                  <Video className="w-8 h-8" />
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-900 text-lg">Watch Hands-on Review & Unboxing</h4>
+                  <p className="text-xs text-slate-600 max-w-md mt-1 font-medium">
+                    Check out live unboxing, gaming performance, and benchmark tests for <span className="font-bold text-slate-900">{product.name}</span> on our official channel.
+                  </p>
+                </div>
+                <a
+                  href={product.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:opacity-90 text-white font-bold text-xs shadow-lg transition-all hover:scale-105"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                  <span>Watch Video / Instagram Reel</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            )}
           </div>
         )}
       </div>
