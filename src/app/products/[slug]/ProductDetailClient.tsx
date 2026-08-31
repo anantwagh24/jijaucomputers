@@ -25,13 +25,15 @@ import {
   Play,
   Video,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 function getYouTubeEmbedUrl(url?: string | null): string | null {
   if (!url) return null;
-  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|watch\?.+&v=))([\w-]{11})/);
   if (ytMatch && ytMatch[1]) {
-    return `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?autoplay=0&rel=0`;
+    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0`;
   }
   return null;
 }
@@ -48,6 +50,7 @@ export default function ProductDetailClient({
 
   const [selectedMedia, setSelectedMedia] = useState<number | string>(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [activeTabVideoIndex, setActiveTabVideoIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<"specs" | "desc" | "video">("specs");
@@ -62,6 +65,10 @@ export default function ProductDetailClient({
   });
   const [submittingQuote, setSubmittingQuote] = useState(false);
   const [quoteSubmitted, setQuoteSubmitted] = useState(false);
+
+  // Swipe Gesture Handling
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const price = product.salePrice ?? product.price;
   const originalPrice = product.price;
@@ -104,6 +111,43 @@ export default function ProductDetailClient({
     }, sliderSeconds * 1000);
     return () => clearInterval(timer);
   }, [selectedMedia, isPaused, images.length, sliderSeconds]);
+
+  const handlePrevSlide = () => {
+    if (typeof selectedMedia === "number") {
+      setSelectedMedia((prev) => (typeof prev === "number" ? (prev - 1 + images.length) % images.length : 0));
+    } else {
+      setSelectedMedia(images.length - 1);
+    }
+  };
+
+  const handleNextSlide = () => {
+    if (typeof selectedMedia === "number") {
+      setSelectedMedia((prev) => (typeof prev === "number" ? (prev + 1) % images.length : 0));
+    } else {
+      setSelectedMedia(0);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const minSwipeDistance = 40;
+    if (distance > minSwipeDistance) {
+      handleNextSlide();
+    } else if (distance < -minSwipeDistance) {
+      handlePrevSlide();
+    }
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
 
   let specsMap: Record<string, string> = {};
   if (product.specsJson) {
@@ -207,11 +251,16 @@ export default function ProductDetailClient({
               )}
             </div>
           ) : (
-            <div className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-100 p-8 flex items-center justify-center overflow-hidden group">
+            <div 
+              className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-100 p-8 flex items-center justify-center overflow-hidden group select-none"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               <img
                 src={images[typeof selectedMedia === "number" ? selectedMedia : 0]?.url || images[0].url}
                 alt={product.name}
-                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 pointer-events-none"
               />
               {discount > 0 && (
                 <span className="absolute top-4 left-4 tech-badge bg-rose-600 text-white shadow-md">
@@ -219,9 +268,37 @@ export default function ProductDetailClient({
                 </span>
               )}
 
+              {/* Left & Right Swipe Arrow Buttons */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePrevSlide();
+                    }}
+                    aria-label="Previous Image"
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white text-slate-800 shadow-md border border-slate-200/80 flex items-center justify-center transition-all z-20 hover:scale-110 active:scale-90 cursor-pointer"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-slate-700" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNextSlide();
+                    }}
+                    aria-label="Next Image"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white text-slate-800 shadow-md border border-slate-200/80 flex items-center justify-center transition-all z-20 hover:scale-110 active:scale-90 cursor-pointer"
+                  >
+                    <ChevronRight className="w-5 h-5 text-slate-700" />
+                  </button>
+                </>
+              )}
+
               {/* Slider Dots Indicator on Mobile */}
               {images.length > 1 && (
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-slate-900/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-slate-800">
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-slate-900/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-slate-800 z-20">
                   {images.map((_, dotIdx) => (
                     <button
                       key={dotIdx}
@@ -523,44 +600,70 @@ export default function ProductDetailClient({
           </div>
         )}
 
-        {activeTab === "video" && product.videoUrl && (
-          <div>
-            {getYouTubeEmbedUrl(product.videoUrl) ? (
-              <div className="space-y-4">
-                <div className="relative w-full aspect-video rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-black">
-                  <iframe
-                    src={getYouTubeEmbedUrl(product.videoUrl)!}
-                    title={product.name}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full"
-                  />
-                </div>
-                <p className="text-xs text-slate-500 text-center font-medium">
-                  Official hands-on demo and performance review for {product.name}
-                </p>
+        {activeTab === "video" && videoList.length > 0 && (
+          <div className="space-y-6">
+            {/* Multi-Video Selector Pills */}
+            {videoList.length > 1 && (
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                {videoList.map((vid: any, vIdx: number) => (
+                  <button
+                    key={vid.id}
+                    type="button"
+                    onClick={() => setActiveTabVideoIndex(vIdx)}
+                    className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ${
+                      activeTabVideoIndex === vIdx
+                        ? "bg-rose-600 text-white shadow-md shadow-rose-600/20"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>{vid.title}</span>
+                  </button>
+                ))}
               </div>
-            ) : (
-              <div className="p-8 rounded-3xl bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 border border-pink-200 flex flex-col items-center justify-center text-center space-y-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-pink-500/20">
-                  <Video className="w-8 h-8" />
-                </div>
-                <div>
-                  <h4 className="font-black text-slate-900 text-lg">Watch Hands-on Review & Unboxing</h4>
-                  <p className="text-xs text-slate-600 max-w-md mt-1 font-medium">
-                    Check out live unboxing, gaming performance, and benchmark tests for <span className="font-bold text-slate-900">{product.name}</span> on our official channel.
-                  </p>
-                </div>
-                <a
-                  href={product.videoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:opacity-90 text-white font-bold text-xs shadow-lg transition-all hover:scale-105"
-                >
-                  <Play className="w-4 h-4 fill-white" />
-                  <span>Watch Video / Instagram Reel</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+            )}
+
+            {/* Active Selected Tab Video */}
+            {videoList[activeTabVideoIndex] && (
+              <div>
+                {videoList[activeTabVideoIndex].embedUrl ? (
+                  <div className="space-y-4">
+                    <div className="relative w-full aspect-video rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-black">
+                      <iframe
+                        src={videoList[activeTabVideoIndex].embedUrl!}
+                        title={videoList[activeTabVideoIndex].title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full"
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500 text-center font-medium">
+                      Official hands-on demo and performance review for {product.name}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-8 rounded-3xl bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 border border-pink-200 flex flex-col items-center justify-center text-center space-y-4">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-pink-500/20">
+                      <Video className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-slate-900 text-lg">Watch {videoList[activeTabVideoIndex].title}</h4>
+                      <p className="text-xs text-slate-600 max-w-md mt-1 font-medium">
+                        Check out live unboxing, gaming performance, and benchmark tests for <span className="font-bold text-slate-900">{product.name}</span> on our official channel.
+                      </p>
+                    </div>
+                    <a
+                      href={videoList[activeTabVideoIndex].url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:opacity-90 text-white font-bold text-xs shadow-lg transition-all hover:scale-105"
+                    >
+                      <Play className="w-4 h-4 fill-white" />
+                      <span>Open in Instagram / Reel</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                )}
               </div>
             )}
           </div>
