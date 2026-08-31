@@ -33,6 +33,15 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  allowedDevOrigins: [
+    "upset-cobras-draw.loca.lt",
+    "*.loca.lt",
+    "*.ngrok-free.app",
+    "*.ngrok.io",
+    "*.trycloudflare.com",
+    "localhost",
+    "127.0.0.1",
+  ],
   images: {
     remotePatterns: [
       {
