@@ -39,35 +39,37 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
     const cleanPhone = (data.phone || "").replace(/[^0-9]/g, "");
-    const trackingCode = cleanPhone ? cleanPhone : generateTicketId("JC-SRV");
 
-    // Check for existing active service ticket for this phone number to avoid duplicates
-    if (cleanPhone.length >= 10) {
-      const existingActive = await prisma.serviceRequest.findFirst({
-        where: {
-          phone: { contains: cleanPhone.slice(-10) },
-          status: { notIn: ["Completed", "Delivered", "Cancelled"] },
+    if (!cleanPhone || cleanPhone.length < 10) {
+      return NextResponse.json(
+        { error: "Please enter a valid 10-digit mobile number." },
+        { status: 400 }
+      );
+    }
+
+    const trackingPhone = cleanPhone.slice(-10);
+
+    // Block duplicate active registrations for the same mobile number
+    const existingActive = await prisma.serviceRequest.findFirst({
+      where: {
+        phone: { contains: trackingPhone },
+        status: { notIn: ["Completed", "Delivered", "Cancelled"] },
+      },
+    });
+
+    if (existingActive) {
+      return NextResponse.json(
+        {
+          error: `An active service ticket (#${trackingPhone}) is already open for this mobile number with status "${existingActive.status}". Duplicate registration is not allowed. You can track this device status directly using your phone number.`,
+          existingTicket: existingActive,
         },
-      });
-
-      if (existingActive) {
-        // Append update to active case instead of creating duplicate fragmented tickets
-        const updated = await prisma.serviceRequest.update({
-          where: { id: existingActive.id },
-          data: {
-            issueDesc: `${existingActive.issueDesc}\n[Recent Request]: Device: ${data.deviceType} ${data.brand || ""} ${data.model || ""}. Issue: ${data.issueDesc}`,
-            deviceType: `${existingActive.deviceType} & ${data.deviceType}`,
-            brand: data.brand || existingActive.brand,
-            model: data.model || existingActive.model,
-          },
-        });
-        return NextResponse.json({ ...updated, isExistingUpdated: true });
-      }
+        { status: 400 }
+      );
     }
 
     const newRequest = await prisma.serviceRequest.create({
       data: {
-        ticketId: trackingCode,
+        ticketId: trackingPhone, // Ticket number is strictly the mobile number
         customerName: data.customerName,
         phone: data.phone,
         email: data.email,

@@ -72,6 +72,7 @@ export default function ServiceTrackerPage() {
   });
   const [newTicketCreated, setNewTicketCreated] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
+  const [formErrorMsg, setFormErrorMsg] = useState("");
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,20 +104,31 @@ export default function ServiceTrackerPage() {
     e.preventDefault();
     try {
       setCreating(true);
+      setFormErrorMsg("");
       const res = await fetch("/api/service-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        const created = await res.json();
-        setNewTicketCreated(created);
-        setTicket(created);
-        setTicketsList([created]);
+        setNewTicketCreated(data);
+        setTicket(data);
+        setTicketsList([data]);
+        setSearchQuery(data.phone || data.ticketId);
+      } else {
+        setFormErrorMsg(data.error || "Duplicate registration prevented: An active ticket already exists for this mobile number.");
+        if (data.existingTicket) {
+          setTicket(data.existingTicket);
+          setTicketsList([data.existingTicket]);
+          setSearchQuery(data.existingTicket.phone);
+        }
       }
     } catch (e) {
       console.error("Create request error:", e);
+      setFormErrorMsg("Unable to register service request. Please try again.");
     } finally {
       setCreating(false);
     }
@@ -392,16 +404,40 @@ export default function ServiceTrackerPage() {
               Book a Repair / Service Drop-off
             </h3>
             <p className="text-xs text-slate-500 mb-6">
-              Generate an instant Service Ticket ID before visiting our Shivajinagar service center.
+              Register your device service using your 10-digit mobile number for instant repair tracking.
             </p>
+
+            {formErrorMsg && (
+              <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-start gap-2.5">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold">{formErrorMsg}</p>
+                  <p className="text-[11px] text-amber-700">
+                    Your existing device timeline is displayed above. If you need assistance with an additional device, please contact our technician desk.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {newTicketCreated ? (
               <div className="p-6 text-center bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-800 space-y-2">
                 <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-                <h4 className="font-bold text-lg">Service Ticket #{newTicketCreated.ticketId} Created!</h4>
+                <h4 className="font-bold text-lg">Service Ticket #{newTicketCreated.ticketId} Registered!</h4>
                 <p className="text-xs">
-                  Please bring your device to Jijau Computers. You can track status anytime using ticket ID <span className="font-bold">{newTicketCreated.ticketId}</span>.
+                  Your repair has been logged under Mobile Number <span className="font-mono font-bold text-emerald-900">{newTicketCreated.phone || newTicketCreated.ticketId}</span>. You can track real-time diagnosis updates anytime using this number.
                 </p>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewTicketCreated(null);
+                      setIsFormOpen(false);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+                  >
+                    View Status Above
+                  </button>
+                </div>
               </div>
             ) : (
               <form onSubmit={handleCreateRequest} className="space-y-4 text-xs">
