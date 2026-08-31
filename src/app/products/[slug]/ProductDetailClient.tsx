@@ -46,7 +46,7 @@ export default function ProductDetailClient({
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { settings } = useSettings();
 
-  const [selectedImgIndex, setSelectedImgIndex] = useState(0);
+  const [selectedMedia, setSelectedMedia] = useState<number | "video">(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<"specs" | "desc" | "video">("specs");
@@ -59,23 +59,17 @@ export default function ProductDetailClient({
     quantity: "1",
     message: "",
   });
+  const [submittingQuote, setSubmittingQuote] = useState(false);
   const [quoteSubmitted, setQuoteSubmitted] = useState(false);
 
   const price = product.salePrice ?? product.price;
   const originalPrice = product.price;
-  const discount = calculateDiscount(originalPrice, product.salePrice ?? 0);
+  const discount = calculateDiscount(originalPrice, price);
   const inWish = isInWishlist(product.id);
 
-  const images = product.images?.length
+  const images = product.images && product.images.length > 0
     ? product.images
-    : [
-        {
-          id: "1",
-          url: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=800&auto=format&fit=crop&q=80",
-          isPrimary: true,
-          order: 0,
-        },
-      ];
+    : [{ id: "1", url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800", isPrimary: true, order: 0, productId: product.id }];
 
   let specsMap: Record<string, string> = {};
   if (product.specsJson) {
@@ -88,18 +82,13 @@ export default function ProductDetailClient({
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
-    setIsCartOpen(true);
     setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    setTimeout(() => setAdded(false), 1500);
   };
 
   const handleBuyNow = () => {
     addToCart(product, quantity);
-    if (typeof window !== "undefined") {
-      window.location.href = "/checkout";
-    } else {
-      router.push("/checkout");
-    }
+    window.location.href = "/checkout";
   };
 
   const handleWhatsApp = () => {
@@ -114,28 +103,28 @@ export default function ProductDetailClient({
   const handleQuoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setSubmittingQuote(true);
       const res = await fetch("/api/quotations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customerName: quoteFormData.name,
-          phone: quoteFormData.phone,
-          email: quoteFormData.email,
-          companyName: quoteFormData.company,
-          type: "Product Quote",
-          itemsSummary: `${product.name} (Qty: ${quoteFormData.quantity})`,
-          message: quoteFormData.message,
+          ...quoteFormData,
+          productId: product.id,
+          productName: product.name,
         }),
       });
+
       if (res.ok) {
         setQuoteSubmitted(true);
         setTimeout(() => {
           setIsQuoteModalOpen(false);
           setQuoteSubmitted(false);
+          setSubmittingQuote(false);
         }, 2000);
       }
     } catch (e) {
       console.error(e);
+      setSubmittingQuote(false);
     }
   };
 
@@ -143,32 +132,63 @@ export default function ProductDetailClient({
     <div>
       {/* 2-Column Product Showcase */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border border-slate-200 shadow-sm">
-        {/* Left Column: Image Gallery */}
+        {/* Left Column: Image & Video Gallery (Flipkart Style Media Stack) */}
         <div className="lg:col-span-6 space-y-4">
-          {/* Main Selected Image */}
-          <div className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-100 p-8 flex items-center justify-center overflow-hidden group">
-            <img
-              src={images[selectedImgIndex]?.url || images[0].url}
-              alt={product.name}
-              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-            />
-            {discount > 0 && (
-              <span className="absolute top-4 left-4 tech-badge bg-rose-600 text-white shadow-md">
-                {discount}% OFF
-              </span>
-            )}
-          </div>
+          {/* Main Selected Media Viewport */}
+          {selectedMedia === "video" && product.videoUrl ? (
+            <div className="relative aspect-square rounded-2xl bg-black border border-slate-900 overflow-hidden shadow-inner flex items-center justify-center">
+              {getYouTubeEmbedUrl(product.videoUrl) ? (
+                <iframe
+                  src={getYouTubeEmbedUrl(product.videoUrl)!}
+                  title={product.name}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              ) : (
+                <div className="p-6 text-center text-white space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center mx-auto shadow-lg">
+                    <Play className="w-6 h-6 fill-white ml-1" />
+                  </div>
+                  <p className="text-sm font-bold">Watch Video Review & Unboxing</p>
+                  <a
+                    href={product.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md"
+                  >
+                    <span>Open Reel / Video</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-100 p-8 flex items-center justify-center overflow-hidden group">
+              <img
+                src={images[typeof selectedMedia === "number" ? selectedMedia : 0]?.url || images[0].url}
+                alt={product.name}
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+              />
+              {discount > 0 && (
+                <span className="absolute top-4 left-4 tech-badge bg-rose-600 text-white shadow-md">
+                  {discount}% OFF
+                </span>
+              )}
+            </div>
+          )}
 
-          {/* Thumbnails */}
-          {images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+          {/* Flipkart Style Thumbnail Strip (Images + Video Play Thumbnail) */}
+          {(images.length > 1 || product.videoUrl) && (
+            <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-1">
               {images.map((img, i) => (
                 <button
                   key={img.id || i}
-                  onClick={() => setSelectedImgIndex(i)}
-                  className={`w-20 h-20 rounded-xl bg-slate-50 border-2 p-2 shrink-0 transition-all ${
-                    selectedImgIndex === i
-                      ? "border-blue-600 ring-2 ring-blue-100"
+                  type="button"
+                  onClick={() => setSelectedMedia(i)}
+                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-slate-50 border-2 p-1.5 shrink-0 transition-all cursor-pointer ${
+                    selectedMedia === i
+                      ? "border-blue-600 ring-2 ring-blue-100 shadow-sm"
                       : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
@@ -179,6 +199,26 @@ export default function ProductDetailClient({
                   />
                 </button>
               ))}
+
+              {/* Video Thumbnail (Flipkart style) */}
+              {product.videoUrl && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedMedia("video")}
+                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-slate-900 border-2 p-1.5 shrink-0 transition-all flex flex-col items-center justify-center cursor-pointer overflow-hidden group ${
+                    selectedMedia === "video"
+                      ? "border-rose-600 ring-2 ring-rose-100 shadow-md"
+                      : "border-slate-700 hover:border-rose-500"
+                  }`}
+                >
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                    <Play className="w-3.5 h-3.5 fill-white ml-0.5" />
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] font-black text-white mt-1 uppercase tracking-wider">
+                    Video
+                  </span>
+                </button>
+              )}
             </div>
           )}
         </div>

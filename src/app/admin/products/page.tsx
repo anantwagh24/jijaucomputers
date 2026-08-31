@@ -16,6 +16,7 @@ import {
   Tv,
   Cpu,
   Layers,
+  Upload,
   Image as ImageIcon,
 } from "lucide-react";
 
@@ -43,6 +44,7 @@ export default function AdminProductsPage() {
     shortDesc: "",
     description: "",
     imageUrl: "",
+    images: [] as string[],
     specsJson: "",
     videoUrl: "",
     isFeatured: false,
@@ -81,6 +83,8 @@ export default function AdminProductsPage() {
     fetchData();
   }, []);
 
+  const [uploading, setUploading] = useState(false);
+
   const handleOpenCreate = () => {
     setEditingId(null);
     setFormData({
@@ -97,6 +101,7 @@ export default function AdminProductsPage() {
       shortDesc: "",
       description: "",
       imageUrl: "",
+      images: [] as string[],
       specsJson: "",
       videoUrl: "",
       isFeatured: false,
@@ -110,6 +115,10 @@ export default function AdminProductsPage() {
 
   const handleOpenEdit = (p: any) => {
     setEditingId(p.id);
+    const existingImages = p.images && p.images.length > 0 
+      ? p.images.map((img: any) => img.url) 
+      : (p.imageUrl ? [p.imageUrl] : []);
+
     setFormData({
       name: p.name,
       slug: p.slug,
@@ -123,7 +132,8 @@ export default function AdminProductsPage() {
       warranty: p.warranty || "1 Year Brand Warranty",
       shortDesc: p.shortDesc || "",
       description: p.description || "",
-      imageUrl: p.images?.[0]?.url || "",
+      imageUrl: existingImages[0] || "",
+      images: existingImages,
       specsJson: p.specsJson || "",
       videoUrl: p.videoUrl || "",
       isFeatured: p.isFeatured,
@@ -133,6 +143,47 @@ export default function AdminProductsPage() {
       isGamingDeal: p.isGamingDeal,
     });
     setModalOpen(true);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    try {
+      setUploading(true);
+      const form = new FormData();
+      for (let i = 0; i < e.target.files.length; i++) {
+        form.append("files", e.target.files[i]);
+      }
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (data.urls && Array.isArray(data.urls)) {
+        setFormData((prev: any) => {
+          const updated = [...(prev.images || []), ...data.urls];
+          return {
+            ...prev,
+            images: updated,
+            imageUrl: prev.imageUrl || updated[0],
+          };
+        });
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = (indexToRemove: number) => {
+    setFormData((prev: any) => {
+      const updated = prev.images.filter((_: any, i: number) => i !== indexToRemove);
+      return {
+        ...prev,
+        images: updated,
+        imageUrl: updated[0] || "",
+      };
+    });
   };
 
   const handleDelete = async (id: string) => {
@@ -149,9 +200,13 @@ export default function AdminProductsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const allImages = formData.images && formData.images.length > 0
+      ? formData.images
+      : (formData.imageUrl ? [formData.imageUrl] : []);
+
     const payload = {
       ...formData,
-      images: formData.imageUrl ? [formData.imageUrl] : [],
+      images: allImages,
     };
 
     try {
@@ -442,15 +497,87 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="font-bold text-slate-300 block mb-1">Primary Image URL</label>
-                <input
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
-                />
+              {/* Product Images Section (Multi-Image & Local Upload Support) */}
+              <div className="space-y-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-200 block text-xs flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-blue-400" />
+                    <span>Product Images Gallery (Local Folder & URLs)</span>
+                  </label>
+                  <span className="text-[10px] text-blue-400 font-mono">
+                    {formData.images?.length || 0} image(s) attached
+                  </span>
+                </div>
+
+                {/* Local File Upload Button */}
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <label className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all">
+                    <Upload className="w-4 h-4" />
+                    <span>{uploading ? "Uploading Images..." : "Upload from Device / Folder"}</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-[11px] text-slate-500">or enter image URL below</span>
+                </div>
+
+                {/* Direct Image URL input */}
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    placeholder="Paste external image URL (e.g. https://...)"
+                    className="flex-1 px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (formData.imageUrl && !formData.images?.includes(formData.imageUrl)) {
+                        setFormData({
+                          ...formData,
+                          images: [...(formData.images || []), formData.imageUrl],
+                        });
+                      }
+                    }}
+                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl"
+                  >
+                    Add URL
+                  </button>
+                </div>
+
+                {/* Attached Images Thumbnail Grid */}
+                {formData.images && formData.images.length > 0 && (
+                  <div className="flex flex-wrap gap-2.5 pt-2 border-t border-slate-800/80">
+                    {formData.images.map((img: string, idx: number) => (
+                      <div
+                        key={idx}
+                        className={`group relative w-16 h-16 rounded-xl bg-slate-950 border p-1 flex items-center justify-center overflow-hidden ${
+                          idx === 0 ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-800"
+                        }`}
+                      >
+                        <img src={img} alt={`Product ${idx}`} className="max-h-full max-w-full object-contain" />
+                        {idx === 0 && (
+                          <span className="absolute bottom-0 inset-x-0 bg-blue-600 text-white text-[8px] font-bold text-center py-0.5">
+                            Primary
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-rose-600/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>
