@@ -43,6 +43,7 @@ export interface ProductItem {
   isTrending: boolean;
   isGamingDeal: boolean;
   videoUrl?: string | null;
+  sliderSeconds?: number | null;
   specsJson?: string | null;
   categoryId: string;
   category?: {

@@ -47,6 +47,7 @@ export default function AdminProductsPage() {
     images: [] as string[],
     specsJson: "",
     videoUrl: "",
+    sliderSeconds: "5",
     isFeatured: false,
     isBestseller: false,
     isNewArrival: false,
@@ -104,6 +105,7 @@ export default function AdminProductsPage() {
       images: [] as string[],
       specsJson: "",
       videoUrl: "",
+      sliderSeconds: "5",
       isFeatured: false,
       isBestseller: false,
       isNewArrival: false,
@@ -136,6 +138,7 @@ export default function AdminProductsPage() {
       images: existingImages,
       specsJson: p.specsJson || "",
       videoUrl: p.videoUrl || "",
+      sliderSeconds: String(p.sliderSeconds || 5),
       isFeatured: p.isFeatured,
       isBestseller: p.isBestseller,
       isNewArrival: p.isNewArrival,
@@ -580,18 +583,42 @@ export default function AdminProductsPage() {
                 )}
               </div>
 
-              <div>
-                <label className="font-bold text-slate-300 block mb-1 flex items-center justify-between">
-                  <span>Product Video URL (YouTube / Instagram Reel)</span>
-                  <span className="text-[10px] text-rose-400 font-mono font-normal">Optional</span>
-                </label>
-                <input
-                  type="url"
-                  value={formData.videoUrl}
-                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                  placeholder="e.g. https://www.youtube.com/watch?v=... or https://instagram.com/reel/..."
-                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono text-xs"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1 flex items-center justify-between">
+                    <span>Auto-Slider Speed (Seconds)</span>
+                    <span className="text-[10px] text-blue-400 font-mono">Default: 5s</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={formData.sliderSeconds}
+                    onChange={(e) => setFormData({ ...formData, sliderSeconds: e.target.value })}
+                    placeholder="5"
+                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono text-xs"
+                  />
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Product image carousel switches slides automatically every {formData.sliderSeconds || 5} seconds.
+                  </span>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1 flex items-center justify-between">
+                    <span>Product Video URLs (YouTube & Reels)</span>
+                    <span className="text-[10px] text-rose-400 font-mono">Multi-Video Supported</span>
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={formData.videoUrl}
+                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                    placeholder="e.g. https://www.youtube.com/watch?v=...&#10;https://www.instagram.com/reel/..."
+                    className="w-full px-3.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono text-xs"
+                  />
+                  <span className="text-[10px] text-slate-500 mt-0.5 block">
+                    Add YouTube hands-on reviews and/or Instagram Reels (one link per line).
+                  </span>
+                </div>
               </div>
 
               <div>

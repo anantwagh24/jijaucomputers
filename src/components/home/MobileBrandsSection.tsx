@@ -134,16 +134,16 @@ export default function MobileBrandsSection({ products = [] }: { products?: Prod
 
       {/* 3. Interactive Mobile Models Drawer */}
       {selectedBrand && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
           <div
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm"
             onClick={() => setSelectedBrand(null)}
           />
-          <div className="relative bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col z-10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-5">
+          <div className="relative bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-2xl min-h-[65vh] sm:min-h-0 max-h-[90vh] flex flex-col z-10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-5">
             {/* Drawer Header */}
             <div className="p-4 sm:p-6 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black shadow-md">
                   <Smartphone className="w-5 h-5" />
                 </div>
                 <div>
@@ -159,27 +159,32 @@ export default function MobileBrandsSection({ products = [] }: { products?: Prod
               <button
                 type="button"
                 onClick={() => setSelectedBrand(null)}
-                className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white"
+                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Product List */}
-            <div className="p-4 sm:p-6 overflow-y-auto space-y-3 flex-1">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-3.5 flex-1 pb-24 sm:pb-6">
               {mobileProducts.length === 0 ? (
-                <div className="py-12 text-center text-slate-500 space-y-3">
-                  <Smartphone className="w-12 h-12 text-slate-300 mx-auto" />
-                  <p className="text-sm font-semibold">
-                    New {selectedBrand.name} units in transit!
-                  </p>
+                <div className="py-16 text-center text-slate-500 space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto">
+                    <Smartphone className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-base">New {selectedBrand.name} units in transit!</h4>
+                    <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                      Inquire directly with our store team for stock ETA and special pre-booking offers.
+                    </p>
+                  </div>
                   <a
                     href={`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(
                       `Hi Jijau Computers, I am looking for ${selectedBrand.name} smartphones. Can you share availability and prices?`
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all"
                   >
                     <MessageCircle className="w-4 h-4" />
                     <span>Inquire via WhatsApp</span>
@@ -191,46 +196,56 @@ export default function MobileBrandsSection({ products = [] }: { products?: Prod
                   return (
                     <div
                       key={p.id}
-                      className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3.5 hover:bg-blue-50/50 hover:border-blue-200 transition-all"
+                      className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-blue-50/40 hover:border-blue-300 transition-all shadow-sm"
                     >
-                      {/* Product Thumbnail */}
-                      <div className="w-16 h-16 rounded-xl bg-white p-1 border border-slate-200 shrink-0 flex items-center justify-center">
-                        <img
-                          src={
-                            p.images?.[0]?.url ||
-                            "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=300"
-                          }
-                          alt={p.name}
-                          className="max-h-full max-w-full object-contain"
-                        />
-                      </div>
+                      {/* Thumbnail & Info */}
+                      <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                        <div className="w-20 h-20 rounded-xl bg-white p-2 border border-slate-200 shrink-0 flex items-center justify-center shadow-xs">
+                          <img
+                            src={
+                              p.images?.[0]?.url ||
+                              "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=300"
+                            }
+                            alt={p.name}
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        </div>
 
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <Link
-                          href={`/products/${p.slug}`}
-                          onClick={() => setSelectedBrand(null)}
-                          className="font-bold text-slate-900 text-xs sm:text-sm hover:text-blue-600 line-clamp-1 block"
-                        >
-                          {p.name}
-                        </Link>
-                        <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
-                          {p.shortDesc || "100% Original Indian Unit • Brand Warranty"}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="font-black text-slate-900 text-sm">
-                            {formatPrice(price)}
-                          </span>
-                          {p.salePrice && p.salePrice < p.price && (
-                            <span className="text-xs text-slate-400 line-through">
-                              {formatPrice(p.price)}
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                              In Stock
                             </span>
-                          )}
+                            <span className="text-[10px] text-slate-500 font-medium">
+                              {p.warranty || "1 Year Brand Warranty"}
+                            </span>
+                          </div>
+                          <Link
+                            href={`/products/${p.slug}`}
+                            onClick={() => setSelectedBrand(null)}
+                            className="font-black text-slate-900 text-sm hover:text-blue-600 line-clamp-1 block transition-colors"
+                          >
+                            {p.name}
+                          </Link>
+                          <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
+                            {p.shortDesc || "100% Original Indian Unit • Brand Warranty"}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="font-black text-slate-900 text-base">
+                              {formatPrice(price)}
+                            </span>
+                            {p.salePrice && p.salePrice < p.price && (
+                              <span className="text-xs text-slate-400 line-through">
+                                {formatPrice(p.price)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Quick Action */}
-                      <div className="flex flex-col gap-1.5 shrink-0">
+                      {/* Action Buttons */}
+                      <div className="flex sm:flex-col gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/80">
                         <button
                           type="button"
                           onClick={() => {
@@ -238,16 +253,16 @@ export default function MobileBrandsSection({ products = [] }: { products?: Prod
                             setIsCartOpen(true);
                             setSelectedBrand(null);
                           }}
-                          className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm cursor-pointer"
+                          className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all cursor-pointer text-center"
                         >
                           Add to Cart
                         </button>
                         <Link
                           href={`/products/${p.slug}`}
                           onClick={() => setSelectedBrand(null)}
-                          className="px-3 py-1 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-[10px] text-center"
+                          className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs text-center transition-colors"
                         >
-                          Details
+                          View Details
                         </Link>
                       </div>
                     </div>

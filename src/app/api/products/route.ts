@@ -115,6 +115,7 @@ export async function POST(req: Request) {
         isTrending: Boolean(data.isTrending),
         isGamingDeal: Boolean(data.isGamingDeal),
         videoUrl: data.videoUrl || null,
+        sliderSeconds: data.sliderSeconds ? parseInt(data.sliderSeconds) : 5,
         specsJson: data.specsJson || null,
         categoryId: data.categoryId,
         brandId: data.brandId || null,

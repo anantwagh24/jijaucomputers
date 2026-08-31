@@ -32,6 +32,7 @@ model WebsiteSetting {
   metaTitle       String   @default("Jijau Computers - Best Computer & Laptop Store in Pune")
   metaDescription String   @default("Shop high performance gaming PCs, laptops, components, CCTV, and get quick repair services at Jijau Computers.")
   metaKeywords    String   @default("computer store, gaming pc, laptops, pc repair, processors, graphics card, jijau computers")
+  sliderInterval  Int      @default(5) // Default auto-slider interval in seconds
   updatedAt       DateTime @updatedAt
 }
 
@@ -88,7 +89,8 @@ model Product {
   isNewArrival  Boolean        @default(false)
   isTrending    Boolean        @default(false)
   isGamingDeal  Boolean        @default(false)
-  videoUrl      String?        // YouTube or Instagram video link
+  videoUrl      String?        // Multiple URLs can be stored (comma/newline separated)
+  sliderSeconds Int?           @default(5) // Auto-slider time in seconds (default 5s)
   specsJson     String?        // JSON string of key-value specs
   categoryId    String
   category      Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)

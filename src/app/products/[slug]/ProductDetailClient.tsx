@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ProductItem } from "@/lib/types";
 import { useCart } from "@/context/CartContext";
@@ -46,7 +46,8 @@ export default function ProductDetailClient({
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { settings } = useSettings();
 
-  const [selectedMedia, setSelectedMedia] = useState<number | "video">(0);
+  const [selectedMedia, setSelectedMedia] = useState<number | string>(0);
+  const [isPaused, setIsPaused] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<"specs" | "desc" | "video">("specs");
@@ -70,6 +71,39 @@ export default function ProductDetailClient({
   const images = product.images && product.images.length > 0
     ? product.images
     : [{ id: "1", url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800", isPrimary: true, order: 0, productId: product.id }];
+
+  // Multi-Video List Parser (YouTube & Instagram Reel Links)
+  const videoList = useMemo(() => {
+    if (!product.videoUrl) return [];
+    const urls = product.videoUrl.split(/[\n,]+/).map((u) => u.trim()).filter(Boolean);
+    return urls.map((url, i) => {
+      const embed = getYouTubeEmbedUrl(url);
+      const isInsta = url.includes("instagram.com") || url.includes("instagr.am");
+      return {
+        id: `video-${i}`,
+        url,
+        title: embed ? `YouTube Demo ${urls.length > 1 ? `#${i + 1}` : ""}` : isInsta ? `Instagram Reel ${urls.length > 1 ? `#${i + 1}` : ""}` : `Video Review ${urls.length > 1 ? `#${i + 1}` : ""}`,
+        embedUrl: embed,
+        isInsta,
+      };
+    });
+  }, [product.videoUrl]);
+
+  // Auto-Slider Timer (Customizable by admin; default 5s; pauses on hover or video)
+  const sliderSeconds = (product as any).sliderSeconds || (settings as any)?.sliderInterval || 5;
+
+  useEffect(() => {
+    if (typeof selectedMedia !== "number" || isPaused || images.length <= 1) return;
+    const timer = setInterval(() => {
+      setSelectedMedia((prev) => {
+        if (typeof prev === "number") {
+          return (prev + 1) % images.length;
+        }
+        return 0;
+      });
+    }, sliderSeconds * 1000);
+    return () => clearInterval(timer);
+  }, [selectedMedia, isPaused, images.length, sliderSeconds]);
 
   let specsMap: Record<string, string> = {};
   if (product.specsJson) {
@@ -128,19 +162,27 @@ export default function ProductDetailClient({
     }
   };
 
+  const currentActiveVideo = typeof selectedMedia === "string" 
+    ? videoList.find((v: any) => v.id === selectedMedia) 
+    : null;
+
   return (
     <div>
       {/* 2-Column Product Showcase */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border border-slate-200 shadow-sm">
         {/* Left Column: Image & Video Gallery (Flipkart Style Media Stack) */}
-        <div className="lg:col-span-6 space-y-4">
+        <div 
+          className="lg:col-span-6 space-y-4"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
           {/* Main Selected Media Viewport */}
-          {selectedMedia === "video" && product.videoUrl ? (
+          {currentActiveVideo ? (
             <div className="relative aspect-square rounded-2xl bg-black border border-slate-900 overflow-hidden shadow-inner flex items-center justify-center">
-              {getYouTubeEmbedUrl(product.videoUrl) ? (
+              {currentActiveVideo.embedUrl ? (
                 <iframe
-                  src={getYouTubeEmbedUrl(product.videoUrl)!}
-                  title={product.name}
+                  src={currentActiveVideo.embedUrl}
+                  title={currentActiveVideo.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="w-full h-full"
@@ -150,14 +192,15 @@ export default function ProductDetailClient({
                   <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center mx-auto shadow-lg">
                     <Play className="w-6 h-6 fill-white ml-1" />
                   </div>
-                  <p className="text-sm font-bold">Watch Video Review & Unboxing</p>
+                  <h4 className="text-sm font-bold">{currentActiveVideo.title}</h4>
+                  <p className="text-xs text-slate-300">Watch hands-on performance test and unboxing</p>
                   <a
-                    href={product.videoUrl}
+                    href={currentActiveVideo.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md"
                   >
-                    <span>Open Reel / Video</span>
+                    <span>Open in Instagram / Reel</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 </div>
@@ -168,18 +211,34 @@ export default function ProductDetailClient({
               <img
                 src={images[typeof selectedMedia === "number" ? selectedMedia : 0]?.url || images[0].url}
                 alt={product.name}
-                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
               />
               {discount > 0 && (
                 <span className="absolute top-4 left-4 tech-badge bg-rose-600 text-white shadow-md">
                   {discount}% OFF
                 </span>
               )}
+
+              {/* Slider Dots Indicator on Mobile */}
+              {images.length > 1 && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-slate-900/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-slate-800">
+                  {images.map((_, dotIdx) => (
+                    <button
+                      key={dotIdx}
+                      type="button"
+                      onClick={() => setSelectedMedia(dotIdx)}
+                      className={`transition-all rounded-full ${
+                        selectedMedia === dotIdx ? "w-5 h-1.5 bg-blue-500" : "w-1.5 h-1.5 bg-slate-400"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Flipkart Style Thumbnail Strip (Images + Video Play Thumbnail) */}
-          {(images.length > 1 || product.videoUrl) && (
+          {/* Flipkart Style Thumbnail Strip (Images + Multi-Video Thumbnails) */}
+          {(images.length > 1 || videoList.length > 0) && (
             <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-1">
               {images.map((img, i) => (
                 <button
@@ -200,13 +259,14 @@ export default function ProductDetailClient({
                 </button>
               ))}
 
-              {/* Video Thumbnail (Flipkart style) */}
-              {product.videoUrl && (
+              {/* Multi-Video Thumbnails (Flipkart style) */}
+              {videoList.map((video: any) => (
                 <button
+                  key={video.id}
                   type="button"
-                  onClick={() => setSelectedMedia("video")}
+                  onClick={() => setSelectedMedia(video.id)}
                   className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-slate-900 border-2 p-1.5 shrink-0 transition-all flex flex-col items-center justify-center cursor-pointer overflow-hidden group ${
-                    selectedMedia === "video"
+                    selectedMedia === video.id
                       ? "border-rose-600 ring-2 ring-rose-100 shadow-md"
                       : "border-slate-700 hover:border-rose-500"
                   }`}
@@ -214,11 +274,11 @@ export default function ProductDetailClient({
                   <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
                     <Play className="w-3.5 h-3.5 fill-white ml-0.5" />
                   </div>
-                  <span className="text-[9px] sm:text-[10px] font-black text-white mt-1 uppercase tracking-wider">
-                    Video
+                  <span className="text-[8px] sm:text-[9px] font-black text-white mt-1 uppercase tracking-wider text-center line-clamp-1">
+                    {video.isInsta ? "Reel" : "Video"}
                   </span>
                 </button>
-              )}
+              ))}
             </div>
           )}
         </div>
