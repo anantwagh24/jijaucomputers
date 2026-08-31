@@ -191,7 +191,7 @@ get_header();
     <!-- PRODUCT DISPLAY GRID (Pre-rendered in PHP for 100% Reliability & Live Interactive Filtering) -->
     <div id="devices-products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <?php
-        $liveDb = jijau_get_full_store_database();
+        $liveDb = function_exists('jijau_get_full_store_database') ? jijau_get_full_store_database() : array();
         $products = $liveDb['products'] ?? array();
         $whatsapp = get_theme_mod('jijau_whatsapp', $liveDb['settings']['whatsapp'] ?? '918805607908');
 

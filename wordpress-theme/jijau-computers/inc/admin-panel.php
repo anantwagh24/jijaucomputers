@@ -63,14 +63,15 @@ if (!function_exists('jijau_ajax_save_all_admin_data')) {
     add_action('wp_ajax_jijau_save_all_admin_data', 'jijau_ajax_save_all_admin_data');
 }
 
-/**
- * Get Initial Database
- */
-function jijau_get_full_store_database() {
-    $db = get_option('jijau_full_store_database', null);
-    if (!empty($db) && is_array($db)) {
-        return $db;
-    }
+if (!function_exists('jijau_get_full_store_database')) {
+    /**
+     * Get Initial Database
+     */
+    function jijau_get_full_store_database() {
+        $db = get_option('jijau_full_store_database', null);
+        if (!empty($db) && is_array($db)) {
+            return $db;
+        }
 
     // Default Seed Data matching Next.js Localhost
     return array(
@@ -178,6 +179,7 @@ function jijau_get_full_store_database() {
             ),
         ),
     );
+}
 }
 
 if (!function_exists('jijau_render_full_admin_hub')) {

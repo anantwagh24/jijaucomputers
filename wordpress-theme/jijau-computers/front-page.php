@@ -185,7 +185,7 @@ $whatsapp = get_theme_mod('jijau_whatsapp', '918805607908');
             <!-- Direct PHP Database Render for 100% Reliability & Instant Sync with Admin Panel -->
             <div id="home-featured-products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <?php
-                $liveDb = jijau_get_full_store_database();
+                $liveDb = function_exists('jijau_get_full_store_database') ? jijau_get_full_store_database() : array();
                 $allProds = $liveDb['products'] ?? array();
                 $featuredProds = array_slice($allProds, 0, 8);
 

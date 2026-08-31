@@ -9,10 +9,8 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-// Load Jijau 1:1 Admin Management Hub only if not already provided by the core plugin
-if (!function_exists('jijau_render_full_admin_hub')) {
-    require_once get_template_directory() . '/inc/admin-panel.php';
-}
+// Load Jijau 1:1 Admin Management Hub
+require_once get_template_directory() . '/inc/admin-panel.php';
 
 if (!function_exists('jijau_computers_setup')) {
     function jijau_computers_setup() {
