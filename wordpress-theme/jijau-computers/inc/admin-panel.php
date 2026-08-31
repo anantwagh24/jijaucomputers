@@ -10,54 +10,58 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * Register Top-Level Jijau Admin Hub
- */
-function jijau_register_admin_menu() {
-    add_menu_page(
-        'Jijau Admin Hub',
-        'Jijau Admin Panel',
-        'manage_options',
-        'jijau-admin',
-        'jijau_render_full_admin_hub',
-        'dashicons-shield',
-        2
-    );
+if (!function_exists('jijau_register_admin_menu')) {
+    /**
+     * Register Top-Level Jijau Admin Hub
+     */
+    function jijau_register_admin_menu() {
+        add_menu_page(
+            'Jijau Admin Hub',
+            'Jijau Admin Panel',
+            'manage_options',
+            'jijau-admin',
+            'jijau_render_full_admin_hub',
+            'dashicons-shield',
+            2
+        );
+    }
+    add_action('admin_menu', 'jijau_register_admin_menu');
 }
-add_action('admin_menu', 'jijau_register_admin_menu');
 
-/**
- * AJAX Save Entire Store Database
- */
-function jijau_ajax_save_all_admin_data() {
-    check_ajax_referer('jijau_admin_nonce', 'nonce');
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error('Unauthorized');
+if (!function_exists('jijau_ajax_save_all_admin_data')) {
+    /**
+     * AJAX Save Entire Store Database
+     */
+    function jijau_ajax_save_all_admin_data() {
+        check_ajax_referer('jijau_admin_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+
+        $payload = isset($_POST['data']) ? json_decode(stripslashes($_POST['data']), true) : null;
+        if (!$payload) {
+            wp_send_json_error('Invalid JSON payload');
+        }
+
+        update_option('jijau_full_store_database', $payload);
+
+        // Sync store settings into theme mods
+        if (isset($payload['settings'])) {
+            $s = $payload['settings'];
+            update_option('jijau_store_settings_data', $s);
+            set_theme_mod('jijau_phone', $s['phone'] ?? '+91 88056 07908');
+            set_theme_mod('jijau_whatsapp', $s['whatsapp'] ?? '918805607908');
+            set_theme_mod('jijau_upi_id', $s['upiId'] ?? '8805607908@ybl');
+            set_theme_mod('jijau_upi_name', $s['upiName'] ?? 'Jijau Computers');
+            set_theme_mod('jijau_address', $s['address'] ?? '');
+            set_theme_mod('jijau_hours', $s['hours'] ?? '');
+            set_theme_mod('jijau_gstin', $s['gstin'] ?? '');
+        }
+
+        wp_send_json_success(array('message' => 'Database synchronized successfully!'));
     }
-
-    $payload = isset($_POST['data']) ? json_decode(stripslashes($_POST['data']), true) : null;
-    if (!$payload) {
-        wp_send_json_error('Invalid JSON payload');
-    }
-
-    update_option('jijau_full_store_database', $payload);
-
-    // Sync store settings into theme mods
-    if (isset($payload['settings'])) {
-        $s = $payload['settings'];
-        update_option('jijau_store_settings_data', $s);
-        set_theme_mod('jijau_phone', $s['phone'] ?? '+91 88056 07908');
-        set_theme_mod('jijau_whatsapp', $s['whatsapp'] ?? '918805607908');
-        set_theme_mod('jijau_upi_id', $s['upiId'] ?? '8805607908@ybl');
-        set_theme_mod('jijau_upi_name', $s['upiName'] ?? 'Jijau Computers');
-        set_theme_mod('jijau_address', $s['address'] ?? '');
-        set_theme_mod('jijau_hours', $s['hours'] ?? '');
-        set_theme_mod('jijau_gstin', $s['gstin'] ?? '');
-    }
-
-    wp_send_json_success(array('message' => 'Database synchronized successfully!'));
+    add_action('wp_ajax_jijau_save_all_admin_data', 'jijau_ajax_save_all_admin_data');
 }
-add_action('wp_ajax_jijau_save_all_admin_data', 'jijau_ajax_save_all_admin_data');
 
 /**
  * Get Initial Database
@@ -112,246 +116,6 @@ function jijau_get_full_store_database() {
             array('id' => 'br-9', 'name' => 'Epson', 'slug' => 'epson', 'isActive' => true, 'logoUrl' => '', 'category' => 'Printer'),
             array('id' => 'br-10', 'name' => 'Canon', 'slug' => 'canon', 'isActive' => true, 'logoUrl' => '', 'category' => 'Printer'),
             array('id' => 'br-11', 'name' => 'Brother', 'slug' => 'brother', 'isActive' => true, 'logoUrl' => '', 'category' => 'Printer'),
-            array('id' => 'br-12', 'name' => 'CP PLUS', 'slug' => 'cp-plus', 'isActive' => true, 'logoUrl' => '', 'category' => 'CCTV Camera'),
-            array('id' => 'br-13', 'name' => 'Hikvision', 'slug' => 'hikvision', 'isActive' => true, 'logoUrl' => '', 'category' => 'CCTV Camera'),
-            array('id' => 'br-14', 'name' => 'TP-Link', 'slug' => 'tp-link', 'isActive' => true, 'logoUrl' => '', 'category' => 'CCTV Camera, Networking'),
-            array('id' => 'br-15', 'name' => 'MSI', 'slug' => 'msi', 'isActive' => true, 'logoUrl' => '', 'category' => 'Laptop, GPU, Motherboard'),
-            array('id' => 'br-16', 'name' => 'Intel', 'slug' => 'intel', 'isActive' => true, 'logoUrl' => '', 'category' => 'Processors'),
-            array('id' => 'br-17', 'name' => 'AMD', 'slug' => 'amd', 'isActive' => true, 'logoUrl' => '', 'category' => 'Processors, GPU'),
-            array('id' => 'br-18', 'name' => 'Corsair', 'slug' => 'corsair', 'isActive' => true, 'logoUrl' => '', 'category' => 'RAM, PSU, Cooler, Case'),
-        ),
-        'products' => array(
-            array(
-                'id' => 'p-1',
-                'name' => 'Lenovo Legion Pro 5i Gen 9 Gaming Laptop',
-                'category' => 'Laptop',
-                'brand' => 'Lenovo',
-                'price' => 178000,
-                'salePrice' => 159990,
-                'stock' => 5,
-                'discount' => '10% OFF',
-                'specs' => 'Intel Core i9-14900HX, 32GB DDR5 RAM, 1TB Gen4 SSD, NVIDIA RTX 4070 8GB, 16-inch WQXGA 240Hz 500 nits HDR.',
-                'image' => 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => true,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-2',
-                'name' => 'ASUS ROG Strix G16 (2024) Gaming Laptop',
-                'category' => 'Laptop',
-                'brand' => 'ASUS',
-                'price' => 139990,
-                'salePrice' => 124990,
-                'stock' => 8,
-                'discount' => '11% OFF',
-                'specs' => '16-inch QHD+ 240Hz display, Intel Core i7-13650HX, 16GB DDR5, 1TB NVMe SSD, RTX 4060 8GB GDDR6.',
-                'image' => 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => true,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-3',
-                'name' => 'Dell G15 5530 Gaming Laptop (Intel i7-13650HX, RTX 4060)',
-                'category' => 'Laptop',
-                'brand' => 'Dell',
-                'price' => 125000,
-                'salePrice' => 109990,
-                'stock' => 6,
-                'discount' => '12% OFF',
-                'specs' => '15.6-inch FHD 165Hz sRGB 100%, 13th Gen Intel Core i7-13650HX, 16GB DDR5, 1TB SSD, RTX 4060 8GB.',
-                'image' => 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => true,
-                'isBestseller' => false,
-            ),
-            array(
-                'id' => 'p-4',
-                'name' => 'Dell Inspiron 15 3520 Core i5 12th Gen Laptop',
-                'category' => 'Laptop',
-                'brand' => 'Dell',
-                'price' => 58000,
-                'salePrice' => 48990,
-                'stock' => 12,
-                'discount' => '16% OFF',
-                'specs' => 'Intel Core i5-1235U, 16GB RAM, 512GB NVMe SSD, 15.6-inch 120Hz Display, Windows 11 + MS Office.',
-                'image' => 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => false,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-5',
-                'name' => 'HP Pavilion 15 (13th Gen Intel Core i5, 16GB RAM)',
-                'category' => 'Laptop',
-                'brand' => 'HP',
-                'price' => 74990,
-                'salePrice' => 66990,
-                'stock' => 8,
-                'discount' => '11% OFF',
-                'specs' => '13th Gen Intel Core i5-1335U, 16GB DDR4, 512GB SSD, 15.6-inch IPS FHD, B&O Audio.',
-                'image' => 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => false,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-6',
-                'name' => 'Apple MacBook Air 13.6-inch (M3 Chip, 16GB RAM, 512GB SSD)',
-                'category' => 'Laptop',
-                'brand' => 'Apple',
-                'price' => 134900,
-                'salePrice' => 122990,
-                'stock' => 5,
-                'discount' => '9% OFF',
-                'specs' => 'Apple M3 8-core CPU, 10-core GPU, 13.6-inch Liquid Retina Display, up to 18 hours battery life, Midnight.',
-                'image' => 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => true,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-7',
-                'name' => 'Apple iPhone 15 Pro 128GB (Natural Titanium)',
-                'category' => 'Mobile',
-                'brand' => 'Apple',
-                'price' => 134900,
-                'salePrice' => 124990,
-                'stock' => 7,
-                'discount' => '7% OFF',
-                'specs' => 'A17 Pro chip, Aerospace-grade titanium, 48MP Pro camera system, Action button, USB-C with USB 3 speeds.',
-                'image' => 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => true,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-8',
-                'name' => 'Samsung Galaxy S24 Ultra 5G (12GB RAM, 256GB, Titanium Gray)',
-                'category' => 'Mobile',
-                'brand' => 'Samsung',
-                'price' => 129999,
-                'salePrice' => 119999,
-                'stock' => 6,
-                'discount' => '8% OFF',
-                'specs' => 'Galaxy AI, Snapdragon 8 Gen 3 for Galaxy, 200MP Quad Telephoto Camera, Built-in S Pen, Titanium Frame.',
-                'image' => 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => true,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-9',
-                'name' => 'OnePlus 12 5G (16GB RAM, 512GB, Silky Black)',
-                'category' => 'Mobile',
-                'brand' => 'OnePlus',
-                'price' => 69999,
-                'salePrice' => 64999,
-                'stock' => 10,
-                'discount' => '7% OFF',
-                'specs' => 'Snapdragon 8 Gen 3, 4th Gen Hasselblad Camera for Mobile, 5400mAh Battery, 100W SUPERVOOC Charging.',
-                'image' => 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => true,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-10',
-                'name' => 'HP Smart Tank 580 All-in-One WiFi Color Printer',
-                'category' => 'Printer',
-                'brand' => 'HP',
-                'price' => 15999,
-                'salePrice' => 13490,
-                'stock' => 10,
-                'discount' => '16% OFF',
-                'specs' => 'Print, Scan, Copy with High-capacity ink tank. Up to 12,000 black or 6,000 color pages in the box.',
-                'image' => 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => false,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-11',
-                'name' => 'Epson EcoTank L3250 Wi-Fi All-in-One Ink Tank Printer',
-                'category' => 'Printer',
-                'brand' => 'Epson',
-                'price' => 17999,
-                'salePrice' => 14999,
-                'stock' => 14,
-                'discount' => '17% OFF',
-                'specs' => 'Print, Scan, Copy with Heat-Free Technology. Ultra-low cost per print (7 paise black, 18 paise color).',
-                'image' => 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => true,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-12',
-                'name' => 'Canon PIXMA MegaTank G3010 Wireless All-in-One Printer',
-                'category' => 'Printer',
-                'brand' => 'Canon',
-                'price' => 16500,
-                'salePrice' => 13990,
-                'discount' => '15% OFF',
-                'stock' => 11,
-                'specs' => 'High volume ink tank printing. Up to 6,000 pages black and 7,000 pages color per bottle set.',
-                'image' => 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => false,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-13',
-                'name' => 'Brother DCP-L2520D Auto Duplex Laser Printer',
-                'category' => 'Printer',
-                'brand' => 'Brother',
-                'price' => 19990,
-                'salePrice' => 17490,
-                'stock' => 8,
-                'discount' => '13% OFF',
-                'specs' => 'Monochrome Multi-Function Laser Printer with Automatic 2-Sided Printing, 30 ppm High Speed.',
-                'image' => 'https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => false,
-                'isBestseller' => false,
-            ),
-            array(
-                'id' => 'p-14',
-                'name' => 'CP PLUS 4MP Guard+ Smart Wi-Fi PT CCTV Camera',
-                'category' => 'CCTV Camera',
-                'brand' => 'CP PLUS',
-                'price' => 3800,
-                'salePrice' => 2499,
-                'stock' => 30,
-                'discount' => '34% OFF',
-                'specs' => '4MP 2K Resolution, 360° Pan & Tilt, Motion Tracking, Two-Way Audio, Full Color Night Vision, Alexa Support.',
-                'image' => 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => true,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-15',
-                'name' => 'Hikvision 4MP ColorVu Night Vision IP Dome Camera',
-                'category' => 'CCTV Camera',
-                'brand' => 'Hikvision',
-                'price' => 5200,
-                'salePrice' => 3890,
-                'stock' => 25,
-                'discount' => '25% OFF',
-                'specs' => '24/7 Full Color imaging with F1.0 advanced lenses, PoE support, IP67 Weatherproof rating for outdoor security.',
-                'image' => 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => true,
-                'isBestseller' => true,
-            ),
-            array(
-                'id' => 'p-16',
-                'name' => 'TP-Link Tapo C210 Pan/Tilt 2K Smart Home Security Wi-Fi Camera',
-                'category' => 'CCTV Camera',
-                'brand' => 'TP-Link',
-                'price' => 3299,
-                'salePrice' => 2299,
-                'stock' => 20,
-                'discount' => '30% OFF',
-                'specs' => '2K 3MP Ultra HD, 360° Horizontal Range, Advanced Night Vision up to 30 ft, Sound & Light Alarm.',
-                'image' => 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&auto=format&fit=crop&q=80',
-                'isFeatured' => false,
-                'isBestseller' => true,
-            ),
-        ),
-        'banners' => array(
-            array(
-                'id' => 'ban-1',
-                'title' => 'Jijau Custom Gaming Battlestations',
-                'subtitle' => 'Unleash Ultimate Power with Intel 14th Gen & RTX 4080 Super | Custom Liquid Cooling & Rig Tuning',
-                'tag' => 'FLAGSHIP PC BUILDS',
                 'imageUrl' => 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=1400&auto=format&fit=crop&q=80',
                 'ctaText' => 'Build Custom PC',
                 'ctaLink' => '/custom-pc',
@@ -416,13 +180,14 @@ function jijau_get_full_store_database() {
     );
 }
 
-/**
- * Render Complete 1:1 Pixel-Perfect Admin Dashboard (All 12 Tabs)
- */
-function jijau_render_full_admin_hub() {
-    $db = jijau_get_full_store_database();
-    $nonce = wp_create_nonce('jijau_admin_nonce');
-    ?>
+if (!function_exists('jijau_render_full_admin_hub')) {
+    /**
+     * Render Complete 1:1 Pixel-Perfect Admin Dashboard (All 12 Tabs)
+     */
+    function jijau_render_full_admin_hub() {
+        $db = jijau_get_full_store_database();
+        $nonce = wp_create_nonce('jijau_admin_nonce');
+        ?>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -1917,4 +1682,5 @@ function jijau_render_full_admin_hub() {
         });
     </script>
     <?php
+}
 }
