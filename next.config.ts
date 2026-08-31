@@ -34,6 +34,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: [
+    "9b1c8ecad53185.lhr.life",
+    "*.lhr.life",
     "upset-cobras-draw.loca.lt",
     "*.loca.lt",
     "*.ngrok-free.app",

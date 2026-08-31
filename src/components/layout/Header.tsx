@@ -48,11 +48,11 @@ export default function Header() {
 
   useEffect(() => {
     fetch("/api/categories")
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : []))
       .then((data) => {
         if (Array.isArray(data)) setCategories(data);
       })
-      .catch(console.error);
+      .catch((err) => console.warn("Categories fetch note:", err));
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
