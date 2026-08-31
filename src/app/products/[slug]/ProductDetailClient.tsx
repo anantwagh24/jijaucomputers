@@ -1,0 +1,511 @@
+"use client";
+
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ProductItem } from "@/lib/types";
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { useSettings } from "@/context/SettingsContext";
+import { formatPrice, calculateDiscount, generateWhatsAppUrl } from "@/lib/utils";
+import {
+  ShoppingCart,
+  Heart,
+  MessageCircle,
+  Check,
+  ShieldCheck,
+  Truck,
+  RotateCcw,
+  Plus,
+  Minus,
+  FileText,
+  Sparkles,
+  Zap,
+  Info,
+  CheckCircle2,
+} from "lucide-react";
+
+export default function ProductDetailClient({
+  product,
+}: {
+  product: ProductItem;
+}) {
+  const router = useRouter();
+  const { addToCart, setIsCartOpen } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const { settings } = useSettings();
+
+  const [selectedImgIndex, setSelectedImgIndex] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+  const [activeTab, setActiveTab] = useState<"specs" | "desc">("specs");
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [quoteFormData, setQuoteFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    company: "",
+    quantity: "1",
+    message: "",
+  });
+  const [quoteSubmitted, setQuoteSubmitted] = useState(false);
+
+  const price = product.salePrice ?? product.price;
+  const originalPrice = product.price;
+  const discount = calculateDiscount(originalPrice, product.salePrice ?? 0);
+  const inWish = isInWishlist(product.id);
+
+  const images = product.images?.length
+    ? product.images
+    : [
+        {
+          id: "1",
+          url: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=800&auto=format&fit=crop&q=80",
+          isPrimary: true,
+          order: 0,
+        },
+      ];
+
+  let specsMap: Record<string, string> = {};
+  if (product.specsJson) {
+    try {
+      specsMap = JSON.parse(product.specsJson);
+    } catch (e) {
+      console.error("Specs JSON parse error:", e);
+    }
+  }
+
+  const handleAddToCart = () => {
+    addToCart(product, quantity);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleBuyNow = () => {
+    addToCart(product, quantity);
+    router.push("/checkout");
+  };
+
+  const handleWhatsApp = () => {
+    const storeNumber = settings.whatsapp || "918805607908";
+    const productUrl = typeof window !== "undefined" ? window.location.href : "";
+    const msg = `*Product Inquiry: ${product.name}*\nPrice: ${formatPrice(
+      price
+    )}\nLink: ${productUrl}\n\nHi Jijau Computers team, is this currently in stock? Can you share the best offer / discounts available?`;
+    window.open(generateWhatsAppUrl(storeNumber, msg), "_blank");
+  };
+
+  const handleQuoteSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("/api/quotations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: quoteFormData.name,
+          phone: quoteFormData.phone,
+          email: quoteFormData.email,
+          companyName: quoteFormData.company,
+          type: "Product Quote",
+          itemsSummary: `${product.name} (Qty: ${quoteFormData.quantity})`,
+          message: quoteFormData.message,
+        }),
+      });
+      if (res.ok) {
+        setQuoteSubmitted(true);
+        setTimeout(() => {
+          setIsQuoteModalOpen(false);
+          setQuoteSubmitted(false);
+        }, 2000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  return (
+    <div>
+      {/* 2-Column Product Showcase */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border border-slate-200 shadow-sm">
+        {/* Left Column: Image Gallery */}
+        <div className="lg:col-span-6 space-y-4">
+          {/* Main Selected Image */}
+          <div className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-100 p-8 flex items-center justify-center overflow-hidden group">
+            <img
+              src={images[selectedImgIndex]?.url || images[0].url}
+              alt={product.name}
+              className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            />
+            {discount > 0 && (
+              <span className="absolute top-4 left-4 tech-badge bg-rose-600 text-white shadow-md">
+                {discount}% OFF
+              </span>
+            )}
+          </div>
+
+          {/* Thumbnails */}
+          {images.length > 1 && (
+            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+              {images.map((img, i) => (
+                <button
+                  key={img.id || i}
+                  onClick={() => setSelectedImgIndex(i)}
+                  className={`w-20 h-20 rounded-xl bg-slate-50 border-2 p-2 shrink-0 transition-all ${
+                    selectedImgIndex === i
+                      ? "border-blue-600 ring-2 ring-blue-100"
+                      : "border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <img
+                    src={img.url}
+                    alt=""
+                    className="w-full h-full object-contain"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Title, Price, WhatsApp & Cart CTA */}
+        <div className="lg:col-span-6 flex flex-col justify-between">
+          <div>
+            {/* Brand, Category & SKU */}
+            <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2">
+              <span>{product.brand?.name || "Jijau Certified"}</span>
+              <span>•</span>
+              <span>{product.category?.name}</span>
+              {product.sku && (
+                <>
+                  <span>•</span>
+                  <span className="text-slate-400 font-mono">SKU: {product.sku}</span>
+                </>
+              )}
+            </div>
+
+            {/* Product Title */}
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+              {product.name}
+            </h1>
+
+            {/* Price Row */}
+            <div className="flex items-baseline gap-3 my-4">
+              <span className="text-3xl sm:text-4xl font-black text-slate-900">
+                {formatPrice(price)}
+              </span>
+              {product.salePrice && product.salePrice < product.price && (
+                <>
+                  <span className="text-lg text-slate-400 line-through">
+                    {formatPrice(originalPrice)}
+                  </span>
+                  <span className="tech-badge bg-rose-600 text-white">
+                    Save {formatPrice(originalPrice - price)}
+                  </span>
+                </>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 mb-6">
+              *All prices are inclusive of GST with official manufacturer warranty invoice
+            </p>
+
+            {/* Short Description Highlights */}
+            {product.shortDesc && (
+              <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-100 mb-6 text-xs text-slate-700 leading-relaxed font-medium">
+                {product.shortDesc}
+              </div>
+            )}
+
+            {/* Stock & Warranty Badges */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div>
+                  <span className="font-bold text-slate-800 block">Availability</span>
+                  <span className="text-emerald-600 font-semibold">
+                    {product.inStock ? "Ready in Store / Dispatch" : "Currently Out of Stock"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
+                <div>
+                  <span className="font-bold text-slate-800 block">Warranty</span>
+                  <span className="text-slate-600 truncate block">
+                    {product.warranty || "1 Year Brand Warranty"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quantity Modifier */}
+            <div className="flex items-center gap-4 mb-6">
+              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Quantity:
+              </span>
+              <div className="flex items-center border border-slate-300 rounded-xl bg-slate-50 p-1">
+                <button
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="p-1.5 rounded-lg hover:bg-white text-slate-700 transition-colors"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="w-10 text-center font-bold text-sm text-slate-900">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity((q) => q + 1)}
+                  className="p-1.5 rounded-lg hover:bg-white text-slate-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Main CTAs */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={!product.inStock}
+                  className="py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50"
+                >
+                  {added ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Added to Cart!</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-4 h-4" />
+                      <span>Add to Cart</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handleBuyNow}
+                  disabled={!product.inStock}
+                  className="py-3.5 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50"
+                >
+                  <Zap className="w-4 h-4 fill-slate-950" />
+                  <span>Buy Now</span>
+                </button>
+              </div>
+
+              {/* WhatsApp Enquiry & Wishlist / Quote Trigger */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                <button
+                  onClick={handleWhatsApp}
+                  className="sm:col-span-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow flex items-center justify-center gap-2 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Enquire on WhatsApp</span>
+                </button>
+
+                <button
+                  onClick={() => setIsQuoteModalOpen(true)}
+                  className="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <span>Get Quote</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Reassurance Footer */}
+          <div className="pt-6 mt-6 border-t border-slate-100 flex flex-wrap items-center justify-between text-[11px] text-slate-500 gap-2">
+            <span className="flex items-center gap-1">
+              <Truck className="w-3.5 h-3.5 text-blue-600" /> Fast Delivery in Pune
+            </span>
+            <span className="flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> 100% Original Bill
+            </span>
+            <span className="flex items-center gap-1">
+              <RotateCcw className="w-3.5 h-3.5 text-amber-500" /> 7 Days Replacement
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs: Specifications & Description */}
+      <div className="mt-12 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+        <div className="flex border-b border-slate-200 gap-8 mb-6">
+          <button
+            onClick={() => setActiveTab("specs")}
+            className={`pb-3 text-sm font-bold border-b-2 transition-colors ${
+              activeTab === "specs"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            Technical Specifications
+          </button>
+          <button
+            onClick={() => setActiveTab("desc")}
+            className={`pb-3 text-sm font-bold border-b-2 transition-colors ${
+              activeTab === "desc"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            Product Overview & Description
+          </button>
+        </div>
+
+        {activeTab === "specs" && (
+          <div>
+            {Object.keys(specsMap).length > 0 ? (
+              <div className="overflow-hidden rounded-2xl border border-slate-200">
+                <table className="w-full text-xs text-left">
+                  <tbody>
+                    {Object.entries(specsMap).map(([key, val], idx) => (
+                      <tr
+                        key={key}
+                        className={idx % 2 === 0 ? "bg-slate-50" : "bg-white"}
+                      >
+                        <td className="py-3 px-4 font-bold text-slate-700 w-1/3 border-r border-slate-200">
+                          {key}
+                        </td>
+                        <td className="py-3 px-4 text-slate-800 font-medium">
+                          {val}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500">
+                Detailed technical specifications will be provided upon inquiry.
+              </p>
+            )}
+          </div>
+        )}
+
+        {activeTab === "desc" && (
+          <div className="prose prose-sm max-w-none text-xs text-slate-700 leading-relaxed space-y-4">
+            <p>{product.description}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Request Quote Modal */}
+      {isQuoteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={() => setIsQuoteModalOpen(false)}
+          />
+          <div className="relative bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl z-10 animate-in fade-in zoom-in-95">
+            <h3 className="text-lg font-black text-slate-900 mb-1">
+              Request Official Quotation
+            </h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Get an official quotation with GST breakup and corporate bulk pricing for <span className="font-bold text-slate-800">{product.name}</span>.
+            </p>
+
+            {quoteSubmitted ? (
+              <div className="p-6 text-center bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-800 space-y-2">
+                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
+                <h4 className="font-bold text-base">Quotation Request Received!</h4>
+                <p className="text-xs">
+                  Our sales team will contact you via WhatsApp / Email with the quotation within 1 hour.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleQuoteSubmit} className="space-y-3 text-xs">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={quoteFormData.name}
+                    onChange={(e) => setQuoteFormData({ ...quoteFormData, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                    placeholder="Enter your name"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Phone / WhatsApp *</label>
+                    <input
+                      type="tel"
+                      required
+                      value={quoteFormData.phone}
+                      onChange={(e) => setQuoteFormData({ ...quoteFormData, phone: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                      placeholder="e.g. 9876543210"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Email *</label>
+                    <input
+                      type="email"
+                      required
+                      value={quoteFormData.email}
+                      onChange={(e) => setQuoteFormData({ ...quoteFormData, email: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                      placeholder="name@company.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Quantity Needed</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={quoteFormData.quantity}
+                      onChange={(e) => setQuoteFormData({ ...quoteFormData, quantity: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Company / GSTIN</label>
+                    <input
+                      type="text"
+                      value={quoteFormData.company}
+                      onChange={(e) => setQuoteFormData({ ...quoteFormData, company: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                      placeholder="Optional"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Special Requirements / Notes</label>
+                  <textarea
+                    rows={2}
+                    value={quoteFormData.message}
+                    onChange={(e) => setQuoteFormData({ ...quoteFormData, message: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                    placeholder="Specific delivery timeline, onsite setup, etc."
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsQuoteModalOpen(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow"
+                  >
+                    Submit Request
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,48 @@
+/*
+Theme Name: Jijau Computers
+Theme URI: https://jijaucomputers.in
+Author: Jijau Computers Team
+Author URI: https://jijaucomputers.in
+Description: Premium Custom E-Commerce & Computer Store WordPress Theme with Interactive Custom PC Builder, 4-Stack Device Explorer (Laptop, Mobile, Printer, CCTV), Repair Request Tracker, and Instant WhatsApp / UPI Checkout.
+Version: 1.0.0
+License: GNU General Public License v2 or later
+Text Domain: jijau-computers
+Tags: e-commerce, custom-colors, custom-menu, featured-images, flexible-header, full-width-template, theme-options, translation-ready, woocommerce
+*/
+
+/* Base Theme Global Reset */
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary: #f59e0b;
+  --dark-bg: #0f172a;
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #f8fafc;
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
