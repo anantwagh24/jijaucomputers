@@ -87,8 +87,8 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
-      {/* 1. TOP ANNOUNCEMENT / CONTACT BAR */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-2 px-4 border-b border-slate-800">
+      {/* 1. TOP ANNOUNCEMENT / CONTACT BAR (Hidden on mobile for clean mobile-first view) */}
+      <div className="hidden md:block bg-slate-900 text-slate-300 text-xs py-2 px-4 border-b border-slate-800">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
           {/* Left: Store Timing & Location */}
           <div className="flex items-center space-x-4 overflow-x-auto no-scrollbar py-0.5">
