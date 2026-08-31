@@ -112,39 +112,29 @@ export default function LaptopBrandsSection({ products = [] }: { products?: Prod
         </Link>
       </div>
 
-      {/* 2. Horizontal Scrollable / Responsive Grid of Laptop Brands */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
+      {/* 2. Horizontal Scrollable Row of Laptop Brands (Matching Reference Image 3) */}
+      <div className="flex items-stretch overflow-x-auto no-scrollbar gap-3 sm:gap-4 pb-2 snap-x">
         {LAPTOP_BRANDS.map((b) => (
           <button
             key={b.id}
             type="button"
             onClick={() => setSelectedBrand(b)}
-            className="group relative flex flex-col items-center justify-between p-3 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-purple-300 transition-all duration-300 active:scale-95 text-center cursor-pointer overflow-hidden"
+            className="w-[135px] sm:w-[155px] shrink-0 snap-start group relative flex flex-col items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-purple-400 transition-all duration-300 active:scale-95 text-center cursor-pointer overflow-hidden"
           >
-            {/* Top Badge */}
-            {b.badge && (
-              <span className="absolute top-2 left-2 text-[9px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-                {b.badge}
-              </span>
-            )}
-
             {/* Laptop Hardware Image */}
             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl p-2 flex items-center justify-center transition-transform group-hover:scale-110">
               <img
                 src={b.imageUrl}
                 alt={b.name}
-                className="max-h-full max-w-full object-contain rounded-lg drop-shadow-md"
+                className="max-h-full max-w-full object-contain rounded-lg drop-shadow-sm"
               />
             </div>
 
-            {/* Title & Tagline */}
+            {/* Title */}
             <div className="mt-2 w-full">
               <h3 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-purple-600 transition-colors">
                 {b.name}
               </h3>
-              <span className="text-[10px] text-slate-500 line-clamp-1 font-medium">
-                {b.tagline}
-              </span>
             </div>
           </button>
         ))}

@@ -70,13 +70,13 @@ export default function CategoryGrid({
           </Link>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {/* Categories Grid / Horizontal Mobile Scroll */}
+        <div className="flex sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 overflow-x-auto no-scrollbar gap-3 sm:gap-4 pb-2 snap-x">
           {categories.map((category) => (
             <Link
               key={category.id}
               href={`/products?category=${category.slug}`}
-              className="group relative flex flex-col items-center text-center p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:border-blue-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+              className="w-[125px] sm:w-auto shrink-0 snap-start group relative flex flex-col items-center text-center p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-white hover:border-blue-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
             >
               {/* Category Image or Icon */}
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border border-slate-200 p-2 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform overflow-hidden shadow-sm">
