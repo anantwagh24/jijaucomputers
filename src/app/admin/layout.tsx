@@ -142,11 +142,23 @@ export default function AdminLayout({
                 window.location.href = "/admin/login";
               }
             }}
-            className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 text-xs font-medium transition-colors"
+            className="flex items-center justify-center gap-2 w-full py-1.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 text-xs font-medium transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
           </button>
+
+          <div className="pt-1 text-center">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/80 border border-slate-800 text-[10px] text-slate-400">
+              <span>Built with ❤️ by</span>
+              <img
+                src="/images/tech-sprout-logo.png"
+                alt="Tech Sprout"
+                className="w-3.5 h-3.5 rounded object-contain"
+              />
+              <span className="font-extrabold text-orange-400">Tech Sprout</span>
+            </div>
+          </div>
         </div>
       </aside>
 

@@ -246,16 +246,33 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* 3. COPYRIGHT & BOTTOM BAR */}
-      <div className="max-w-7xl mx-auto px-4 pt-6 border-t border-slate-900 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p>
+      {/* 3. COPYRIGHT & BOTTOM BAR WITH TECH SPROUT CREDIT */}
+      <div className="max-w-7xl mx-auto px-4 pt-6 border-t border-slate-900 text-xs text-slate-400 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p className="text-center md:text-left">
           © {new Date().getFullYear()} <span className="text-white font-semibold">{settings.storeName}</span>. All rights reserved.
         </p>
+
+        {/* Built with love by Tech Sprout */}
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-800/90 hover:border-orange-500/50 shadow-sm transition-all group">
+          <span className="text-[11px] text-slate-400">Built with <span className="text-rose-500 animate-pulse">❤️</span> by</span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded overflow-hidden bg-orange-500 shrink-0 flex items-center justify-center">
+              <img
+                src="/images/tech-sprout-logo.png"
+                alt="Tech Sprout"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span className="text-xs font-black text-orange-400 tracking-tight group-hover:text-orange-300 transition-colors">
+              Tech Sprout
+            </span>
+          </div>
+        </div>
+
         <div className="flex items-center space-x-6 text-[11px]">
-          <span>Terms & Conditions</span>
-          <span>Privacy Policy</span>
-          <span>Warranty Guidelines</span>
-          <span>Sitemap</span>
+          <span className="hover:text-slate-300 transition-colors">Terms & Conditions</span>
+          <span className="hover:text-slate-300 transition-colors">Privacy Policy</span>
+          <span className="hover:text-slate-300 transition-colors">Warranty Guidelines</span>
         </div>
       </div>
     </footer>

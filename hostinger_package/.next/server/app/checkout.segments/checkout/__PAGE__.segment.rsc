@@ -1,0 +1,24 @@
+1:"$Sreact.fragment"
+2:I[47257,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/1e1jxsx7crqga.js"],"ClientPageRoot"]
+3:I[69439,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/1e1jxsx7crqga.js","/_next/static/chunks/2jth8f8wgtus7.js","/_next/static/chunks/2o5l3qmulepy1.js"],"default"]
+6:I[97367,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/1e1jxsx7crqga.js"],"OutletBoundary"]
+7:"$Sreact.suspense"
+b:I[97367,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/1e1jxsx7crqga.js"],"ViewportBoundary"]
+c:I[97367,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/1e1jxsx7crqga.js"],"MetadataBoundary"]
+d:I[27201,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/1e1jxsx7crqga.js"],"IconMark"]
+f:I[39756,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/1e1jxsx7crqga.js"],"default"]
+10:I[37457,["/_next/static/chunks/3fntmmi971322.js","/_next/static/chunks/1e1jxsx7crqga.js"],"default"]
+a:X
+12:X
+12:C
+0:{"buildId":"0SduflD-TDR31UDGoHou5","data":[{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/_next/static/chunks/2jth8f8wgtus7.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/2o5l3qmulepy1.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"isPartial":"$@9","staleTime":"$a","varyParams":null},{"rsc":["$","$1","h",{"children":[null,["$","$Lb",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$Lc",null,{"children":["$","$7",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Jijau Computers - Premium Laptops, Gaming PCs & Hardware Store in Pune"}],["$","meta","1",{"name":"description","content":"Explore the best deals on custom gaming PCs, laptops, graphics cards, processors, CCTV, and same-day repair services at Jijau Computers Pune."}],["$","meta","2",{"name":"keywords","content":"jijau computers pune, gaming pc build pune, custom pc quote, laptops shop pune, graphic card rtx 4070, intel i7 processor, computer repair pune"}],["$","link","3",{"rel":"icon","href":"/favicon.ico?favicon.2vob68tjqpejf.ico","sizes":"256x256","type":"image/x-icon"}],["$","link","4",{"rel":"icon","href":"/favicon.png"}],["$","link","5",{"rel":"apple-touch-icon","href":"/favicon.png"}],["$","$Ld","6",{}]]}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"isPartial":"$@e","staleTime":"$a","varyParams":null},{"rsc":["$","$1","c",{"children":[null,["$","$Lf",null,{"parallelRouterKey":"children","template":["$","$L10",null,{}]}]]}],"isPartial":"$@11","staleTime":"$a","varyParams":"$12"}],"isUpgradeableISRFallback":false,"a":"$@13","rootVaryParams":null,"needsRuntimeRequest":"$@14"}
+4:{}
+5:"$0:data:0:rsc:props:children:0:props:serverProvidedParams:params"
+8:null
+14:true
+a:300
+a:C
+13:0
+e:"$undefined"
+11:"$undefined"
+9:"$undefined"
