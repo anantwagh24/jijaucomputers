@@ -27,12 +27,15 @@ import {
   ExternalLink,
   Copy,
   Check,
+  Lock,
+  UserCheck,
+  LogIn,
 } from "lucide-react";
 
 export default function CheckoutPage() {
   const { cart, clearCart, subtotal, discount, couponCode } = useCart();
   const { settings } = useSettings();
-  const { user } = useAuth();
+  const { user, openAuthModal } = useAuth();
 
   const [formData, setFormData] = useState({
     customerName: user?.name || "",
@@ -111,6 +114,12 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
+
+    // Strict account control: require login before placing order
+    if (!user) {
+      openAuthModal("signin");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -419,6 +428,47 @@ Hi Jijau Computers team, I have placed this order on your website. Please share 
           <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left: Customer Information & Delivery Address */}
             <div className="lg:col-span-7 space-y-6">
+              {/* Account Status Card */}
+              {!user ? (
+                <div className="p-5 rounded-3xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm animate-in fade-in">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0 shadow-inner">
+                      <Lock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">Account Login Required</p>
+                      <p className="text-xs text-slate-600">Please sign in with your mobile or email to proceed with checkout & track your order.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => openAuthModal("signin")}
+                    className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shrink-0 flex items-center justify-center gap-1.5 shadow-md transition-all hover:scale-105"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>Sign In / Register</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="p-4 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 shadow-sm animate-in fade-in">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-sm flex items-center justify-center shadow-md">
+                      {user.name ? user.name[0].toUpperCase() : "U"}
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                        <span>Logged in as:</span>
+                        <span className="text-emerald-700 font-extrabold">{user.name}</span>
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-600/20 text-emerald-800 text-[10px] font-bold">VERIFIED</span>
+                      </p>
+                      <p className="text-[11px] text-slate-500 font-mono">
+                        {user.phone || user.email} • Order will be safely linked to your profile
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Customer Contact */}
               <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
@@ -679,14 +729,25 @@ Hi Jijau Computers team, I have placed this order on your website. Please share 
               </div>
 
               {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50"
-              >
-                <PackageCheck className="w-5 h-5" />
-                <span>{loading ? "Placing Order..." : "Confirm & Place Order"}</span>
-              </button>
+              {!user ? (
+                <button
+                  type="button"
+                  onClick={() => openAuthModal("signin")}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-sm shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
+                >
+                  <Lock className="w-5 h-5" />
+                  <span>Sign In to Place Order ({formatPrice(total)})</span>
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50"
+                >
+                  <PackageCheck className="w-5 h-5" />
+                  <span>{loading ? "Placing Order..." : `Confirm & Place Order (${formatPrice(total)})`}</span>
+                </button>
+              )}
 
               <div className="pt-2 text-[11px] text-slate-400 space-y-1.5 text-center">
                 <p>🔒 100% Secure Checkout with Original GST Bill</p>
