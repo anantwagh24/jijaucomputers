@@ -1,9 +1,21 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { normalizePhone, verifyPassword } from "@/lib/auth";
+import { normalizePhone, verifyPassword, hashPassword } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+
+    // 1. Anti-Bruteforce Rate Limiting (Max 8 attempts per minute per IP)
+    const rateCheck = checkRateLimit(`customer_login_${ip}`, { limit: 8, windowSeconds: 60 });
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        { error: `Too many sign-in attempts. Please wait ${rateCheck.resetSeconds} seconds before trying again.` },
+        { status: 429 }
+      );
+    }
+
     const { identifier, password } = await req.json();
 
     if (!identifier || !password) {
@@ -34,13 +46,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verify password
+    // Verify password against bcrypt / legacy hash
     const isPasswordValid = verifyPassword(password, user.password);
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: "Incorrect password. Please verify and try again." },
         { status: 401 }
       );
+    }
+
+    // Progressive migration: Upgrade legacy plain or SHA-256 hash to bcrypt in background
+    if (!user.password.startsWith("$2a$") && !user.password.startsWith("$2b$")) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashPassword(password) },
+      }).catch((e) => console.warn("Background hash upgrade note:", e));
     }
 
     const safeUser = {
@@ -63,7 +83,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Login Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to sign in. Please try again." },
+      { error: "Login service error. Please try again." },
       { status: 500 }
     );
   }

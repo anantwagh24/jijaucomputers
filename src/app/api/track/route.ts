@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizePhone } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function GET(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const rateCheck = checkRateLimit(`track_${ip}`, { limit: 30, windowSeconds: 60 });
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        { error: "Too many tracking lookups. Please wait a minute." },
+        { status: 429 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("query")?.trim();
 

@@ -1,9 +1,21 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, validateIndianMobile, validatePasswordPolicy } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+
+    // Anti-Spam / Anti-Bot Registration Rate Limiting (Max 6 accounts per minute per IP)
+    const rateCheck = checkRateLimit(`register_${ip}`, { limit: 6, windowSeconds: 60 });
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        { error: `Registration limit reached. Please wait ${rateCheck.resetSeconds} seconds before trying again.` },
+        { status: 429 }
+      );
+    }
+
     const { name, email, phone, password } = await req.json();
 
     if (!name || !email || !phone || !password) {
