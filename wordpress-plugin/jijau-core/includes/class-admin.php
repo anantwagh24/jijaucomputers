@@ -643,10 +643,24 @@ if (!function_exists('jijau_render_full_admin_hub')) {
 
             <!-- TAB 11: STORE ORDERS -->
             <div id="tab-content-orders" class="admin-tab-pane hidden space-y-6">
-                <div>
-                    <h1 class="text-3xl font-black text-white m-0 tracking-tight">Store Orders Dispatch Pipeline</h1>
-                    <p class="text-xs text-slate-400 mt-1">Orders placed via Instant UPI and WhatsApp.</p>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-black text-white m-0 tracking-tight">Store Orders Dispatch Pipeline</h1>
+                        <p class="text-xs text-slate-400 mt-1">Orders placed via Instant UPI, WhatsApp and COD.</p>
+                    </div>
                 </div>
+
+                <!-- Status Filter Pills -->
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="filterOrdersByStatus('ALL')" id="ord-filter-ALL" class="ord-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow">ALL</button>
+                    <button type="button" onclick="filterOrdersByStatus('PENDING')" id="ord-filter-PENDING" class="ord-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-900 border border-slate-800 text-slate-400 hover:text-white">PENDING</button>
+                    <button type="button" onclick="filterOrdersByStatus('CONFIRMED')" id="ord-filter-CONFIRMED" class="ord-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-900 border border-slate-800 text-slate-400 hover:text-white">CONFIRMED</button>
+                    <button type="button" onclick="filterOrdersByStatus('PROCESSING')" id="ord-filter-PROCESSING" class="ord-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-900 border border-slate-800 text-slate-400 hover:text-white">PROCESSING</button>
+                    <button type="button" onclick="filterOrdersByStatus('SHIPPED')" id="ord-filter-SHIPPED" class="ord-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-900 border border-slate-800 text-slate-400 hover:text-white">SHIPPED</button>
+                    <button type="button" onclick="filterOrdersByStatus('DELIVERED')" id="ord-filter-DELIVERED" class="ord-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-900 border border-slate-800 text-slate-400 hover:text-white">DELIVERED</button>
+                    <button type="button" onclick="filterOrdersByStatus('CANCELLED')" id="ord-filter-CANCELLED" class="ord-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-900 border border-slate-800 text-slate-400 hover:text-white">CANCELLED</button>
+                </div>
+
                 <div class="space-y-4" id="admin-orders-list">
                 </div>
             </div>
@@ -1637,20 +1651,113 @@ if (!function_exists('jijau_render_full_admin_hub')) {
             }).join('');
         }
 
+        let currentOrderFilter = 'ALL';
+
+        function filterOrdersByStatus(status) {
+            currentOrderFilter = status;
+            document.querySelectorAll('.ord-filter-btn').forEach(btn => {
+                btn.className = 'ord-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-900 border border-slate-800 text-slate-400 hover:text-white';
+            });
+            const activeBtn = document.getElementById('ord-filter-' + status);
+            if (activeBtn) {
+                activeBtn.className = 'ord-filter-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow';
+            }
+            renderOrdersList();
+        }
+
+        const ORDER_STATUS_MAP = {
+            PENDING: { label: 'PENDING', badge: 'bg-amber-500/15 text-amber-300 border-amber-500/40' },
+            CONFIRMED: { label: 'CONFIRMED', badge: 'bg-blue-500/15 text-blue-300 border-blue-500/40' },
+            PROCESSING: { label: 'PROCESSING', badge: 'bg-purple-500/15 text-purple-300 border-purple-500/40' },
+            SHIPPED: { label: 'SHIPPED', badge: 'bg-sky-500/15 text-sky-300 border-sky-500/40' },
+            DELIVERED: { label: 'DELIVERED', badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40' },
+            CANCELLED: { label: 'CANCELLED', badge: 'bg-rose-500/15 text-rose-300 border-rose-500/40' }
+        };
+
+        function updateWordPressOrderStatus(orderId, newStatus) {
+            const ord = storeData.orders.find(o => o.id === orderId);
+            if (!ord) return;
+            ord.status = newStatus;
+            persistStoreData(() => {
+                renderOrdersList();
+            });
+        }
+
+        function notifyCustomerOnWhatsApp(orderId) {
+            const ord = storeData.orders.find(o => o.id === orderId);
+            if (!ord) return;
+
+            const phone = (ord.phone || '').replace(/\D/g, '');
+            const targetPhone = phone.startsWith('91') ? phone : '91' + phone;
+
+            let msg = '';
+            if (ord.status === 'CONFIRMED') {
+                msg = `Hello *${ord.customerName}*,\n\nYour order *#${ord.orderNumber}* at Jijau Computers is *CONFIRMED*!\n\n*Total:* ${formatINR(ord.total)}\n*Items:* ${ord.items || 'Hardware'}\n\nWe will update you once dispatched!`;
+            } else if (ord.status === 'SHIPPED') {
+                msg = `Hello *${ord.customerName}*,\n\n🚀 Your order *#${ord.orderNumber}* has been *DISPATCHED*!\n\n*Address:* ${ord.address || ''}\n*Amount:* ${formatINR(ord.total)}\n\nThank you for choosing Jijau Computers Pune!`;
+            } else if (ord.status === 'DELIVERED') {
+                msg = `Dear *${ord.customerName}*,\n\n🎉 Your order *#${ord.orderNumber}* has been successfully *DELIVERED*!\n\nThank you for shopping with Jijau Computers!`;
+            } else {
+                msg = `Hello *${ord.customerName}*,\n\nOrder Update for *#${ord.orderNumber}*:\nStatus is now *${ord.status}*.\n\nJijau Computers Pune`;
+            }
+
+            window.open(`https://wa.me/${targetPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
         function renderOrdersList() {
             const list = document.getElementById('admin-orders-list');
             if (!list) return;
 
-            list.innerHTML = storeData.orders.map(ord => `
-                <div class="p-5 rounded-3xl bg-[#0d1424] border border-slate-800 flex items-center justify-between gap-4">
-                    <div>
-                        <span class="font-mono text-blue-400 font-bold text-xs">${ord.orderNumber}</span>
-                        <h4 class="font-bold text-white text-xs mt-0.5">${ord.customerName} • ${ord.items}</h4>
-                        <span class="text-[11px] text-slate-400">Total: ${formatINR(ord.total)} (${ord.paymentMethod})</span>
+            const filtered = storeData.orders.filter(ord => {
+                if (currentOrderFilter === 'ALL') return true;
+                return (ord.status || 'PENDING') === currentOrderFilter;
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="p-8 text-center bg-[#0d1424] rounded-3xl border border-slate-800 text-slate-400 text-xs">No orders found in status ${currentOrderFilter}.</div>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map(ord => {
+                const conf = ORDER_STATUS_MAP[ord.status] || ORDER_STATUS_MAP.PENDING;
+                return `
+                <div class="p-6 rounded-3xl bg-[#0d1424] border border-slate-800 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono text-blue-400 font-bold text-xs">${ord.orderNumber}</span>
+                                <span class="px-2.5 py-0.5 rounded-full border text-[10px] font-black uppercase ${conf.badge}">${ord.status}</span>
+                            </div>
+                            <h4 class="font-bold text-white text-sm mt-1">${ord.customerName} • ${ord.phone || ''}</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">${ord.address || ''}</p>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <select onchange="updateWordPressOrderStatus('${ord.id}', this.value)" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold outline-none cursor-pointer">
+                                <option value="PENDING" ${ord.status === 'PENDING' ? 'selected' : ''}>PENDING</option>
+                                <option value="CONFIRMED" ${ord.status === 'CONFIRMED' ? 'selected' : ''}>CONFIRMED</option>
+                                <option value="PROCESSING" ${ord.status === 'PROCESSING' ? 'selected' : ''}>PROCESSING</option>
+                                <option value="SHIPPED" ${ord.status === 'SHIPPED' ? 'selected' : ''}>SHIPPED</option>
+                                <option value="DELIVERED" ${ord.status === 'DELIVERED' ? 'selected' : ''}>DELIVERED</option>
+                                <option value="CANCELLED" ${ord.status === 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+                            </select>
+
+                            <button type="button" onclick="notifyCustomerOnWhatsApp('${ord.id}')" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow flex items-center gap-1.5 cursor-pointer">
+                                <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+                                <span>Notify on WhatsApp</span>
+                            </button>
+                        </div>
                     </div>
-                    <span class="px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase">${ord.status}</span>
+
+                    <div class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                        <span><strong>Items:</strong> ${ord.items || 'Hardware & Components'}</span>
+                        <span><strong>Total:</strong> <span class="text-emerald-400 font-bold text-sm">${formatINR(ord.total)}</span> (${ord.paymentMethod || 'UPI'})</span>
+                    </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         // ==========================================

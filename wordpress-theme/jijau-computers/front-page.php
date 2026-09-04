@@ -236,8 +236,8 @@ $whatsapp = get_theme_mod('jijau_whatsapp', '918805607908');
                                         <span>Add</span>
                                     </button>
                                     <a href="<?php echo esc_url($waLink); ?>" target="_blank" class="py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-emerald-200 transition-colors">
-                                        <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
-                                        <span>Enquire</span>
+                                        <i data-lucide="message-square" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                        <span>Buy on WhatsApp</span>
                                     </a>
                                 </div>
                             </div>
