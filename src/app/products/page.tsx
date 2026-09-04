@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ProductCard from "@/components/products/ProductCard";
+import MobileFilterDrawer from "@/components/products/MobileFilterDrawer";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloating from "@/components/layout/WhatsAppFloating";
@@ -199,13 +200,28 @@ export default async function ProductsCatalogPage({
               </form>
             </div>
           </div>
+
+          {/* Mobile Quick Filter Bar & Drawer (Flipkart style) */}
+          <MobileFilterDrawer
+            categories={categories}
+            brands={brands}
+            activeCategory={category}
+            activeBrand={brand}
+            activeCategoryName={activeCategoryName}
+            activeBrandName={activeBrandName}
+            search={search}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            inStockOnly={inStockOnly}
+            totalCount={products.length}
+          />
         </div>
 
         {/* 2-Column Catalog Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Filter Sidebar */}
-          <aside className="space-y-6">
-            <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          {/* Left Filter Sidebar - Visible only on Desktop (Hidden on mobile so products appear immediately) */}
+          <aside className="hidden lg:block space-y-6">
+            <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-6 sticky top-24">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <span className="text-sm font-bold text-slate-900 flex items-center gap-2">
                   <SlidersHorizontal className="w-4 h-4 text-blue-600" />
