@@ -45,6 +45,7 @@ export default function CheckoutPage() {
 
   const [loading, setLoading] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<any | null>(null);
+  const [orderedItems, setOrderedItems] = useState<any[]>([]);
   const [copiedUpi, setCopiedUpi] = useState(false);
 
   // Auto-scroll to top when order is placed so customer immediately sees the success card
@@ -96,6 +97,13 @@ export default function CheckoutPage() {
 
     try {
       setLoading(true);
+      const orderPayloadItems = cart.map((item) => ({
+        productId: item.product.id,
+        name: item.product.name,
+        price: item.product.salePrice ?? item.product.price,
+        quantity: item.quantity,
+      }));
+
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -112,17 +120,14 @@ export default function CheckoutPage() {
           discount,
           tax: 0,
           total,
-          items: cart.map((item) => ({
-            productId: item.product.id,
-            name: item.product.name,
-            price: item.product.salePrice ?? item.product.price,
-            quantity: item.quantity,
-          })),
+          items: orderPayloadItems,
         }),
       });
 
       if (res.ok) {
         const data = await res.json();
+        const finalItems = (data.items && data.items.length > 0) ? data.items : orderPayloadItems;
+        setOrderedItems(finalItems);
         setPlacedOrder(data);
         clearCart();
 
@@ -151,7 +156,39 @@ export default function CheckoutPage() {
   const handleWhatsAppNotify = () => {
     if (!placedOrder) return;
     const storeNumber = settings.whatsapp || "918805607908";
-    const msg = `*Order Placed Online #${placedOrder.orderNumber}*\n*Customer:* ${placedOrder.customerName}\n*Phone:* ${placedOrder.phone}\n*Address:* ${placedOrder.address}, ${placedOrder.city} - ${placedOrder.pincode}\n*Total Amount:* ${formatPrice(placedOrder.total)}\n*Payment Method:* ${placedOrder.paymentMode}\n\nHi Jijau Computers team, I have placed this order on your website. Please share dispatch update!`;
+
+    const itemsToDisplay =
+      (placedOrder.items && placedOrder.items.length > 0)
+        ? placedOrder.items
+        : orderedItems;
+
+    // Format products list
+    const itemsList =
+      itemsToDisplay && itemsToDisplay.length > 0
+        ? itemsToDisplay
+            .map(
+              (i: any, idx: number) =>
+                `• *${i.name}* (Qty: ${i.quantity}) - ${formatPrice(
+                  (i.price || 0) * (i.quantity || 1)
+                )}`
+            )
+            .join("\n")
+        : "• Hardware & Components";
+
+    const msg = `*Order Placed Online #${placedOrder.orderNumber}*
+
+👤 *Customer:* ${placedOrder.customerName}
+📞 *Phone:* ${placedOrder.phone}
+📍 *Address:* ${placedOrder.address}, ${placedOrder.city} - ${placedOrder.pincode}
+
+🛍️ *Ordered Products:*
+${itemsList}
+
+💰 *Total Amount:* ${formatPrice(placedOrder.total)}
+💳 *Payment Method:* ${placedOrder.paymentMode}
+
+Hi Jijau Computers team, I have placed this order on your website. Please share dispatch update!`;
+
     window.open(generateWhatsAppUrl(storeNumber, msg), "_blank");
   };
 
@@ -274,7 +311,34 @@ export default function CheckoutPage() {
                 <span className="font-bold text-slate-800">{placedOrder.phone}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Total Amount:</span>
+                <span className="text-slate-500">Delivery Address:</span>
+                <span className="text-slate-800 font-medium text-right max-w-[220px]">
+                  {placedOrder.address}, {placedOrder.city} - {placedOrder.pincode}
+                </span>
+              </div>
+              {(() => {
+                const displayItems = (placedOrder.items && placedOrder.items.length > 0) ? placedOrder.items : orderedItems;
+                if (!displayItems || displayItems.length === 0) return null;
+                return (
+                  <div className="pt-2 border-t border-slate-200">
+                    <span className="text-slate-500 block font-bold mb-1">Items Ordered ({displayItems.length}):</span>
+                    <div className="space-y-1">
+                      {displayItems.map((item: any) => (
+                        <div key={item.id || item.name} className="flex justify-between text-[11px]">
+                          <span className="text-slate-700 font-medium truncate max-w-[200px]" title={item.name}>
+                            • {item.name}
+                          </span>
+                          <span className="text-slate-500 font-mono">
+                            x{item.quantity} ({formatPrice((item.price || 0) * (item.quantity || 1))})
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+              <div className="flex justify-between pt-2 border-t border-slate-200">
+                <span className="text-slate-500 font-bold">Total Amount:</span>
                 <span className="font-black text-blue-600 text-sm">{formatPrice(placedOrder.total)}</span>
               </div>
               <div className="flex justify-between">
