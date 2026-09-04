@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { validatePasswordPolicy } from "@/lib/passwordPolicy";
 
 export async function POST(req: Request) {
   try {
     const { currentPassword, newPassword } = await req.json();
 
-    if (!newPassword || newPassword.length < 6) {
+    if (!newPassword) {
       return NextResponse.json(
-        { error: "New password must be at least 6 characters long" },
+        { error: "New password is required" },
         { status: 400 }
       );
     }
@@ -27,6 +28,22 @@ export async function POST(req: Request) {
       );
     }
 
+    // Enforce Password Policy for Admin
+    const pwdValidation = validatePasswordPolicy(newPassword, {
+      name: admin.name,
+      email: admin.email,
+    });
+
+    if (!pwdValidation.isValid) {
+      return NextResponse.json(
+        {
+          error: pwdValidation.errors[0] || "New password does not meet security requirements.",
+          details: pwdValidation.errors,
+        },
+        { status: 400 }
+      );
+    }
+
     await prisma.adminUser.update({
       where: { id: admin.id },
       data: { password: newPassword },
@@ -41,3 +58,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+

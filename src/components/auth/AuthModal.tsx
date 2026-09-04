@@ -1,7 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
+import {
+  validateIndianMobile,
+  validatePasswordPolicy,
+  normalizePhone,
+} from "@/lib/passwordPolicy";
 import {
   X,
   User,
@@ -14,6 +19,9 @@ import {
   EyeOff,
   AlertCircle,
   CheckCircle2,
+  ShieldCheck,
+  Check,
+  Info,
 } from "lucide-react";
 
 export default function AuthModal() {
@@ -39,39 +47,81 @@ export default function AuthModal() {
     }
   }, [authModalTab, isAuthModalOpen]);
 
+  // Real-time mobile validation for signup
+  const phoneValidation = useMemo(() => {
+    if (!phone) return null;
+    return validateIndianMobile(phone);
+  }, [phone]);
+
+  // Real-time password policy validation for signup
+  const pwdValidation = useMemo(() => {
+    if (!password) return null;
+    return validatePasswordPolicy(password, {
+      name,
+      email,
+      phone,
+    });
+  }, [password, name, email, phone]);
+
   if (!isAuthModalOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
-    try {
-      if (tab === "signin") {
-        if (!identifier.trim() || !password) {
-          setError("Please enter your Mobile or Email and Password.");
-          setLoading(false);
-          return;
-        }
+    if (tab === "signin") {
+      if (!identifier.trim() || !password) {
+        setError("Please enter your Mobile or Email and Password.");
+        return;
+      }
+      setLoading(true);
+      try {
         const res = await login(identifier, password);
         if (!res.success) {
           setError(res.error || "Login failed.");
         }
-      } else {
-        if (!name.trim() || !email.trim() || !phone.trim() || !password) {
-          setError("Please fill in all fields.");
-          setLoading(false);
-          return;
-        }
-        const res = await register(name, email, phone, password);
+      } catch (err: any) {
+        setError(err.message || "An unexpected error occurred.");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Sign Up Validation
+      if (!name.trim() || !email.trim() || !phone.trim() || !password) {
+        setError("Please fill in all fields.");
+        return;
+      }
+
+      // 1. Strict Phone Validation (reject 11 digits e.g. 86868686861)
+      const pCheck = validateIndianMobile(phone);
+      if (!pCheck.valid) {
+        setError(pCheck.error || "Please enter a valid 10-digit Indian mobile number.");
+        return;
+      }
+
+      // 2. Strict Password Policy Validation
+      const pValidation = validatePasswordPolicy(password, {
+        name,
+        email,
+        phone: pCheck.normalized,
+      });
+
+      if (!pValidation.isValid) {
+        setError(pValidation.errors[0] || "Password does not meet required security standards.");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await register(name, email, pCheck.normalized, password);
         if (!res.success) {
           setError(res.error || "Registration failed.");
         }
+      } catch (err: any) {
+        setError(err.message || "An unexpected error occurred.");
+      } finally {
+        setLoading(false);
       }
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -94,7 +144,7 @@ export default function AuthModal() {
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-[440px] bg-[#0c101d] border border-slate-800/90 rounded-[32px] p-6 sm:p-8 shadow-2xl shadow-purple-950/40 z-10 animate-in zoom-in-95 duration-200 text-white">
+      <div className="relative w-full max-w-[460px] bg-[#0c101d] border border-slate-800/90 rounded-[32px] p-6 sm:p-8 shadow-2xl shadow-purple-950/40 z-10 animate-in zoom-in-95 duration-200 text-white max-h-[92vh] overflow-y-auto">
         {/* Close Button */}
         <button
           type="button"
@@ -114,7 +164,7 @@ export default function AuthModal() {
             <span className="text-purple-400">Computers</span>
           </h2>
           <p className="text-xs text-slate-400 font-medium">
-            {tab === "signin" ? "Welcome back, gamer." : "Join the elite squad."}
+            {tab === "signin" ? "Welcome back to your gaming & hardware hub." : "Create your customer account."}
           </p>
         </div>
 
@@ -170,6 +220,7 @@ export default function AuthModal() {
                 <input
                   type="text"
                   required
+                  autoComplete="name"
                   placeholder="Full Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -177,19 +228,43 @@ export default function AuthModal() {
                 />
               </div>
 
-              {/* Mobile Phone */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                  <Phone className="w-4 h-4" />
+              {/* Mobile Phone (Strict 10 digits) */}
+              <div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <Phone className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="tel"
+                    required
+                    maxLength={13} // Allows +91 / 0 input which gets normalized to 10
+                    autoComplete="tel"
+                    placeholder="10-Digit Mobile (e.g. 9420418389)"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className={`w-full pl-10 pr-10 py-3 bg-[#111728] border rounded-2xl text-xs text-white placeholder:text-slate-500 outline-none transition-all font-mono ${
+                      phoneValidation
+                        ? phoneValidation.valid
+                          ? "border-emerald-500/60 focus:border-emerald-500"
+                          : "border-rose-500/60 focus:border-rose-500"
+                        : "border-slate-800 focus:border-purple-500"
+                    }`}
+                  />
+                  {phoneValidation && (
+                    <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
+                      {phoneValidation.valid ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-rose-400" />
+                      )}
+                    </div>
+                  )}
                 </div>
-                <input
-                  type="tel"
-                  required
-                  placeholder="Mobile Number (e.g. 9420418389)"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-[#111728] border border-slate-800 rounded-2xl text-xs text-white placeholder:text-slate-500 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/40 transition-all font-mono"
-                />
+                {phoneValidation && !phoneValidation.valid && (
+                  <p className="text-[11px] text-rose-400 mt-1 pl-2 font-medium">
+                    {phoneValidation.error}
+                  </p>
+                )}
               </div>
 
               {/* Email Address */}
@@ -200,6 +275,7 @@ export default function AuthModal() {
                 <input
                   type="email"
                   required
+                  autoComplete="email"
                   placeholder="Email Address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -218,7 +294,8 @@ export default function AuthModal() {
               <input
                 type="text"
                 required
-                placeholder="Email Address or Mobile Number"
+                autoComplete="username"
+                placeholder="Email Address or 10-Digit Mobile"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-[#111728] border border-slate-800 rounded-2xl text-xs text-white placeholder:text-slate-500 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/40 transition-all"
@@ -227,31 +304,90 @@ export default function AuthModal() {
           )}
 
           {/* Password Field */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-              <Lock className="w-4 h-4" />
+          <div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <Lock className="w-4 h-4" />
+              </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                autoComplete={tab === "signup" ? "new-password" : "current-password"}
+                maxLength={128}
+                placeholder={tab === "signup" ? "Create Password (Min 8 chars, A-Z, 0-9, special)" : "Password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 pr-10 py-3 bg-[#111728] border border-slate-800 rounded-2xl text-xs text-white placeholder:text-slate-500 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/40 transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
-            <input
-              type={showPassword ? "text" : "password"}
-              required
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-10 py-3 bg-[#111728] border border-slate-800 rounded-2xl text-xs text-white placeholder:text-slate-500 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/40 transition-all"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300"
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
+
+            {/* Live Password Strength Meter & Real-Time Policy Checklist (For Sign Up) */}
+            {tab === "signup" && pwdValidation && (
+              <div className="mt-3 p-3 rounded-2xl bg-[#141b2d] border border-slate-800/80 space-y-2.5 animate-in fade-in">
+                {/* Strength Meter Bar & Label */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400 font-semibold">Password Strength:</span>
+                    <span className={`font-bold ${pwdValidation.color}`}>
+                      {pwdValidation.label}
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${pwdValidation.barColor}`}
+                      style={{ width: `${Math.max(8, pwdValidation.score)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Requirements Checklist */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] pt-1 border-t border-slate-800/60">
+                  <div className={`flex items-center gap-1.5 ${pwdValidation.checks.minLength ? "text-emerald-400" : "text-slate-400"}`}>
+                    <Check className={`w-3.5 h-3.5 ${pwdValidation.checks.minLength ? "text-emerald-400 font-bold" : "text-slate-600"}`} />
+                    <span>8+ characters</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${pwdValidation.checks.hasUppercase && pwdValidation.checks.hasLowercase ? "text-emerald-400" : "text-slate-400"}`}>
+                    <Check className={`w-3.5 h-3.5 ${pwdValidation.checks.hasUppercase && pwdValidation.checks.hasLowercase ? "text-emerald-400 font-bold" : "text-slate-600"}`} />
+                    <span>Uppercase & lowercase</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${pwdValidation.checks.hasNumber ? "text-emerald-400" : "text-slate-400"}`}>
+                    <Check className={`w-3.5 h-3.5 ${pwdValidation.checks.hasNumber ? "text-emerald-400 font-bold" : "text-slate-600"}`} />
+                    <span>At least 1 number</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${pwdValidation.checks.hasSpecialChar ? "text-emerald-400" : "text-slate-400"}`}>
+                    <Check className={`w-3.5 h-3.5 ${pwdValidation.checks.hasSpecialChar ? "text-emerald-400 font-bold" : "text-slate-600"}`} />
+                    <span>Special (@, #, $, %, etc.)</span>
+                  </div>
+                </div>
+
+                {/* Contextual & Passphrase Tip */}
+                {pwdValidation.checks.isStrongLength ? (
+                  <div className="flex items-center gap-1 text-[10px] text-indigo-300 font-medium pt-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                    <span>Great job! 16+ character passphrases provide maximum security.</span>
+                  </div>
+                ) : !pwdValidation.checks.noUserData ? (
+                  <div className="flex items-center gap-1 text-[10px] text-rose-400 font-medium pt-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>Cannot contain your name, email, or mobile number.</span>
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (tab === "signup" && (phoneValidation ? !phoneValidation.valid : false))}
             className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 mt-2"
           >
             <span>{loading ? "Please wait..." : tab === "signin" ? "Sign In" : "Create Account"}</span>

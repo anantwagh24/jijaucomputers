@@ -1,25 +1,34 @@
+import bcrypt from "bcryptjs";
 import crypto from "crypto";
+export { normalizePhone, validateIndianMobile, validatePasswordPolicy } from "./passwordPolicy";
 
-export function normalizePhone(phone: string): string {
-  if (!phone) return "";
-  // Remove all non-digits
-  let digits = phone.replace(/\D/g, "");
-  // Remove leading 0 if 11 digits (e.g. 09420418389 -> 9420418389)
-  if (digits.length === 11 && digits.startsWith("0")) {
-    digits = digits.slice(1);
-  }
-  // Remove country code 91 if 12 digits (e.g. 919420418389 -> 9420418389)
-  if (digits.length === 12 && digits.startsWith("91")) {
-    digits = digits.slice(2);
-  }
-  return digits;
-}
+const BCRYPT_SALT_ROUNDS = 10;
+const LEGACY_SALT = "jijau_secure_salt_2026";
 
+/**
+ * Hashes password securely using bcrypt with 10 salt rounds.
+ */
 export function hashPassword(password: string): string {
-  const salt = "jijau_secure_salt_2026";
-  return crypto.createHash("sha256").update(password + salt).digest("hex");
+  return bcrypt.hashSync(password, BCRYPT_SALT_ROUNDS);
 }
 
+/**
+ * Verifies password against bcrypt hash, with fallback to legacy sha256.
+ */
 export function verifyPassword(password: string, hash: string): boolean {
-  return hashPassword(password) === hash;
+  if (!password || !hash) return false;
+
+  // 1. Check bcrypt hash (standard format starts with $2a$ or $2b$)
+  if (hash.startsWith("$2a$") || hash.startsWith("$2b$")) {
+    try {
+      return bcrypt.compareSync(password, hash);
+    } catch {
+      return false;
+    }
+  }
+
+  // 2. Fallback check for legacy SHA-256 hashes
+  const legacyHash = crypto.createHash("sha256").update(password + LEGACY_SALT).digest("hex");
+  return legacyHash === hash;
 }
+

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, normalizePhone } from "@/lib/auth";
+import { hashPassword, validateIndianMobile, validatePasswordPolicy } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
@@ -14,11 +14,31 @@ export async function POST(req: Request) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const cleanPhone = normalizePhone(phone);
 
-    if (cleanPhone.length < 10) {
+    // 1. Strict Indian Mobile Validation (exactly 10 digits starting with 6-9)
+    const phoneValidation = validateIndianMobile(phone);
+    if (!phoneValidation.valid) {
       return NextResponse.json(
-        { error: "Please provide a valid 10-digit mobile number." },
+        { error: phoneValidation.error || "Invalid mobile number. Please provide a valid 10-digit Indian mobile number." },
+        { status: 400 }
+      );
+    }
+    const cleanPhone = phoneValidation.normalized;
+
+    // 2. Strict Password Policy Validation (Standard & Strong requirements)
+    const pwdValidation = validatePasswordPolicy(password, {
+      name,
+      email: cleanEmail,
+      phone: cleanPhone,
+    });
+
+    if (!pwdValidation.isValid) {
+      return NextResponse.json(
+        {
+          error: pwdValidation.errors[0] || "Password does not meet security requirements.",
+          details: pwdValidation.errors,
+          checks: pwdValidation.checks,
+        },
         { status: 400 }
       );
     }
@@ -45,7 +65,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create user
+    // Create user with secure bcrypt hash
     const newUser = await prisma.user.create({
       data: {
         name: name.trim(),
