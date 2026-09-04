@@ -22,6 +22,7 @@ export default function MobileBottomNav() {
       {/* 1. Home */}
       <Link
         href="/"
+        onClick={() => setIsCartOpen(false)}
         className={`flex flex-col items-center justify-center transition-all ${
           isHome ? "text-purple-400 font-black" : "text-slate-400 hover:text-white"
         }`}
@@ -41,6 +42,7 @@ export default function MobileBottomNav() {
       {/* 2. Track Hub */}
       <Link
         href="/track-service"
+        onClick={() => setIsCartOpen(false)}
         className={`flex flex-col items-center justify-center transition-all ${
           isTrack ? "text-emerald-400 font-bold" : "text-slate-400 hover:text-white"
         }`}
@@ -60,7 +62,7 @@ export default function MobileBottomNav() {
       {/* 3. Cart with Badge */}
       <button
         type="button"
-        onClick={() => setIsCartOpen(true)}
+        onClick={() => setIsCartOpen(!totalItems ? true : true)}
         className="flex flex-col items-center justify-center text-slate-400 hover:text-white transition-all cursor-pointer"
       >
         <div className="relative w-10 h-10 rounded-full flex items-center justify-center text-slate-300">
@@ -77,6 +79,7 @@ export default function MobileBottomNav() {
       {/* 4. Account */}
       <Link
         href="/account"
+        onClick={() => setIsCartOpen(false)}
         className={`flex flex-col items-center justify-center transition-all ${
           isAccount ? "text-blue-400 font-bold" : "text-slate-400 hover:text-white"
         }`}

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useSettings } from "@/context/SettingsContext";
 import { formatPrice, generateWhatsAppUrl } from "@/lib/utils";
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 export default function CartDrawer() {
+  const pathname = usePathname();
   const {
     cart,
     removeFromCart,
@@ -33,6 +35,11 @@ export default function CartDrawer() {
     setIsCartOpen,
   } = useCart();
   const { settings } = useSettings();
+
+  // Automatically close cart drawer whenever user navigates or route changes
+  useEffect(() => {
+    setIsCartOpen(false);
+  }, [pathname, setIsCartOpen]);
 
   const [inputCoupon, setInputCoupon] = useState("");
   const [couponMsg, setCouponMsg] = useState<{ success: boolean; text: string } | null>(null);
@@ -107,12 +114,13 @@ export default function CartDrawer() {
               <p className="text-sm text-slate-500 mb-6">
                 Explore our catalog of custom PCs, laptops, and computer components.
               </p>
-              <button
+              <Link
+                href="/products"
                 onClick={() => setIsCartOpen(false)}
                 className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition-colors shadow-md"
               >
                 Browse Products
-              </button>
+              </Link>
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
