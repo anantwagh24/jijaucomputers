@@ -150,11 +150,14 @@ export default function ProductDetailClient({
   };
 
   let specsMap: Record<string, string> = {};
-  if (product.specsJson) {
-    try {
-      specsMap = JSON.parse(product.specsJson);
-    } catch (e) {
-      console.error("Specs JSON parse error:", e);
+  if (product.specsJson && typeof product.specsJson === "string") {
+    const trimmed = product.specsJson.trim();
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      try {
+        specsMap = JSON.parse(trimmed);
+      } catch {
+        // Silently fallback if not valid JSON
+      }
     }
   }
 

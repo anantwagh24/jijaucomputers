@@ -168,24 +168,24 @@ export default function CheckoutPage() {
         ? itemsToDisplay
             .map(
               (i: any, idx: number) =>
-                `• *${i.name}* (Qty: ${i.quantity}) - ${formatPrice(
+                `${idx + 1}. *${i.name}* (Qty: ${i.quantity}) - ${formatPrice(
                   (i.price || 0) * (i.quantity || 1)
                 )}`
             )
             .join("\n")
-        : "• Hardware & Components";
+        : "1. Hardware & Components";
 
     const msg = `*Order Placed Online #${placedOrder.orderNumber}*
 
-👤 *Customer:* ${placedOrder.customerName}
-📞 *Phone:* ${placedOrder.phone}
-📍 *Address:* ${placedOrder.address}, ${placedOrder.city} - ${placedOrder.pincode}
+*Customer:* ${placedOrder.customerName}
+*Phone:* ${placedOrder.phone}
+*Address:* ${placedOrder.address}, ${placedOrder.city} - ${placedOrder.pincode}
 
-🛍️ *Ordered Products:*
+*Ordered Products:*
 ${itemsList}
 
-💰 *Total Amount:* ${formatPrice(placedOrder.total)}
-💳 *Payment Method:* ${placedOrder.paymentMode}
+*Total Amount:* ${formatPrice(placedOrder.total)}
+*Payment Method:* ${placedOrder.paymentMode}
 
 Hi Jijau Computers team, I have placed this order on your website. Please share dispatch update!`;
 
