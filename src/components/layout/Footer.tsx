@@ -74,13 +74,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand Info & Address */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-2">
-              <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-white shadow"
-                style={{ backgroundColor: settings.primaryColor || "#2563eb" }}
-              >
-                <Cpu className="w-5 h-5" />
-              </div>
+            <div className="flex items-center gap-3">
+              <img
+                src={settings.logoUrl || "/images/jijau-logo.jpg"}
+                alt={settings.storeName || "Jijau Computers"}
+                className="w-12 h-12 rounded-full object-cover ring-2 ring-amber-400/90 shadow-lg"
+              />
               <span className="text-2xl font-black text-white tracking-tight">
                 {settings.storeName}
               </span>

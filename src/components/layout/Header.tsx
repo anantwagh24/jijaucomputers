@@ -148,12 +148,13 @@ export default function Header() {
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            <Link href="/" className="flex items-center gap-2 group">
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform"
-                style={{ backgroundColor: settings.primaryColor || "#2563eb" }}
-              >
-                <Cpu className="w-6 h-6" />
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative">
+                <img
+                  src={settings.logoUrl || "/images/jijau-logo.jpg"}
+                  alt={settings.storeName || "Jijau Computers"}
+                  className="w-11 h-11 rounded-full object-cover ring-2 ring-amber-400/90 shadow-md group-hover:scale-105 transition-transform"
+                />
               </div>
               <div className="flex flex-col">
                 <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 leading-none">

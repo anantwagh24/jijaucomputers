@@ -155,13 +155,15 @@ export default function AuthModal() {
         </button>
 
         {/* Brand Header */}
-        <div className="text-center space-y-2 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mx-auto shadow-lg shadow-purple-600/30">
-            <Gamepad2 className="w-6 h-6 text-white" />
-          </div>
+        <div className="text-center space-y-2.5 mb-6">
+          <img
+            src="/images/jijau-logo.jpg"
+            alt="Jijau Computers"
+            className="w-14 h-14 rounded-full object-cover ring-2 ring-amber-400/90 shadow-xl mx-auto shadow-purple-600/30"
+          />
           <h2 className="text-2xl font-black tracking-tight text-white flex items-center justify-center gap-1.5">
             <span>Jijau</span>
-            <span className="text-purple-400">Computers</span>
+            <span className="text-amber-400">Computers</span>
           </h2>
           <p className="text-xs text-slate-400 font-medium">
             {tab === "signin" ? "Welcome back to your gaming & hardware hub." : "Create your customer account."}

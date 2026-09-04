@@ -26,11 +26,19 @@ export async function generateMetadata(): Promise<Metadata> {
       title: settings?.metaTitle || "Jijau Computers - Computer & Laptop Store Pune",
       description: settings?.metaDescription || "Shop gaming PCs, laptops, components and repair services at Jijau Computers.",
       keywords: settings?.metaKeywords || "computer store, gaming pc, laptops, pc repair pune",
+      icons: {
+        icon: "/favicon.png",
+        apple: "/favicon.png",
+      },
     };
   } catch (e) {
     return {
       title: "Jijau Computers - Computer & Laptop Store Pune",
       description: "Shop gaming PCs, laptops, components and repair services at Jijau Computers.",
+      icons: {
+        icon: "/favicon.png",
+        apple: "/favicon.png",
+      },
     };
   }
 }

@@ -50,12 +50,16 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col md:flex-row">
-      {/* Mobile Top Bar */}
-      <div className="md:hidden bg-slate-950 p-4 flex items-center justify-between border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-blue-500" />
-          <span className="font-bold text-sm text-white">Jijau Admin CMS</span>
-        </div>
+      {/* Top Mobile Bar */}
+      <div className="md:hidden bg-slate-950 border-b border-slate-800 p-4 flex items-center justify-between sticky top-0 z-30">
+        <Link href="/admin" className="flex items-center gap-2">
+          <img
+            src="/images/jijau-logo.jpg"
+            alt="Jijau Computers"
+            className="w-8 h-8 rounded-full object-cover ring-2 ring-amber-400/80 shadow"
+          />
+          <span className="font-bold text-white text-sm">Jijau Admin</span>
+        </Link>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="p-2 text-slate-400 hover:text-white"
@@ -73,15 +77,17 @@ export default function AdminLayout({
         <div>
           {/* Logo & Store Header */}
           <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
-            <Link href="/admin" className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md">
-                <Shield className="w-5 h-5" />
-              </div>
+            <Link href="/admin" className="flex items-center gap-3">
+              <img
+                src="/images/jijau-logo.jpg"
+                alt="Jijau Computers"
+                className="w-10 h-10 rounded-full object-cover ring-2 ring-amber-400 shadow-md"
+              />
               <div>
                 <span className="font-black text-sm text-white block tracking-tight">
                   Jijau Admin
                 </span>
-                <span className="text-[10px] text-blue-400 font-semibold uppercase tracking-wider">
+                <span className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">
                   Store Management
                 </span>
               </div>

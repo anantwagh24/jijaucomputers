@@ -51,10 +51,12 @@ export default function AdminLoginPage() {
 
       <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6 relative z-10">
         {/* Header Logo */}
-        <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white mx-auto shadow-lg shadow-blue-600/30">
-            <Shield className="w-8 h-8" />
-          </div>
+        <div className="text-center space-y-3">
+          <img
+            src="/images/jijau-logo.jpg"
+            alt="Jijau Computers"
+            className="w-16 h-16 rounded-full object-cover ring-2 ring-amber-400 shadow-2xl mx-auto shadow-amber-500/20"
+          />
           <h1 className="text-2xl font-black text-white tracking-tight">
             Jijau Computers
           </h1>
