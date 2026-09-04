@@ -48,8 +48,22 @@ export default async function ProductsCatalogPage({
 
   // Build filter query
   const where: any = {};
-  if (category) where.category = { slug: category };
-  if (brand) where.brand = { slug: brand };
+  if (category) {
+    const catLower = category.toLowerCase();
+    where.category = {
+      slug: {
+        in: [catLower, `${catLower}s`, catLower.replace(/s$/, "")],
+      },
+    };
+  }
+  if (brand) {
+    const brandLower = brand.toLowerCase();
+    where.brand = {
+      slug: {
+        in: [brandLower, brandLower.replace(/s$/, ""), brandLower.replace(/-/g, "")],
+      },
+    };
+  }
   if (featured === "true") where.isFeatured = true;
   if (bestseller === "true") where.isBestseller = true;
   if (newArrival === "true") where.isNewArrival = true;
@@ -97,8 +111,31 @@ export default async function ProductsCatalogPage({
     }),
   ]);
 
-  const activeCategoryName = categories.find((c) => c.slug === category)?.name;
-  const activeBrandName = brands.find((b) => b.slug === brand)?.name;
+  const activeCategoryName = categories.find(
+    (c) =>
+      c.slug.toLowerCase() === category?.toLowerCase() ||
+      c.slug.toLowerCase() === `${category?.toLowerCase()}s` ||
+      c.slug.toLowerCase() === category?.toLowerCase().replace(/s$/, "")
+  )?.name;
+
+  const activeBrandName = brands.find(
+    (b) => b.slug.toLowerCase() === brand?.toLowerCase()
+  )?.name;
+
+  // Title formatting: if both brand and category are present, show e.g. "Apple MacBooks & Laptops" or "HP Laptops"
+  let pageHeading = "All Computer Hardware & Laptops";
+  if (activeBrandName && activeCategoryName) {
+    pageHeading = `${activeBrandName} ${activeCategoryName}s`;
+    if (activeBrandName.toLowerCase() === "apple" && activeCategoryName.toLowerCase().includes("laptop")) {
+      pageHeading = "Apple MacBooks & Laptops";
+    }
+  } else if (activeCategoryName) {
+    pageHeading = `${activeCategoryName}s`;
+  } else if (activeBrandName) {
+    pageHeading = `${activeBrandName} Products`;
+  } else if (search) {
+    pageHeading = `Search Results for "${search}"`;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc]">
@@ -134,13 +171,7 @@ export default async function ProductsCatalogPage({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                {activeCategoryName
-                  ? activeCategoryName
-                  : activeBrandName
-                  ? `${activeBrandName} Hardware`
-                  : search
-                  ? `Search Results for "${search}"`
-                  : "All Computer Hardware & Laptops"}
+                {pageHeading}
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 Showing <span className="font-bold text-slate-800">{products.length}</span> authentic products with manufacturer warranty
