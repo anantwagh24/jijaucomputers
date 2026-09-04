@@ -25,6 +25,8 @@ async function main() {
       googleMapsUrl: "https://maps.google.com/?q=Shivajinagar,Pune,Maharashtra",
       openingHours: "Mon - Sat: 10:00 AM - 9:00 PM | Sun: 11:00 AM - 6:00 PM",
       gstin: "27AABCJ1234F1Z9",
+      upiId: "jijauc@ibl",
+      upiName: "Jijau Computers",
       facebookUrl: "https://facebook.com/jijaucomputers",
       instagramUrl: "https://instagram.com/jijaucomputers",
       youtubeUrl: "https://youtube.com/jijaucomputers",

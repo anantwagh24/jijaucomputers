@@ -42,7 +42,7 @@ Navigate to the `wordpress-theme/` directory and compress the `jijau-computers` 
 2. Update:
    - **Phone Number**: `+91 88056 07908`
    - **WhatsApp Number**: `918805607908`
-   - **Store UPI VPA ID**: `8805607908@ybl` (or your store UPI ID)
+   - **Store UPI VPA ID**: `jijauc@ibl` (or your store UPI ID)
    - **UPI Merchant Name**: `Jijau Computers`
    - **Store Address & Business Hours**
 3. Click **Publish**.

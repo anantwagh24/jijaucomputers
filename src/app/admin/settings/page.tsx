@@ -37,7 +37,7 @@ export default function AdminSettingsPage() {
     googleMapsUrl: "",
     openingHours: "",
     gstin: "",
-    upiId: "8805607908@ybl",
+    upiId: "jijauc@ibl",
     upiName: "Jijau Computers",
     facebookUrl: "",
     instagramUrl: "",
@@ -98,7 +98,7 @@ export default function AdminSettingsPage() {
         googleMapsUrl: settings.googleMapsUrl || "",
         openingHours: settings.openingHours || "",
         gstin: settings.gstin || "",
-        upiId: settings.upiId || "8805607908@ybl",
+        upiId: settings.upiId || "jijauc@ibl",
         upiName: settings.upiName || "Jijau Computers",
         facebookUrl: settings.facebookUrl || "",
         instagramUrl: settings.instagramUrl || "",
@@ -359,7 +359,7 @@ export default function AdminSettingsPage() {
                 required
                 value={formData.upiId}
                 onChange={(e) => setFormData({ ...formData, upiId: e.target.value })}
-                placeholder="e.g. 8805607908@ybl or yourupi@okhdfcbank"
+                placeholder="e.g. jijauc@ibl or yourupi@okhdfcbank"
                 className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-emerald-300 font-mono font-bold outline-none focus:border-emerald-500"
               />
               <span className="text-[10px] text-slate-400 mt-1 block">This UPI ID is used for generating live QR codes & opening Google Pay, PhonePe, and Paytm on customers' mobile phones.</span>

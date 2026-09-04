@@ -51,7 +51,7 @@ if (!function_exists('jijau_ajax_save_all_admin_data')) {
             update_option('jijau_store_settings_data', $s);
             set_theme_mod('jijau_phone', $s['phone'] ?? '+91 88056 07908');
             set_theme_mod('jijau_whatsapp', $s['whatsapp'] ?? '918805607908');
-            set_theme_mod('jijau_upi_id', $s['upiId'] ?? '8805607908@ybl');
+            set_theme_mod('jijau_upi_id', $s['upiId'] ?? 'jijauc@ibl');
             set_theme_mod('jijau_upi_name', $s['upiName'] ?? 'Jijau Computers');
             set_theme_mod('jijau_address', $s['address'] ?? '');
             set_theme_mod('jijau_hours', $s['hours'] ?? '');
@@ -80,7 +80,7 @@ if (!function_exists('jijau_get_full_store_database')) {
             'tagline'         => 'SALES • CUSTOM PCS • REPAIRS',
             'phone'           => '+91 88056 07908',
             'whatsapp'        => '918805607908',
-            'upiId'           => '8805607908@ybl',
+            'upiId'           => 'jijauc@ibl',
             'upiName'         => 'Jijau Computers',
             'address'         => 'Jijau Computer Sales & Service, Opposite. SBI Bank, Jafrabad, Maharashtra 431206',
             'hours'           => 'Mon - Sat: 10:00 AM - 9:00 PM | Sun: 11:00 AM - 6:00 PM',
@@ -705,7 +705,7 @@ if (!function_exists('jijau_render_full_admin_hub')) {
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                             <div>
-                                <label class="font-bold text-slate-300 block mb-1">Store UPI VPA ID (e.g. 8805607908@ybl)</label>
+                                <label class="font-bold text-slate-300 block mb-1">Store UPI VPA ID (e.g. jijauc@ibl)</label>
                                 <input type="text" id="setting-upiId" value="<?php echo esc_attr($db['settings']['upiId']); ?>" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none focus:border-blue-500 font-mono" />
                             </div>
                             <div>

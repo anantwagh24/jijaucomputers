@@ -57,7 +57,7 @@ export default function CheckoutPage() {
 
   const total = Math.max(0, subtotal - discount);
 
-  const upiId = settings.upiId || "8805607908@ybl";
+  const upiId = settings.upiId || "jijauc@ibl";
   const upiName = settings.upiName || "Jijau Computers";
 
   // Build standard UPI Intent URL

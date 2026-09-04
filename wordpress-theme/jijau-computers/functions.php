@@ -59,7 +59,7 @@ if (!function_exists('jijau_computers_scripts')) {
             'ajaxUrl'   => admin_url('admin-ajax.php'),
             'whatsapp'  => get_theme_mod('jijau_whatsapp', $liveDb['settings']['whatsapp'] ?? '918805607908'),
             'phone'     => get_theme_mod('jijau_phone', $liveDb['settings']['phone'] ?? '+91 88056 07908'),
-            'upiId'     => get_theme_mod('jijau_upi_id', $liveDb['settings']['upiId'] ?? '8805607908@ybl'),
+            'upiId'     => get_theme_mod('jijau_upi_id', $liveDb['settings']['upiId'] ?? 'jijauc@ibl'),
             'upiName'   => get_theme_mod('jijau_upi_name', $liveDb['settings']['upiName'] ?? 'Jijau Computers'),
             'siteUrl'   => home_url(),
             'liveDb'    => $liveDb,
@@ -110,7 +110,7 @@ if (!function_exists('jijau_computers_customizer')) {
         $wp_customize->add_control('jijau_whatsapp', array('label' => __('WhatsApp Number', 'jijau-computers'), 'section' => 'jijau_store_settings', 'type' => 'text'));
 
         // UPI ID
-        $wp_customize->add_setting('jijau_upi_id', array('default' => '8805607908@ybl', 'sanitize_callback' => 'sanitize_text_field'));
+        $wp_customize->add_setting('jijau_upi_id', array('default' => 'jijauc@ibl', 'sanitize_callback' => 'sanitize_text_field'));
         $wp_customize->add_control('jijau_upi_id', array('label' => __('UPI VPA ID', 'jijau-computers'), 'section' => 'jijau_store_settings', 'type' => 'text'));
 
         // UPI Merchant Name

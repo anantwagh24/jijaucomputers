@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const liveDb = (typeof jijauSettings !== 'undefined' && jijauSettings.liveDb) || {};
     const whatsappNumber = (typeof jijauSettings !== 'undefined' && jijauSettings.whatsapp) || '918805607908';
-    const storeUpiId = (typeof jijauSettings !== 'undefined' && jijauSettings.upiId) || '8805607908@ybl';
+    const storeUpiId = (typeof jijauSettings !== 'undefined' && jijauSettings.upiId) || 'jijauc@ibl';
     const storeUpiName = (typeof jijauSettings !== 'undefined' && jijauSettings.upiName) || 'Jijau Computers';
     const ajaxUrl = (typeof jijauSettings !== 'undefined' && jijauSettings.ajaxUrl) || '/wp-admin/admin-ajax.php';
 

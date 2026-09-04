@@ -22,7 +22,7 @@ class Jijau_Demo_Importer {
                 'googleMapsUrl' => 'https://maps.google.com/?q=Shivajinagar,Pune,Maharashtra',
                 'openingHours' => 'Mon - Sat: 10:00 AM - 9:00 PM | Sun: 11:00 AM - 6:00 PM',
                 'gstin' => '27FQIPK5154C1ZU',
-                'upiId' => '8805607908@ybl',
+                'upiId' => 'jijauc@ibl',
                 'upiName' => 'Jijau Computers',
                 'metaTitle' => 'Jijau Computers - Premium Laptops, Gaming PCs & Hardware Store in Pune',
                 'metaDescription' => 'Explore the best deals on custom gaming PCs, laptops, graphics cards, processors, CCTV, and same-day repair services at Jijau Computers Pune.'
@@ -173,7 +173,7 @@ class Jijau_Demo_Importer {
                     'address' => 'Flat 402, Green Acres, Baner, Pune 411045',
                     'items' => 'ASUS ROG Strix G16 (2024) (x1)',
                     'total' => 124990,
-                    'paymentMethod' => 'Instant UPI via WhatsApp (8805607908@ybl)',
+                    'paymentMethod' => 'Instant UPI via WhatsApp (jijauc@ibl)',
                     'status' => 'Confirmed'
                 )
             ),

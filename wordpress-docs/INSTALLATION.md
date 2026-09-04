@@ -40,7 +40,7 @@ This guide walks you through installing and configuring the **Jijau Computers Wo
    - Navigate to **Jijau Admin Panel > Website Settings**.
    - Set **WhatsApp Hotline** to `918805607908` and **Phone Helpline** to `+91 88056 07908`.
 2. **UPI Merchant Details**:
-   - Set **Store UPI VPA ID** to `8805607908@ybl` and **Merchant Name** to `Jijau Computers`.
+   - Set **Store UPI VPA ID** to `jijauc@ibl` and **Merchant Name** to `Jijau Computers`.
 3. **GSTIN & Physical Address**:
    - Set **GSTIN** to `27FQIPK5154C1ZU` and address to `Shop No. 12 & 13, Jijau Plaza, Near Railway Station, Shivajinagar, Pune, Maharashtra 411005`.
 4. Click **Save Settings**.

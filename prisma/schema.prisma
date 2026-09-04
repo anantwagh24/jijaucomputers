@@ -23,7 +23,7 @@ model WebsiteSetting {
   googleMapsUrl   String   @default("https://maps.google.com/?q=Pune,Maharashtra")
   openingHours    String   @default("Mon - Sat: 10:00 AM - 9:00 PM | Sunday: 11:00 AM - 6:00 PM")
   gstin           String   @default("27AAAAA0000A1Z5")
-  upiId           String   @default("8805607908@ybl")
+  upiId           String   @default("jijauc@ibl")
   upiName         String   @default("Jijau Computers")
   facebookUrl     String   @default("https://facebook.com")
   instagramUrl    String   @default("https://instagram.com")
