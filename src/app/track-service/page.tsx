@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloating from "@/components/layout/WhatsAppFloating";
 import CartDrawer from "@/components/layout/CartDrawer";
 import { useSettings } from "@/context/SettingsContext";
-import { formatPrice } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
+import { formatPrice, generateWhatsAppUrl } from "@/lib/utils";
 import {
   Wrench,
   Search,
@@ -21,132 +22,79 @@ import {
   PlusCircle,
   PhoneCall,
   Calendar,
+  ShoppingBag,
+  Cpu,
+  FileText,
+  Package,
+  Layers,
+  Sparkles,
+  ExternalLink,
+  ArrowRight,
+  MapPin,
+  RefreshCw,
 } from "lucide-react";
 
-interface ServiceTicket {
-  id: string;
-  ticketId: string;
-  customerName: string;
-  phone: string;
-  email?: string | null;
-  deviceType: string;
-  brand: string;
-  model: string;
-  serialNo?: string | null;
-  issueDesc: string;
-  status: string;
-  adminNotes?: string | null;
-  estimatedCost?: number | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const STATUS_STAGES = [
-  { key: "Received", label: "Device Received", desc: "Logged into service queue" },
-  { key: "Under Inspection", label: "Diagnostic Check", desc: "Hardware & motherboard testing" },
-  { key: "Repairing", label: "Active Repair", desc: "Chip-level work or component fix" },
-  { key: "Waiting for Parts", label: "Waiting for Parts", desc: "OEM part in transit" },
-  { key: "Ready for Delivery", label: "Ready for Pickup", desc: "Passed all post-repair QC tests" },
-  { key: "Completed", label: "Delivered & Closed", desc: "Delivered with repair warranty" },
-];
-
-export default function ServiceTrackerPage() {
+export default function UniversalTrackerPage() {
   const { settings } = useSettings();
+  const { user } = useAuth();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [ticketsList, setTicketsList] = useState<ServiceTicket[]>([]);
-  const [ticket, setTicket] = useState<ServiceTicket | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // New Request Form State
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    customerName: "",
-    phone: "",
-    email: "",
-    deviceType: "Gaming Laptop",
-    brand: "",
-    model: "",
-    serialNo: "",
-    issueDesc: "",
-  });
-  const [newTicketCreated, setNewTicketCreated] = useState<any | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [formErrorMsg, setFormErrorMsg] = useState("");
+  // Results state
+  const [activeTab, setActiveTab] = useState<"all" | "orders" | "repairs" | "customPc" | "quotes">("all");
+  const [orders, setOrders] = useState<any[]>([]);
+  const [serviceRequests, setServiceRequests] = useState<any[]>([]);
+  const [customPcRequests, setCustomPcRequests] = useState<any[]>([]);
+  const [quotations, setQuotations] = useState<any[]>([]);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
+  // Auto-search if user is logged in
+  useEffect(() => {
+    if (user && user.phone) {
+      setSearchQuery(user.phone);
+      performSearch(user.phone);
+    }
+  }, [user]);
+
+  const performSearch = async (queryText: string) => {
+    const q = queryText.trim();
+    if (!q) return;
 
     try {
       setLoading(true);
       setErrorMsg("");
-      setTicket(null);
-      setTicketsList([]);
+      setHasSearched(true);
 
-      const res = await fetch(`/api/service-requests?query=${encodeURIComponent(searchQuery.trim())}`);
+      const res = await fetch(`/api/track?query=${encodeURIComponent(q)}`);
       const data = await res.json();
 
-      if (Array.isArray(data) && data.length > 0) {
-        setTicketsList(data);
-        setTicket(data[0]);
+      if (res.ok) {
+        setOrders(data.orders || []);
+        setServiceRequests(data.serviceRequests || []);
+        setCustomPcRequests(data.customPcRequests || []);
+        setQuotations(data.quotations || []);
+
+        if (data.totalCount === 0) {
+          setErrorMsg(`No active orders, repair tickets, or requests found for "${q}". Please check the phone number or reference ID.`);
+        }
       } else {
-        setErrorMsg(`No service records found for "${searchQuery}". Please verify your 10-digit registered mobile number.`);
+        setErrorMsg(data.error || "Failed to retrieve tracking details.");
       }
-    } catch (e) {
-      setErrorMsg("Failed to connect to service server. Please try again.");
+    } catch (err: any) {
+      setErrorMsg("Unable to connect to tracking server. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateRequest = async (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      setCreating(true);
-      setFormErrorMsg("");
-      const res = await fetch("/api/service-requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setNewTicketCreated(data);
-        setTicket(data);
-        setTicketsList([data]);
-        setSearchQuery(data.phone || data.ticketId);
-      } else {
-        setFormErrorMsg(data.error || "Duplicate registration prevented: An active ticket already exists for this mobile number.");
-        if (data.existingTicket) {
-          setTicket(data.existingTicket);
-          setTicketsList([data.existingTicket]);
-          setSearchQuery(data.existingTicket.phone);
-        }
-      }
-    } catch (e) {
-      console.error("Create request error:", e);
-      setFormErrorMsg("Unable to register service request. Please try again.");
-    } finally {
-      setCreating(false);
-    }
+    performSearch(searchQuery);
   };
 
-  const getStageIndex = (status: string) => {
-    switch (status) {
-      case "Received": return 0;
-      case "Under Inspection": return 1;
-      case "Repairing": return 2;
-      case "Waiting for Parts": return 3;
-      case "Ready for Delivery": return 4;
-      case "Completed": return 5;
-      default: return 0;
-    }
-  };
-
-  const currentStageIndex = ticket ? getStageIndex(ticket.status) : 0;
+  const totalResults = orders.length + serviceRequests.length + customPcRequests.length + quotations.length;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc]">
@@ -154,389 +102,445 @@ export default function ServiceTrackerPage() {
       <CartDrawer />
       <WhatsAppFloating />
 
-      <main className="flex-1 max-w-5xl mx-auto px-4 py-10 w-full">
-        {/* Header Title */}
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-2 border border-emerald-500/30">
-            <Wrench className="w-3.5 h-3.5" />
-            <span>Jijau Tech Care & Service Portal</span>
+      <main className="flex-1 max-w-6xl mx-auto px-4 py-8 sm:py-12 w-full space-y-8">
+        {/* Page Header */}
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold tracking-wide uppercase">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Unified Order & Service Tracker</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Track Laptop & PC Repair Status
+
+          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            Track Orders, Repairs & Custom PC Builds
           </h1>
-          <p className="text-sm text-slate-600 mt-2">
-            Enter your Registered Mobile Number to check real-time diagnosis, parts updates, and pickup availability without needing complex ticket numbers.
+
+          <p className="text-xs sm:text-sm text-slate-500">
+            Enter your registered 10-digit mobile number, Order #, or Ticket ID to check real-time dispatch status, diagnostics updates, and invoices in one place.
           </p>
         </div>
 
-        {/* Search Input Box */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md mb-10 max-w-2xl mx-auto">
-          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+        {/* Universal Search Bar */}
+        <div className="max-w-xl mx-auto bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xl shadow-slate-200/50 space-y-4">
+          <form onSubmit={handleSearch} className="space-y-3">
+            <div className="relative flex items-center">
+              <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
               <input
-                type="tel"
-                placeholder="Enter 10-digit Mobile Number (e.g. 9876543210)"
+                type="text"
+                required
+                placeholder="Enter 10-Digit Mobile, Order # (JC-ORD-...), or Ticket ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-3.5 text-sm bg-slate-50 border border-slate-300 rounded-2xl outline-none focus:border-blue-600 focus:bg-white font-medium transition-all"
+                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all font-mono"
               />
             </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="py-3.5 px-8 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
             >
-              {loading ? "Searching..." : "Track by Phone"}
+              {loading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Searching Records...</span>
+                </>
+              ) : (
+                <>
+                  <Search className="w-4 h-4" />
+                  <span>Track Everything</span>
+                </>
+              )}
             </button>
           </form>
 
-          {/* Quick Demo Search Hint */}
-          <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Demo lookup: <button type="button" onClick={() => setSearchQuery("9876543210")} className="font-mono text-blue-600 font-bold hover:underline">9876543210</button> or <button type="button" onClick={() => setSearchQuery("8805607908")} className="font-mono text-blue-600 font-bold hover:underline">8805607908</button></span>
-            <button
-              type="button"
-              onClick={() => setIsFormOpen(!isFormOpen)}
-              className="text-emerald-600 font-bold hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              Book New Repair
-            </button>
-          </div>
-
-          {errorMsg && (
-            <div className="mt-4 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMsg}</span>
+          {/* Quick Click Search Pills */}
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-1 text-slate-500">
+            <div className="flex items-center gap-1.5">
+              <span>Quick Demo:</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("9876543210");
+                  performSearch("9876543210");
+                }}
+                className="font-mono text-blue-600 font-bold hover:underline"
+              >
+                9876543210
+              </button>
+              <span>or</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("8805607908");
+                  performSearch("8805607908");
+                }}
+                className="font-mono text-blue-600 font-bold hover:underline"
+              >
+                8805607908
+              </button>
             </div>
-          )}
+            <a
+              href="/custom-pc"
+              className="text-amber-600 font-bold hover:underline flex items-center gap-1"
+            >
+              <span>+ Custom PC Quote</span>
+            </a>
+          </div>
         </div>
 
-        {/* Multi-Ticket Switcher (If multiple devices belong to same phone number) */}
-        {ticketsList.length > 1 && (
-          <div className="max-w-5xl mx-auto mb-6 bg-blue-50/80 p-4 rounded-2xl border border-blue-200 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-blue-900 mr-2">Registered Devices for {searchQuery}:</span>
-            {ticketsList.map((t, idx) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTicket(t)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  ticket?.id === t.id
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
-                }`}
-              >
-                {t.deviceType} ({t.brand} {t.model}) • {t.status}
-              </button>
-            ))}
+        {/* Error Alert */}
+        {errorMsg && (
+          <div className="max-w-xl mx-auto p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center gap-3 animate-in fade-in">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+            <p>{errorMsg}</p>
           </div>
         )}
 
-        {/* Live Ticket Details & Visual Timeline */}
-        {ticket && (
-          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl space-y-8 animate-in fade-in duration-300">
-            {/* Top Ticket Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-200 gap-4">
-              <div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xl sm:text-2xl font-mono font-black text-slate-900">
-                    Phone: {ticket.phone}
-                  </span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                    ticket.status === "Ready for Delivery" || ticket.status === "Completed"
-                      ? "bg-emerald-100 text-emerald-800"
-                      : ticket.status === "Repairing"
-                      ? "bg-blue-100 text-blue-800"
-                      : "bg-amber-100 text-amber-800"
-                  }`}>
-                    {ticket.status}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" />
-                  Logged on {new Date(ticket.createdAt).toLocaleDateString("en-IN", { dateStyle: "long" })}
-                </p>
-              </div>
-
-              {ticket.estimatedCost && (
-                <div className="sm:text-right">
-                  <span className="text-xs text-slate-500 block font-medium">Estimated Repair Cost</span>
-                  <span className="text-2xl font-black text-slate-900">
-                    {formatPrice(ticket.estimatedCost)}
-                  </span>
-                </div>
+        {/* Search Results Display */}
+        {hasSearched && totalResults > 0 && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* Category Filter Tabs */}
+            <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar py-1">
+              <button
+                onClick={() => setActiveTab("all")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeTab === "all"
+                    ? "bg-slate-900 text-white shadow"
+                    : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+                }`}
+              >
+                All Activity ({totalResults})
+              </button>
+              {orders.length > 0 && (
+                <button
+                  onClick={() => setActiveTab("orders")}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === "orders"
+                      ? "bg-blue-600 text-white shadow"
+                      : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+                  }`}
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Orders ({orders.length})</span>
+                </button>
+              )}
+              {serviceRequests.length > 0 && (
+                <button
+                  onClick={() => setActiveTab("repairs")}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === "repairs"
+                      ? "bg-emerald-600 text-white shadow"
+                      : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+                  }`}
+                >
+                  <Wrench className="w-3.5 h-3.5" />
+                  <span>Repairs ({serviceRequests.length})</span>
+                </button>
+              )}
+              {customPcRequests.length > 0 && (
+                <button
+                  onClick={() => setActiveTab("customPc")}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === "customPc"
+                      ? "bg-amber-600 text-white shadow"
+                      : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+                  }`}
+                >
+                  <Cpu className="w-3.5 h-3.5" />
+                  <span>Custom PCs ({customPcRequests.length})</span>
+                </button>
+              )}
+              {quotations.length > 0 && (
+                <button
+                  onClick={() => setActiveTab("quotes")}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === "quotes"
+                      ? "bg-purple-600 text-white shadow"
+                      : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Quotes ({quotations.length})</span>
+                </button>
               )}
             </div>
 
-            {/* Visual Timeline Progress Bar */}
-            <div>
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-6">
-                Live Repair Progress Timeline
-              </h3>
-
-              <div className="relative">
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                  {STATUS_STAGES.map((stage, idx) => {
-                    const isDone = idx <= currentStageIndex;
-                    const isCurrent = idx === currentStageIndex;
-
-                    return (
+            {/* Results Grid / List */}
+            <div className="space-y-6">
+              {/* 1. ORDERS SECTION */}
+              {(activeTab === "all" || activeTab === "orders") && orders.length > 0 && (
+                <div className="space-y-4">
+                  <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                    <ShoppingBag className="w-4 h-4 text-blue-600" />
+                    <span>Store Orders ({orders.length})</span>
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {orders.map((ord) => (
                       <div
-                        key={stage.key}
-                        className={`flex flex-col items-center text-center p-3 rounded-2xl border transition-all ${
-                          isCurrent
-                            ? "bg-blue-50/80 border-blue-600 ring-2 ring-blue-100 shadow-sm"
-                            : isDone
-                            ? "bg-emerald-50/60 border-emerald-300"
-                            : "bg-slate-50/50 border-slate-200 opacity-60"
-                        }`}
+                        key={ord.id}
+                        className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4 hover:border-blue-300 transition-all"
                       >
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 font-bold text-xs ${
-                            isDone
-                              ? "bg-emerald-600 text-white"
-                              : "bg-slate-200 text-slate-500"
-                          }`}
-                        >
-                          {isDone ? <Check className="w-5 h-5" /> : idx + 1}
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <span className="text-[10px] font-mono text-slate-400 block uppercase">Order ID</span>
+                            <span className="font-black text-slate-900 text-base font-mono">{ord.orderNumber}</span>
+                          </div>
+                          <span
+                            className={`px-3 py-1 rounded-full text-[11px] font-bold ${
+                              ord.status === "DELIVERED"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : ord.status === "CANCELLED"
+                                ? "bg-rose-100 text-rose-800"
+                                : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {ord.status}
+                          </span>
                         </div>
-                        <span className="text-xs font-bold text-slate-900 leading-tight">
-                          {stage.label}
-                        </span>
-                        <span className="text-[10px] text-slate-500 mt-1">
-                          {stage.desc}
-                        </span>
+
+                        {/* Order Timeline Visualizer */}
+                        <div className="pt-2 pb-1">
+                          <div className="grid grid-cols-4 gap-1 text-center text-[10px] font-bold">
+                            <div className="space-y-1">
+                              <div className="h-1.5 rounded-full bg-blue-600" />
+                              <span className="text-blue-600">Placed</span>
+                            </div>
+                            <div className="space-y-1">
+                              <div className={`h-1.5 rounded-full ${ord.status !== "PENDING" ? "bg-blue-600" : "bg-slate-200"}`} />
+                              <span className={ord.status !== "PENDING" ? "text-blue-600" : "text-slate-400"}>Confirmed</span>
+                            </div>
+                            <div className="space-y-1">
+                              <div className={`h-1.5 rounded-full ${ord.status === "DISPATCHED" || ord.status === "DELIVERED" ? "bg-blue-600" : "bg-slate-200"}`} />
+                              <span className={ord.status === "DISPATCHED" || ord.status === "DELIVERED" ? "text-blue-600" : "text-slate-400"}>Dispatched</span>
+                            </div>
+                            <div className="space-y-1">
+                              <div className={`h-1.5 rounded-full ${ord.status === "DELIVERED" ? "bg-emerald-600" : "bg-slate-200"}`} />
+                              <span className={ord.status === "DELIVERED" ? "text-emerald-600 font-bold" : "text-slate-400"}>Delivered</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Items */}
+                        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5 text-xs">
+                          {ord.items && ord.items.map((it: any) => (
+                            <div key={it.id} className="flex justify-between items-center text-slate-700">
+                              <span className="font-semibold line-clamp-1">{it.name} (x{it.quantity})</span>
+                              <span className="font-mono text-slate-900 font-bold">{formatPrice(it.price * it.quantity)}</span>
+                            </div>
+                          ))}
+                          <div className="pt-2 border-t border-slate-200 flex justify-between font-black text-sm text-slate-900">
+                            <span>Total Payable:</span>
+                            <span className="text-blue-600">{formatPrice(ord.total)}</span>
+                          </div>
+                        </div>
+
+                        {/* Delivery Info */}
+                        <div className="text-xs text-slate-500 space-y-1">
+                          <p className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span className="truncate">{ord.address}, {ord.city} - {ord.pincode}</span>
+                          </p>
+                          <p className="flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span>Placed on {new Date(ord.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                          </p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const storeNo = settings.whatsapp || "918805607908";
+                              const msg = `Hi Jijau Computers, I am tracking my order #${ord.orderNumber}. Please share the current dispatch status!`;
+                              window.open(generateWhatsAppUrl(storeNo, msg), "_blank");
+                            }}
+                            className="flex-1 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                          >
+                            <span>WhatsApp Update</span>
+                          </button>
+                        </div>
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* 2. REPAIR TICKETS SECTION */}
+              {(activeTab === "all" || activeTab === "repairs") && serviceRequests.length > 0 && (
+                <div className="space-y-4">
+                  <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                    <Wrench className="w-4 h-4 text-emerald-600" />
+                    <span>Repair & Service Tickets ({serviceRequests.length})</span>
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {serviceRequests.map((srv) => (
+                      <div
+                        key={srv.id}
+                        className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4 hover:border-emerald-300 transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <span className="text-[10px] font-mono text-slate-400 block uppercase">Ticket No.</span>
+                            <span className="font-black text-slate-900 text-base font-mono">{srv.ticketId}</span>
+                          </div>
+                          <span
+                            className={`px-3 py-1 rounded-full text-[11px] font-bold ${
+                              srv.status === "Completed"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : srv.status === "Ready for Delivery"
+                                ? "bg-sky-100 text-sky-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {srv.status}
+                          </span>
+                        </div>
+
+                        {/* Device Info */}
+                        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-500 font-medium">Device:</span>
+                            <span className="font-bold text-slate-900">{srv.brand} {srv.model} ({srv.deviceType})</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-500 font-medium">Reported Issue:</span>
+                            <span className="font-semibold text-slate-800">{srv.issueDesc}</span>
+                          </div>
+                          {srv.estimatedCost && (
+                            <div className="flex items-center justify-between pt-1 border-t border-slate-200 text-emerald-700 font-bold">
+                              <span>Estimated Cost:</span>
+                              <span>{formatPrice(srv.estimatedCost)}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Admin Notes */}
+                        {srv.adminNotes && (
+                          <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-blue-900 space-y-1">
+                            <span className="font-bold block text-[10px] uppercase text-blue-600 tracking-wider">
+                              Technician Update
+                            </span>
+                            <p>{srv.adminNotes}</p>
+                          </div>
+                        )}
+
+                        {/* WhatsApp Action */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const storeNo = settings.whatsapp || "918805607908";
+                            const msg = `Hi Jijau Computers, I am tracking my repair ticket #${srv.ticketId} for ${srv.brand} ${srv.model}. Please share repair progress!`;
+                            window.open(generateWhatsAppUrl(storeNo, msg), "_blank");
+                          }}
+                          className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all"
+                        >
+                          <span>Inquire Repair Status on WhatsApp</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 3. CUSTOM PC REQUESTS SECTION */}
+              {(activeTab === "all" || activeTab === "customPc") && customPcRequests.length > 0 && (
+                <div className="space-y-4">
+                  <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                    <Cpu className="w-4 h-4 text-amber-600" />
+                    <span>Custom PC Build Quotes ({customPcRequests.length})</span>
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {customPcRequests.map((pc) => (
+                      <div
+                        key={pc.id}
+                        className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4 hover:border-amber-300 transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <span className="text-[10px] font-mono text-slate-400 block uppercase">Rig Purpose</span>
+                            <span className="font-black text-slate-900 text-base">{pc.purpose} Gaming PC</span>
+                          </div>
+                          <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                            {pc.status}
+                          </span>
+                        </div>
+
+                        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs space-y-1.5">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Budget:</span>
+                            <span className="font-mono font-bold text-slate-900">{pc.budget}</span>
+                          </div>
+                          {pc.cpuPref && (
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">CPU Preference:</span>
+                              <span className="font-semibold text-slate-800">{pc.cpuPref}</span>
+                            </div>
+                          )}
+                          {pc.gpuPref && (
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">GPU Preference:</span>
+                              <span className="font-semibold text-slate-800">{pc.gpuPref}</span>
+                            </div>
+                          )}
+                          {pc.totalEst && (
+                            <div className="flex justify-between pt-1 border-t border-slate-200 text-blue-600 font-bold">
+                              <span>Estimated Total:</span>
+                              <span>{formatPrice(pc.totalEst)}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const storeNo = settings.whatsapp || "918805607908";
+                            const msg = `Hi Jijau Computers, I would like an update on my Custom PC Rig request (${pc.purpose}, budget ${pc.budget}).`;
+                            window.open(generateWhatsAppUrl(storeNo, msg), "_blank");
+                          }}
+                          className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                        >
+                          <span>Chat with PC Architect on WhatsApp</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 4. QUOTATIONS SECTION */}
+              {(activeTab === "all" || activeTab === "quotes") && quotations.length > 0 && (
+                <div className="space-y-4">
+                  <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-purple-600" />
+                    <span>B2B Quotations ({quotations.length})</span>
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {quotations.map((qte) => (
+                      <div
+                        key={qte.id}
+                        className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <span className="text-[10px] font-mono text-slate-400 block uppercase">Quote No.</span>
+                            <span className="font-black text-slate-900 text-base font-mono">{qte.quoteNumber}</span>
+                          </div>
+                          <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800">
+                            {qte.status}
+                          </span>
+                        </div>
+
+                        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-xs space-y-1">
+                          <p className="text-slate-700 font-medium">Type: {qte.type}</p>
+                          <p className="text-slate-500 line-clamp-2">{qte.itemsSummary}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-
-            {/* Device & Issue Specifications */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-200">
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <Laptop className="w-4 h-4 text-blue-600" />
-                  Device Information
-                </h4>
-                <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Customer Name:</span>
-                    <span className="font-bold text-slate-800">{ticket.customerName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Registered Phone:</span>
-                    <span className="font-bold text-slate-800">{ticket.phone}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Device Type:</span>
-                    <span className="font-semibold text-slate-800">{ticket.deviceType}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Brand & Model:</span>
-                    <span className="font-semibold text-slate-800">{ticket.brand} {ticket.model}</span>
-                  </div>
-                  {ticket.serialNo && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Serial Number:</span>
-                      <span className="font-mono text-slate-800">{ticket.serialNo}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <Wrench className="w-4 h-4 text-emerald-600" />
-                  Issue & Technician Notes
-                </h4>
-                <div className="space-y-2 text-xs">
-                  <div>
-                    <span className="text-slate-500 block mb-0.5">Reported Problem:</span>
-                    <p className="font-medium text-slate-800 bg-white p-2.5 rounded-xl border border-slate-200">
-                      {ticket.issueDesc}
-                    </p>
-                  </div>
-
-                  {ticket.adminNotes && (
-                    <div>
-                      <span className="text-blue-600 font-bold block mb-0.5">Technician's Diagnostic Update:</span>
-                      <p className="font-medium text-slate-800 bg-blue-50/70 p-2.5 rounded-xl border border-blue-200">
-                        {ticket.adminNotes}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Need Direct Assistance Box */}
-            <div className="p-4 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-                  <PhoneCall className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white">Have questions about your repair?</h4>
-                  <p className="text-[11px] text-slate-400">Speak directly with our service center desk.</p>
-                </div>
-              </div>
-              <a
-                href={`https://wa.me/${settings.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-                  `Hi Jijau Service Desk, I am inquiring about my service ticket ${ticket.ticketId}.`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition-colors"
-              >
-                Chat with Technician
-              </a>
-            </div>
-          </div>
-        )}
-
-        {/* Optional Book New Repair Form */}
-        {isFormOpen && (
-          <div className="mt-10 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl max-w-2xl mx-auto">
-            <h3 className="text-lg font-black text-slate-900 mb-1">
-              Book a Repair / Service Drop-off
-            </h3>
-            <p className="text-xs text-slate-500 mb-6">
-              Register your device service using your 10-digit mobile number for instant repair tracking.
-            </p>
-
-            {formErrorMsg && (
-              <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-start gap-2.5">
-                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="font-bold">{formErrorMsg}</p>
-                  <p className="text-[11px] text-amber-700">
-                    Your existing device timeline is displayed above. If you need assistance with an additional device, please contact our technician desk.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {newTicketCreated ? (
-              <div className="p-6 text-center bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-800 space-y-2">
-                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-                <h4 className="font-bold text-lg">Service Ticket #{newTicketCreated.ticketId} Registered!</h4>
-                <p className="text-xs">
-                  Your repair has been logged under Mobile Number <span className="font-mono font-bold text-emerald-900">{newTicketCreated.phone || newTicketCreated.ticketId}</span>. You can track real-time diagnosis updates anytime using this number.
-                </p>
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewTicketCreated(null);
-                      setIsFormOpen(false);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
-                  >
-                    View Status Above
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleCreateRequest} className="space-y-4 text-xs">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Your Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.customerName}
-                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
-                      placeholder="Full Name"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Mobile / WhatsApp *</label>
-                    <input
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
-                      placeholder="10-digit number"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Device Type</label>
-                    <select
-                      value={formData.deviceType}
-                      onChange={(e) => setFormData({ ...formData, deviceType: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600 bg-white"
-                    >
-                      <option>Gaming Laptop</option>
-                      <option>Workstation / Desktop PC</option>
-                      <option>Motherboard / GPU</option>
-                      <option>Printer / Scanner</option>
-                      <option>CCTV DVR / NVR</option>
-                      <option>MacBook / Ultrabook</option>
-                      <option>Other Device</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Brand (ASUS, HP, Dell...) *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
-                      placeholder="e.g. ASUS"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Model Name / Number *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.model}
-                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
-                      placeholder="e.g. ROG Strix G15"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Describe Issue in Detail *</label>
-                  <textarea
-                    rows={3}
-                    required
-                    value={formData.issueDesc}
-                    onChange={(e) => setFormData({ ...formData, issueDesc: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
-                    placeholder="e.g. No display, overheating, blue screen of death, liquid spill, broken screen..."
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsFormOpen(false)}
-                    className="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={creating}
-                    className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow transition-colors disabled:opacity-50"
-                  >
-                    {creating ? "Generating Ticket..." : "Generate Service Ticket"}
-                  </button>
-                </div>
-              </form>
-            )}
           </div>
         )}
       </main>

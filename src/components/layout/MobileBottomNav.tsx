@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Wrench, ShoppingCart, User } from "lucide-react";
+import { Home, Wrench, ShoppingCart, User, Package } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 export default function MobileBottomNav() {
@@ -38,7 +38,7 @@ export default function MobileBottomNav() {
         <span className="text-[10px] font-bold mt-0.5">Home</span>
       </Link>
 
-      {/* 2. Track Repair */}
+      {/* 2. Track Hub */}
       <Link
         href="/track-service"
         className={`flex flex-col items-center justify-center transition-all ${
@@ -52,9 +52,9 @@ export default function MobileBottomNav() {
               : "bg-transparent text-slate-400"
           }`}
         >
-          <Wrench className="w-5 h-5" />
+          <Package className="w-5 h-5" />
         </div>
-        <span className="text-[10px] font-semibold mt-0.5">Track Repair</span>
+        <span className="text-[10px] font-semibold mt-0.5">Track Hub</span>
       </Link>
 
       {/* 3. Cart with Badge */}
