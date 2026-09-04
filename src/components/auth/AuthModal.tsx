@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useSettings } from "@/context/SettingsContext";
 import {
   validateIndianMobile,
   validatePasswordPolicy,
@@ -26,6 +27,7 @@ import {
 
 export default function AuthModal() {
   const { isAuthModalOpen, closeAuthModal, authModalTab, openAuthModal, login, register, googleLogin } = useAuth();
+  const { settings } = useSettings();
 
   const [tab, setTab] = useState<"signin" | "signup">(authModalTab || "signin");
   const [showPassword, setShowPassword] = useState(false);
@@ -157,7 +159,7 @@ export default function AuthModal() {
         {/* Brand Header */}
         <div className="text-center space-y-2.5 mb-6">
           <img
-            src="/images/jijau-logo.jpg"
+            src={settings.logoUrl || "/images/jijau-logo.jpg"}
             alt="Jijau Computers"
             className="w-14 h-14 rounded-full object-cover ring-2 ring-amber-400/90 shadow-xl mx-auto shadow-purple-600/30"
           />

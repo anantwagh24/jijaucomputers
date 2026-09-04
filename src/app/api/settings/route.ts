@@ -50,6 +50,10 @@ export async function POST(req: Request) {
         metaTitle: data.metaTitle,
         metaDescription: data.metaDescription,
         metaKeywords: data.metaKeywords,
+        invoiceTerms: data.invoiceTerms,
+        invoiceBankDetails: data.invoiceBankDetails,
+        invoiceHsnCode: data.invoiceHsnCode,
+        invoiceNotes: data.invoiceNotes,
       },
       create: {
         id: "default",

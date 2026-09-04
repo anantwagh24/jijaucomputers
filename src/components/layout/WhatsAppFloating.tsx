@@ -16,7 +16,7 @@ export default function WhatsAppFloating() {
   )}`;
 
   return (
-    <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end group">
+    <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end group print:hidden no-print">
       {/* Optional Interactive Floating Tooltip */}
       {showTooltip && (
         <div className="mb-2.5 px-3.5 py-2 rounded-2xl bg-slate-900/95 text-white text-[11px] font-bold shadow-2xl border border-slate-700/80 backdrop-blur-md flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">

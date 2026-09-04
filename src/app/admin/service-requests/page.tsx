@@ -1,8 +1,22 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { formatPrice } from "@/lib/utils";
-import { Wrench, Edit2, CheckCircle2, Clock, Search, ExternalLink, MessageCircle } from "lucide-react";
+import { formatPrice, generateWhatsAppUrl } from "@/lib/utils";
+import {
+  Wrench,
+  Edit2,
+  CheckCircle2,
+  Clock,
+  Search,
+  ExternalLink,
+  MessageSquare,
+  FileText,
+  Send,
+  Sparkles,
+  Printer,
+  ShieldCheck,
+} from "lucide-react";
+import GstInvoiceModal from "@/components/invoice/GstInvoiceModal";
 
 export default function AdminServiceRequestsPage() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -14,6 +28,9 @@ export default function AdminServiceRequestsPage() {
   const [status, setStatus] = useState("Received");
   const [adminNotes, setAdminNotes] = useState("");
   const [estimatedCost, setEstimatedCost] = useState("");
+
+  // Invoice modal state
+  const [selectedInvoiceService, setSelectedInvoiceService] = useState<any | null>(null);
 
   const fetchRequests = async () => {
     try {
@@ -65,6 +82,16 @@ export default function AdminServiceRequestsPage() {
     }
   };
 
+  const handleSendWhatsApp = (req: any) => {
+    const costText = req.estimatedCost ? `\n💰 *Estimated Cost:* ${formatPrice(req.estimatedCost)}` : "";
+    const notesText = req.adminNotes ? `\n📝 *Technician Remarks:* ${req.adminNotes}` : "";
+
+    const message = `Hello *${req.customerName}*,\n\nUpdate on your service ticket *#${req.ticketId}* at *Jijau Computers Pune*:\n\n📱 *Device:* ${req.brand} ${req.model} (${req.deviceType})\n🔧 *Current Status:* *${req.status.toUpperCase()}*${costText}${notesText}\n\n🔍 *Live Status & Warranty Tracking:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(req.ticketId)}\n\nFor assistance, reply directly to this message or visit our Pune service center.\n\n*Jijau Computers Pune*`;
+
+    const url = generateWhatsAppUrl(req.phone, message);
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   const filtered = requests.filter(
     (r) =>
       r.ticketId.toLowerCase().includes(search.toLowerCase()) ||
@@ -74,15 +101,17 @@ export default function AdminServiceRequestsPage() {
   );
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-          <Wrench className="w-6 h-6 text-emerald-500" />
-          Laptop & Hardware Repair Pipeline
-        </h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Update repair statuses, assign technician diagnosis remarks, and manage delivery readiness.
-        </p>
+    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+            <Wrench className="w-6 h-6 text-emerald-500" />
+            Laptop & Hardware Repair Pipeline
+          </h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Update repair statuses, assign technician remarks, send WhatsApp updates, and generate GST service bills.
+          </p>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800">
@@ -132,7 +161,7 @@ export default function AdminServiceRequestsPage() {
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-bold text-white block">{req.customerName}</span>
-                      <span className="text-[11px] text-slate-400">{req.phone}</span>
+                      <span className="text-[11px] text-slate-400 font-mono">{req.phone}</span>
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-bold text-slate-300 block">{req.brand} {req.model}</span>
@@ -142,26 +171,51 @@ export default function AdminServiceRequestsPage() {
                       {req.issueDesc}
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] uppercase ${
-                        req.status === "Completed" || req.status === "Ready for Delivery"
-                          ? "bg-emerald-500/20 text-emerald-400"
-                          : req.status === "Repairing"
-                          ? "bg-blue-500/20 text-blue-400"
-                          : "bg-amber-500/20 text-amber-400"
-                      }`}>
+                      <span
+                        className={`px-2.5 py-1 rounded-full font-bold text-[10px] uppercase ${
+                          req.status === "Completed" || req.status === "Ready for Delivery"
+                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                            : req.status === "Repairing"
+                            ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                            : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                        }`}
+                      >
                         {req.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-bold text-slate-200">
+                    <td className="py-3 px-4 font-bold text-emerald-400 font-mono">
                       {req.estimatedCost ? formatPrice(req.estimatedCost) : "—"}
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={() => handleOpenEdit(req)}
-                        className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs"
-                      >
-                        Update
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {/* GST Service Bill Button */}
+                        <button
+                          onClick={() => setSelectedInvoiceService(req)}
+                          className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-blue-400 hover:text-white font-bold text-[11px] border border-slate-700 flex items-center gap-1 cursor-pointer"
+                          title="Generate GST Service & Warranty Invoice"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-blue-400" />
+                          <span>Bill</span>
+                        </button>
+
+                        {/* WhatsApp Notify Button */}
+                        <button
+                          onClick={() => handleSendWhatsApp(req)}
+                          className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-sm cursor-pointer"
+                          title="Send instant WhatsApp status update to customer"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>WhatsApp</span>
+                        </button>
+
+                        {/* Update Status Button */}
+                        <button
+                          onClick={() => handleOpenEdit(req)}
+                          className="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -244,6 +298,13 @@ export default function AdminServiceRequestsPage() {
           </div>
         </div>
       )}
+
+      {/* GST Service Bill Modal */}
+      <GstInvoiceModal
+        isOpen={Boolean(selectedInvoiceService)}
+        onClose={() => setSelectedInvoiceService(null)}
+        service={selectedInvoiceService}
+      />
     </div>
   );
 }

@@ -17,11 +17,12 @@ import {
   CreditCard,
   Send,
   Check,
-  ExternalLink,
-  Filter,
-  RefreshCw,
   Package,
+  FileText,
+  Printer,
+  RefreshCw,
 } from "lucide-react";
+import GstInvoiceModal from "@/components/invoice/GstInvoiceModal";
 
 // Color mappings and prefilled WhatsApp templates for each status
 const STATUS_CONFIG: Record<
@@ -52,7 +53,7 @@ const STATUS_CONFIG: Record<
         ord.total
       )}* has been received at *Jijau Computers Pune* and is currently *PENDING* verification.\n\n📦 *Items:* ${ord.items
         ?.map((i: any) => `${i.name} (Qty: ${i.quantity})`)
-        .join(", ")}\n\nWe are reviewing your order and will confirm it shortly.\n\nThank you for choosing Jijau Computers!`,
+        .join(", ")}\n\n🔍 *Live Tracking:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(ord.orderNumber)}\n\nThank you for choosing Jijau Computers!`,
   },
   CONFIRMED: {
     label: "CONFIRMED",
@@ -66,7 +67,7 @@ const STATUS_CONFIG: Record<
     getWaMessage: (ord) =>
       `Hello *${ord.customerName}*,\n\nGreat news! Your order *#${ord.orderNumber}* has been *CONFIRMED* by *Jijau Computers Pune*.\n\n📦 *Ordered Items:* ${ord.items
         ?.map((i: any) => `${i.name} (x${i.quantity})`)
-        .join(", ")}\n💰 *Total Amount:* ${formatPrice(ord.total)} (${ord.paymentMode})\n📍 *Delivery To:* ${ord.address}, ${ord.city} - ${ord.pincode}\n\nOur team is currently preparing and testing your hardware. Thank you!`,
+        .join(", ")}\n💰 *Total Amount:* ${formatPrice(ord.total)} (${ord.paymentMode})\n📍 *Delivery To:* ${ord.address}, ${ord.city} - ${ord.pincode}\n\n🔍 *Live Tracking:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(ord.orderNumber)}\n\nOur team is currently preparing and testing your hardware. Thank you!`,
   },
   PROCESSING: {
     label: "PROCESSING",
@@ -78,7 +79,7 @@ const STATUS_CONFIG: Record<
     dotColor: "bg-purple-400",
     icon: Sparkles,
     getWaMessage: (ord) =>
-      `Hello *${ord.customerName}*,\n\nYour order *#${ord.orderNumber}* is now being *PACKED & QUALITY TESTED* at Jijau Computers.\n\nOur technicians are verifying the items and warranty stamps before dispatch.\n\nThank you for your patience!`,
+      `Hello *${ord.customerName}*,\n\nYour order *#${ord.orderNumber}* is now being *PACKED & QUALITY TESTED* at Jijau Computers.\n\nOur technicians are verifying the items and warranty stamps before dispatch.\n\n🔍 *Live Tracking:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(ord.orderNumber)}\n\nThank you for your patience!`,
   },
   SHIPPED: {
     label: "SHIPPED",
@@ -90,7 +91,7 @@ const STATUS_CONFIG: Record<
     dotColor: "bg-sky-400",
     icon: Truck,
     getWaMessage: (ord) =>
-      `Hello *${ord.customerName}*,\n\n🚀 Your order *#${ord.orderNumber}* has been *SHIPPED / DISPATCHED*!\n\n📍 *Destination:* ${ord.address}, ${ord.city} - ${ord.pincode}\n💰 *Amount to Pay:* ${formatPrice(ord.total)} (${ord.paymentMode})\n\nPlease ensure someone is available at the delivery address. For courier tracking assistance, reply to this message anytime.\n\n*Jijau Computers Pune*`,
+      `Hello *${ord.customerName}*,\n\n🚀 Your order *#${ord.orderNumber}* has been *SHIPPED / DISPATCHED*!\n\n📍 *Destination:* ${ord.address}, ${ord.city} - ${ord.pincode}\n💰 *Amount to Pay:* ${formatPrice(ord.total)} (${ord.paymentMode})\n\n🔍 *Live Courier & Order Tracking:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(ord.orderNumber)}\n\nPlease ensure someone is available at the delivery address. For assistance, reply to this WhatsApp message anytime.\n\n*Jijau Computers Pune*`,
   },
   DELIVERED: {
     label: "DELIVERED",
@@ -102,7 +103,7 @@ const STATUS_CONFIG: Record<
     dotColor: "bg-emerald-400",
     icon: CheckCircle2,
     getWaMessage: (ord) =>
-      `Dear *${ord.customerName}*,\n\n🎉 Your order *#${ord.orderNumber}* has been successfully *DELIVERED*!\n\nWe hope you love your new hardware. All items are backed by official manufacturer warranty.\n\nIf you ever need technical support, component upgrades, or servicing in Pune, Jijau Computers is always here to assist you!\n\nHave a wonderful day! ⭐`,
+      `Dear *${ord.customerName}*,\n\n🎉 Your order *#${ord.orderNumber}* has been successfully *DELIVERED*!\n\nWe hope you love your new hardware. All items are backed by official manufacturer warranty.\n\n🔍 *View & Download Tax Invoice:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(ord.orderNumber)}\n\nIf you ever need technical support, component upgrades, or servicing in Pune, Jijau Computers is always here to assist you!\n\nHave a wonderful day! ⭐`,
   },
   CANCELLED: {
     label: "CANCELLED",
@@ -144,6 +145,9 @@ export default function AdminOrdersPage() {
     status: string;
     message: string;
   } | null>(null);
+
+  // Modal for GST Tax Invoice
+  const [invoiceOrder, setInvoiceOrder] = useState<any | null>(null);
 
   const fetchOrders = async () => {
     try {
@@ -482,6 +486,16 @@ export default function AdminOrdersPage() {
                       </select>
                     </div>
 
+                    {/* GST Tax Invoice Button */}
+                    <button
+                      onClick={() => setInvoiceOrder(ord)}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-blue-400 hover:text-white font-bold text-xs border border-slate-700 transition-all cursor-pointer"
+                      title="View, generate, and print official GST Tax Invoice PDF"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-blue-400" />
+                      <span>GST Invoice</span>
+                    </button>
+
                     {/* WhatsApp Notification Button */}
                     <button
                       onClick={() => openWhatsAppModal(ord, ord.status)}
@@ -680,6 +694,13 @@ export default function AdminOrdersPage() {
           </div>
         </div>
       )}
+
+      {/* GST Tax Invoice Modal */}
+      <GstInvoiceModal
+        isOpen={Boolean(invoiceOrder)}
+        onClose={() => setInvoiceOrder(null)}
+        order={invoiceOrder}
+      />
     </div>
   );
 }

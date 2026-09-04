@@ -25,7 +25,10 @@ import {
   Truck,
   ExternalLink,
   Lock,
+  Printer,
+  Download,
 } from "lucide-react";
+import GstInvoiceModal from "@/components/invoice/GstInvoiceModal";
 
 export default function AccountDashboardPage() {
   const { user, logout, openAuthModal } = useAuth();
@@ -35,6 +38,7 @@ export default function AccountDashboardPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [quotes, setQuotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<any | null>(null);
 
   useEffect(() => {
     // Check if query tab parameter exists
@@ -312,6 +316,26 @@ export default function AccountDashboardPage() {
                         ))}
                       </div>
                     )}
+
+                    {/* Order Action Row: GST Invoice & Live Tracking */}
+                    <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedOrderForInvoice(ord)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>Print / Save GST Invoice</span>
+                      </button>
+
+                      <Link
+                        href={`/track-service?q=${encodeURIComponent(ord.orderNumber)}`}
+                        className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold transition-colors"
+                      >
+                        <span>Live Tracking</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -388,6 +412,13 @@ export default function AccountDashboardPage() {
             )}
           </div>
         )}
+
+        {/* GST Tax Invoice Modal */}
+        <GstInvoiceModal
+          isOpen={Boolean(selectedOrderForInvoice)}
+          onClose={() => setSelectedOrderForInvoice(null)}
+          order={selectedOrderForInvoice}
+        />
       </main>
 
       <Footer />

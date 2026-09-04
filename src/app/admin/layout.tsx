@@ -22,12 +22,15 @@ import {
   Shield,
   LogOut,
   Users,
+  Star,
 } from "lucide-react";
+import { useSettings } from "@/context/SettingsContext";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Visitors", href: "/admin/visitors", icon: Users },
   { label: "Products", href: "/admin/products", icon: Package },
+  { label: "Product Reviews", href: "/admin/reviews", icon: Star },
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
   { label: "Brands", href: "/admin/brands", icon: Tags },
   { label: "Homepage Banners", href: "/admin/banners", icon: Sliders },
@@ -46,6 +49,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { settings } = useSettings();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -54,7 +58,7 @@ export default function AdminLayout({
       <div className="md:hidden bg-slate-950 border-b border-slate-800 p-4 flex items-center justify-between sticky top-0 z-30">
         <Link href="/admin" className="flex items-center gap-2">
           <img
-            src="/images/jijau-logo.jpg"
+            src={settings.logoUrl || "/images/jijau-logo.jpg"}
             alt="Jijau Computers"
             className="w-8 h-8 rounded-full object-cover ring-2 ring-amber-400/80 shadow"
           />
@@ -79,7 +83,7 @@ export default function AdminLayout({
           <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
             <Link href="/admin" className="flex items-center gap-3">
               <img
-                src="/images/jijau-logo.jpg"
+                src={settings.logoUrl || "/images/jijau-logo.jpg"}
                 alt="Jijau Computers"
                 className="w-10 h-10 rounded-full object-cover ring-2 ring-amber-400 shadow-md"
               />

@@ -23,6 +23,24 @@ export interface WebsiteSettingsData {
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
+  invoiceTerms?: string;
+  invoiceBankDetails?: string;
+  invoiceHsnCode?: string;
+  invoiceNotes?: string;
+}
+
+export interface ReviewItem {
+  id: string;
+  productId: string;
+  userId?: string | null;
+  customerName: string;
+  customerPhone?: string | null;
+  rating: number;
+  title: string;
+  comment: string;
+  isVerifiedBuyer: boolean;
+  isApproved: boolean;
+  createdAt: string | Date;
 }
 
 export interface ProductItem {

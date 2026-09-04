@@ -27,7 +27,9 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
+  Star,
 } from "lucide-react";
+import ProductReviewsSection from "@/components/products/ProductReviewsSection";
 
 function getYouTubeEmbedUrl(url?: string | null): string | null {
   if (!url) return null;
@@ -384,6 +386,21 @@ export default function ProductDetailClient({
               {product.name}
             </h1>
 
+            {/* Quick Star Rating Pill */}
+            <a
+              href="#reviews-section"
+              className="inline-flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-900 text-xs font-bold transition-colors w-fit"
+            >
+              <div className="flex items-center gap-0.5 text-amber-500">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star key={s} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+              <span className="font-extrabold text-amber-800">4.9</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-blue-600 hover:underline">Verified Customer Reviews</span>
+            </a>
+
             {/* Price Row */}
             <div className="flex items-baseline gap-3 my-4">
               <span className="text-3xl sm:text-4xl font-black text-slate-900">
@@ -674,6 +691,9 @@ export default function ProductDetailClient({
             )}
           </div>
         )}
+
+        {/* Product Reviews & Star Ratings Section */}
+        <ProductReviewsSection productId={product.id} productName={product.name} />
       </div>
 
       {/* Request Quote Modal */}

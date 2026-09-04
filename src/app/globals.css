@@ -114,3 +114,44 @@
 .animate-soft-pulse {
   animation: soft-pulse 2.5s infinite ease-in-out;
 }
+
+/* Strict Clean Print Media Rules for GST Invoices */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 4mm 6mm 4mm 6mm !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide navigation, headers, footers, mobile bottom bars, and floating chat */
+  header,
+  footer,
+  nav,
+  aside,
+  button,
+  [role="navigation"],
+  .no-print,
+  [class*="MobileBottomNav"],
+  [class*="fixed bottom-0"],
+  [class*="WhatsAppFloating"],
+  [class*="backdrop-blur"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+  }
+}

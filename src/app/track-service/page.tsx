@@ -26,13 +26,12 @@ import {
   Cpu,
   FileText,
   Package,
-  Layers,
-  Sparkles,
-  ExternalLink,
-  ArrowRight,
   MapPin,
   RefreshCw,
+  Printer,
+  Sparkles,
 } from "lucide-react";
+import GstInvoiceModal from "@/components/invoice/GstInvoiceModal";
 
 export default function UniversalTrackerPage() {
   const { settings } = useSettings();
@@ -49,6 +48,10 @@ export default function UniversalTrackerPage() {
   const [serviceRequests, setServiceRequests] = useState<any[]>([]);
   const [customPcRequests, setCustomPcRequests] = useState<any[]>([]);
   const [quotations, setQuotations] = useState<any[]>([]);
+  const [selectedInvoiceData, setSelectedInvoiceData] = useState<{
+    order?: any;
+    service?: any;
+  } | null>(null);
 
   // Auto-search if user is logged in
   useEffect(() => {
@@ -350,14 +353,22 @@ export default function UniversalTrackerPage() {
                         <div className="flex items-center gap-2 pt-1">
                           <button
                             type="button"
+                            onClick={() => setSelectedInvoiceData({ order: ord })}
+                            className="flex-1 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-blue-200/80"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>GST Invoice</span>
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => {
                               const storeNo = settings.whatsapp || "918805607908";
                               const msg = `Hi Jijau Computers, I am tracking my order #${ord.orderNumber}. Please share the current dispatch status!`;
                               window.open(generateWhatsAppUrl(storeNo, msg), "_blank");
                             }}
-                            className="flex-1 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                            className="flex-1 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-emerald-200/80"
                           >
-                            <span>WhatsApp Update</span>
+                            <span>WhatsApp Support</span>
                           </button>
                         </div>
                       </div>
@@ -425,18 +436,28 @@ export default function UniversalTrackerPage() {
                           </div>
                         )}
 
-                        {/* WhatsApp Action */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const storeNo = settings.whatsapp || "918805607908";
-                            const msg = `Hi Jijau Computers, I am tracking my repair ticket #${srv.ticketId} for ${srv.brand} ${srv.model}. Please share repair progress!`;
-                            window.open(generateWhatsAppUrl(storeNo, msg), "_blank");
-                          }}
-                          className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all"
-                        >
-                          <span>Inquire Repair Status on WhatsApp</span>
-                        </button>
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedInvoiceData({ service: srv })}
+                            className="flex-1 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-blue-200/80"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>GST Service Bill</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const storeNo = settings.whatsapp || "918805607908";
+                              const msg = `Hi Jijau Computers, I am tracking my repair ticket #${srv.ticketId} for ${srv.brand} ${srv.model}. Please share repair progress!`;
+                              window.open(generateWhatsAppUrl(storeNo, msg), "_blank");
+                            }}
+                            className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+                          >
+                            <span>WhatsApp Support</span>
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -543,6 +564,14 @@ export default function UniversalTrackerPage() {
             </div>
           </div>
         )}
+
+        {/* GST Tax Invoice Modal */}
+        <GstInvoiceModal
+          isOpen={Boolean(selectedInvoiceData)}
+          onClose={() => setSelectedInvoiceData(null)}
+          order={selectedInvoiceData?.order}
+          service={selectedInvoiceData?.service}
+        />
       </main>
 
       <Footer />

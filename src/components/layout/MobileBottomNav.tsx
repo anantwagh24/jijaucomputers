@@ -10,15 +10,15 @@ export default function MobileBottomNav() {
   const pathname = usePathname();
   const { totalItems, setIsCartOpen } = useCart();
 
-  // Don't show bottom nav on admin panel
-  if (pathname.startsWith("/admin")) return null;
+  // Don't show bottom nav on admin panel or invoice pages
+  if (pathname.startsWith("/admin") || pathname.startsWith("/invoices")) return null;
 
   const isHome = pathname === "/";
   const isTrack = pathname.startsWith("/track-service");
   const isAccount = pathname.startsWith("/account") || pathname.startsWith("/admin");
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#090d18]/95 backdrop-blur-xl border-t border-slate-800/80 px-4 py-2 shadow-[0_-8px_30px_rgba(0,0,0,0.6)] flex items-center justify-around">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#090d18]/95 backdrop-blur-xl border-t border-slate-800/80 px-4 py-2 shadow-[0_-8px_30px_rgba(0,0,0,0.6)] flex items-center justify-around print:hidden no-print">
       {/* 1. Home */}
       <Link
         href="/"

@@ -32,8 +32,12 @@ model WebsiteSetting {
   metaTitle       String   @default("Jijau Computers - Best Computer & Laptop Store in Pune")
   metaDescription String   @default("Shop high performance gaming PCs, laptops, components, CCTV, and get quick repair services at Jijau Computers.")
   metaKeywords    String   @default("computer store, gaming pc, laptops, pc repair, processors, graphics card, jijau computers")
-  sliderInterval  Int      @default(5) // Default auto-slider interval in seconds
-  updatedAt       DateTime @updatedAt
+  sliderInterval     Int      @default(5) // Default auto-slider interval in seconds
+  invoiceTerms       String   @default("1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to Pune Jurisdiction only.")
+  invoiceBankDetails String   @default("Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234 | Branch: Station Road, Pune")
+  invoiceHsnCode     String   @default("84713010")
+  invoiceNotes       String   @default("Thank you for choosing Jijau Computers Pune - Your Trusted Tech Partner!")
+  updatedAt          DateTime @updatedAt
 }
 
 model AdminUser {
@@ -98,6 +102,7 @@ model Product {
   brand         Brand?         @relation(fields: [brandId], references: [id], onDelete: SetNull)
   images        ProductImage[]
   orderItems    OrderItem[]
+  reviews       Review[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -270,4 +275,20 @@ model VisitorLog {
   referrer  String?  @default("—")
   userAgent String?
   createdAt DateTime @default(now())
+}
+
+model Review {
+  id              String   @id @default(cuid())
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId          String?
+  customerName    String
+  customerPhone   String?
+  rating          Int      @default(5) // 1 to 5 stars
+  title           String
+  comment         String
+  isVerifiedBuyer Boolean  @default(false)
+  isApproved      Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

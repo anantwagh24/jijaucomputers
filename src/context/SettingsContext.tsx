@@ -28,6 +28,10 @@ const defaultSettings: WebsiteSettingsData = {
   metaTitle: "Jijau Computers - Premium Laptops, Gaming PCs & Hardware Store in Pune",
   metaDescription: "Explore the best deals on custom gaming PCs, laptops, graphics cards, processors, CCTV, and same-day repair services at Jijau Computers Pune.",
   metaKeywords: "jijau computers pune, gaming pc build pune, custom pc quote, laptops shop pune",
+  invoiceTerms: "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to Pune Jurisdiction only.",
+  invoiceBankDetails: "Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234 | Branch: Station Road, Pune",
+  invoiceHsnCode: "84713010",
+  invoiceNotes: "Thank you for choosing Jijau Computers Pune - Your Trusted Tech Partner!",
 };
 
 interface SettingsContextType {
