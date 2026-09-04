@@ -35,6 +35,8 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
+import { AuthProvider } from "@/context/AuthContext";
+import AuthModal from "@/components/auth/AuthModal";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 
 export default async function RootLayout({
@@ -55,14 +57,17 @@ export default async function RootLayout({
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[#f8fafc]">
         <SettingsProvider initialSettings={initialSettings as any}>
-          <CartProvider>
-            <WishlistProvider>
-              <div className="flex-1 pb-16 md:pb-0 flex flex-col min-h-screen">
-                {children}
-              </div>
-              <MobileBottomNav />
-            </WishlistProvider>
-          </CartProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <div className="flex-1 pb-16 md:pb-0 flex flex-col min-h-screen">
+                  {children}
+                </div>
+                <AuthModal />
+                <MobileBottomNav />
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
         </SettingsProvider>
       </body>
     </html>

@@ -9,6 +9,7 @@ import WhatsAppFloating from "@/components/layout/WhatsAppFloating";
 import CartDrawer from "@/components/layout/CartDrawer";
 import { useCart } from "@/context/CartContext";
 import { useSettings } from "@/context/SettingsContext";
+import { useAuth } from "@/context/AuthContext";
 import { formatPrice, generateWhatsAppUrl } from "@/lib/utils";
 import {
   CreditCard,
@@ -31,17 +32,33 @@ import {
 export default function CheckoutPage() {
   const { cart, clearCart, subtotal, discount, couponCode } = useCart();
   const { settings } = useSettings();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
-    customerName: "",
-    phone: "",
-    email: "",
-    address: "",
-    city: "Pune",
-    pincode: "411005",
+    customerName: user?.name || "",
+    phone: user?.phone || "",
+    email: user?.email || "",
+    address: user?.address || "",
+    city: user?.city || "Pune",
+    pincode: user?.pincode || "411005",
     notes: "",
     paymentMode: "UPI_WHATSAPP", // Default to Instant UPI for seamless Indian checkout
   });
+
+  // Pre-fill user data if auth loads after mount
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        customerName: prev.customerName || user.name || "",
+        phone: prev.phone || user.phone || "",
+        email: prev.email || user.email || "",
+        address: prev.address || user.address || "",
+        city: prev.city || user.city || "Pune",
+        pincode: prev.pincode || user.pincode || "411005",
+      }));
+    }
+  }, [user]);
 
   const [loading, setLoading] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<any | null>(null);
@@ -108,6 +125,7 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          userId: user?.id || null,
           customerName: formData.customerName,
           phone: formData.phone,
           email: formData.email,

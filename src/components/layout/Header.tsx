@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { useSettings } from "@/context/SettingsContext";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   Search,
   ShoppingCart,
   Heart,
-  User,
+  User as UserIcon,
   Wrench,
   Cpu,
   Flame,
@@ -37,6 +38,7 @@ export default function Header() {
   const { settings } = useSettings();
   const { totalItems, subtotal, setIsCartOpen } = useCart();
   const { wishlist } = useWishlist();
+  const { user, openAuthModal } = useAuth();
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -248,14 +250,40 @@ export default function Header() {
               </div>
             </button>
 
-            {/* Admin / Account Access */}
+            {/* User Account / Sign In */}
+            {user ? (
+              <Link
+                href="/account"
+                className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-full bg-purple-50 hover:bg-purple-100 border border-purple-200/80 text-slate-900 transition-colors"
+                title="My Account"
+              >
+                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-black text-[11px] flex items-center justify-center shadow-sm">
+                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </div>
+                <span className="hidden sm:inline text-xs font-bold truncate max-w-[90px] text-purple-950">
+                  {user.name ? user.name.split(" ")[0] : "Account"}
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openAuthModal("signin")}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition-all hover:scale-105 shadow-sm"
+                title="Sign In / Register"
+              >
+                <UserIcon className="w-3.5 h-3.5 text-purple-400" />
+                <span className="hidden sm:inline">Sign In</span>
+              </button>
+            )}
+
+            {/* Admin Access */}
             <Link
               href="/admin"
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
               title="Admin CMS"
             >
               <Shield className="w-3.5 h-3.5 text-blue-400" />
-              <span className="hidden sm:inline">Admin Panel</span>
+              <span className="hidden sm:inline">Admin</span>
             </Link>
           </div>
         </div>
