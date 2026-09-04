@@ -52,9 +52,9 @@ export default function ProductCard({
     e.stopPropagation();
     const storeNumber = settings.whatsapp || "918805607908";
     const productUrl = `${window.location.origin}/products/${product.slug}`;
-    const message = `*Inquiry about ${product.name}*\n\nPrice: ${formatPrice(
+    const message = `*Order / Buy on WhatsApp*\n\nProduct: *${product.name}*\nPrice: *${formatPrice(
       price
-    )}\nProduct Link: ${productUrl}\n\nHi Jijau Computers, is this available in stock? What is the best price offer?`;
+    )}*\nLink: ${productUrl}\n\nHi Jijau Computers (+91 ${settings.whatsapp || "8805607908"}), I want to buy this product. Please share payment and delivery details!`;
     window.open(generateWhatsAppUrl(storeNumber, message), "_blank");
   };
 
@@ -193,14 +193,16 @@ export default function ProductCard({
               )}
             </button>
 
-            {/* WhatsApp 1-Click Enquiry */}
+            {/* Buy on WhatsApp */}
             <button
               onClick={handleWhatsAppInquiry}
-              className="w-full py-2 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center gap-1 transition-colors border border-emerald-200"
-              title="Chat on WhatsApp"
+              className="w-full py-2 px-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+              title={`Buy directly on WhatsApp from Jijau Computers (+91 ${settings.whatsapp || "8805607908"})`}
             >
-              <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Enquire</span>
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current shrink-0">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.07-2.125-.522-1.829-.759-3.003-2.628-3.094-2.75-.09-.12-0.749-.998-.749-1.905 0-.907.474-1.353.643-1.537.17-.184.372-.23.496-.23.125 0 .25.002.359.006.115.006.27-.044.422.321.157.38.536 1.309.584 1.405.048.096.08.209.016.337-.064.128-.096.208-.192.32-.096.112-.204.25-.291.336-.098.096-.2.201-.086.397.114.195.508.839 1.09 1.357.75.669 1.383.876 1.579.972.196.096.312.08.428-.052.116-.133.496-.578.628-.777.133-.2.266-.167.449-.099.183.068 1.164.549 1.365.65.201.101.335.151.384.234.049.083.049.48-.095.885z" />
+              </svg>
+              <span className="truncate">Buy on WhatsApp</span>
             </button>
           </div>
         </div>

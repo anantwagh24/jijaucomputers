@@ -172,9 +172,9 @@ export default function ProductDetailClient({
   const handleWhatsApp = () => {
     const storeNumber = settings.whatsapp || "918805607908";
     const productUrl = typeof window !== "undefined" ? window.location.href : "";
-    const msg = `*Product Inquiry: ${product.name}*\nPrice: ${formatPrice(
+    const msg = `*Order / Buy on WhatsApp*\n\nProduct: *${product.name}*\nPrice: *${formatPrice(
       price
-    )}\nLink: ${productUrl}\n\nHi Jijau Computers team, is this currently in stock? Can you share the best offer / discounts available?`;
+    )}*\nQuantity: *${quantity}*\nLink: ${productUrl}\n\nHi Jijau Computers (+91 ${settings.whatsapp || "8805607908"}), I want to buy this product directly on WhatsApp. Please guide me through payment & delivery!`;
     window.open(generateWhatsAppUrl(storeNumber, msg), "_blank");
   };
 
@@ -488,15 +488,18 @@ export default function ProductDetailClient({
                 </button>
               </div>
 
-              {/* WhatsApp Enquiry & Wishlist / Quote Trigger */}
+              {/* Buy on WhatsApp & Wishlist / Quote Trigger */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                 <button
                   type="button"
                   onClick={handleWhatsApp}
-                  className="sm:col-span-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="sm:col-span-2 py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-95 cursor-pointer"
+                  title={`Direct purchase via Jijau Computers WhatsApp (+91 ${settings.whatsapp || "8805607908"})`}
                 >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Enquire on WhatsApp</span>
+                  <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current shrink-0">
+                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.07-2.125-.522-1.829-.759-3.003-2.628-3.094-2.75-.09-.12-0.749-.998-.749-1.905 0-.907.474-1.353.643-1.537.17-.184.372-.23.496-.23.125 0 .25.002.359.006.115.006.27-.044.422.321.157.38.536 1.309.584 1.405.048.096.08.209.016.337-.064.128-.096.208-.192.32-.096.112-.204.25-.291.336-.098.096-.2.201-.086.397.114.195.508.839 1.09 1.357.75.669 1.383.876 1.579.972.196.096.312.08.428-.052.116-.133.496-.578.628-.777.133-.2.266-.167.449-.099.183.068 1.164.549 1.365.65.201.101.335.151.384.234.049.083.049.48-.095.885z" />
+                  </svg>
+                  <span>Buy on WhatsApp (+91 {settings.whatsapp || "88056 07908"})</span>
                 </button>
 
                 <button
