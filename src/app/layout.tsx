@@ -38,6 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
 import { AuthProvider } from "@/context/AuthContext";
 import AuthModal from "@/components/auth/AuthModal";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
+import VisitorTracker from "@/components/common/VisitorTracker";
 
 export default async function RootLayout({
   children,
@@ -60,6 +61,7 @@ export default async function RootLayout({
           <AuthProvider>
             <CartProvider>
               <WishlistProvider>
+                <VisitorTracker />
                 <div className="flex-1 pb-16 md:pb-0 flex flex-col min-h-screen">
                   {children}
                 </div>

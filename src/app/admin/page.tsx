@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Plus,
+  Users,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,7 @@ export default async function AdminDashboardPage() {
     quotations,
     enquiries,
     orders,
+    totalVisitors,
   ] = await Promise.all([
     prisma.product.count(),
     prisma.category.count(),
@@ -39,11 +41,13 @@ export default async function AdminDashboardPage() {
     prisma.quotationRequest.findMany({ take: 5, orderBy: { createdAt: "desc" } }),
     prisma.enquiry.findMany({ take: 5, orderBy: { createdAt: "desc" } }),
     prisma.order.findMany({ take: 5, orderBy: { createdAt: "desc" } }),
+    prisma.visitorLog.count(),
   ]);
 
   const totalOrdersAmount = orders.reduce((acc, o) => acc + o.total, 0);
 
   const stats = [
+    { label: "Total Visitors", count: totalVisitors, icon: Users, href: "/admin/visitors", color: "from-amber-600 to-amber-700" },
     { label: "Total Products", count: totalProducts, icon: Package, href: "/admin/products", color: "from-blue-600 to-blue-700" },
     { label: "Active Categories", count: totalCategories, icon: FolderTree, href: "/admin/categories", color: "from-indigo-600 to-indigo-700" },
     { label: "Active Offers", count: totalOffers, icon: Flame, href: "/admin/offers", color: "from-rose-600 to-rose-700" },

@@ -258,3 +258,16 @@ model OrderItem {
   price     Float
   quantity  Int
 }
+
+model VisitorLog {
+  id        String   @id @default(cuid())
+  ip        String
+  location  String?  @default("Pune, Maharashtra, India")
+  device    String?  @default("Desktop")
+  browser   String?  @default("Chrome")
+  os        String?  @default("Windows")
+  page      String   @default("/")
+  referrer  String?  @default("—")
+  userAgent String?
+  createdAt DateTime @default(now())
+}
