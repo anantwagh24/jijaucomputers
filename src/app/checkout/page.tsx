@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import Header from "@/components/layout/Header";
@@ -46,6 +46,13 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<any | null>(null);
   const [copiedUpi, setCopiedUpi] = useState(false);
+
+  // Auto-scroll to top when order is placed so customer immediately sees the success card
+  useEffect(() => {
+    if (placedOrder && typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [placedOrder]);
 
   const total = Math.max(0, subtotal - discount);
 

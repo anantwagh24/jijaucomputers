@@ -54,3 +54,14 @@ export function generatePcReqNumber(): string {
   const randomNum = Math.floor(1000 + Math.random() * 9000);
   return `JC-RIG-${randomNum}`;
 }
+
+export function formatDisplayPhone(phone?: string): string {
+  if (!phone) return "+91 88056 07908";
+  const digits = phone.replace(/\D/g, "");
+  const clean10 = digits.startsWith("91") && digits.length === 12 ? digits.slice(2) : digits.slice(-10);
+  if (clean10.length === 10) {
+    return `+91 ${clean10.slice(0, 5)} ${clean10.slice(5)}`;
+  }
+  return phone.startsWith("+") ? phone : `+91 ${phone}`;
+}
+
