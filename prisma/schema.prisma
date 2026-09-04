@@ -10,7 +10,7 @@ generator client {
 model WebsiteSetting {
   id              String   @id @default("default")
   storeName       String   @default("Jijau Computers")
-  tagline         String   @default("Your Trusted Destination for Laptops, Desktops & Custom Gaming Rigs")
+  tagline         String   @default("Your Tech Partner")
   logoUrl         String   @default("")
   darkLogoUrl     String   @default("")
   faviconUrl      String   @default("")

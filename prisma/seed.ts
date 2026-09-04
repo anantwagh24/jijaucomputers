@@ -12,7 +12,7 @@ async function main() {
     create: {
       id: "default",
       storeName: "Jijau Computers",
-      tagline: "Pune's #1 Destination for Laptops, Custom Gaming PCs & Computer Hardware",
+      tagline: "Your Tech Partner",
       logoUrl: "",
       darkLogoUrl: "",
       faviconUrl: "",

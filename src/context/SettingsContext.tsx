@@ -6,7 +6,7 @@ import { WebsiteSettingsData } from "@/lib/types";
 const defaultSettings: WebsiteSettingsData = {
   id: "default",
   storeName: "Jijau Computers",
-  tagline: "Pune's #1 Destination for Laptops, Custom Gaming PCs & Computer Hardware",
+  tagline: "Your Tech Partner",
   logoUrl: "/images/jijau-logo.jpg",
   darkLogoUrl: "/images/jijau-logo.jpg",
   faviconUrl: "/favicon.png",
