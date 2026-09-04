@@ -139,28 +139,28 @@ export default function Header() {
       }`}>
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-4">
           {/* Mobile Menu Toggle & Logo */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-none"
+              className="lg:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-none shrink-0"
               aria-label="Open menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative">
+            <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group min-w-0">
+              <div className="relative shrink-0 flex items-center justify-center">
                 <img
                   src={settings.logoUrl || "/images/jijau-logo.jpg"}
                   alt={settings.storeName || "Jijau Computers"}
-                  className="w-11 h-11 rounded-full object-cover ring-2 ring-amber-400/90 shadow-md group-hover:scale-105 transition-transform"
+                  className="w-10 h-10 sm:w-11 sm:h-11 aspect-square rounded-full object-cover shrink-0 ring-2 ring-amber-400/90 shadow-md group-hover:scale-105 transition-transform"
                 />
               </div>
-              <div className="flex flex-col">
-                <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 leading-none">
+              <div className="flex flex-col min-w-0">
+                <span className="text-base sm:text-2xl font-black tracking-tight text-slate-900 leading-tight truncate">
                   {settings.storeName || "Jijau Computers"}
                 </span>
-                <span className="text-[10px] sm:text-xs font-semibold text-blue-600 tracking-wider uppercase">
+                <span className="hidden sm:block text-[9px] sm:text-xs font-semibold text-blue-600 tracking-wider uppercase truncate">
                   Sales • Custom PCs • Repairs
                 </span>
               </div>
@@ -204,7 +204,7 @@ export default function Header() {
           </form>
 
           {/* Right Action Icons (Custom PC Rig, Wishlist, Cart, Account) */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Custom PC Builder CTA Button */}
             <Link
               href="/custom-pc"
@@ -217,10 +217,10 @@ export default function Header() {
               </span>
             </Link>
 
-            {/* Wishlist */}
+            {/* Wishlist (Visible on tablet & desktop, accessible via account/bottom nav on mobile) */}
             <Link
               href="/account?tab=wishlist"
-              className="relative p-2 rounded-full text-slate-700 hover:bg-slate-100 transition-colors"
+              className="hidden sm:flex relative p-2 rounded-full text-slate-700 hover:bg-slate-100 transition-colors"
               title="Wishlist"
             >
               <Heart className="w-5 h-5" />
@@ -258,7 +258,7 @@ export default function Header() {
                 className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-full bg-purple-50 hover:bg-purple-100 border border-purple-200/80 text-slate-900 transition-colors"
                 title="My Account"
               >
-                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-black text-[11px] flex items-center justify-center shadow-sm">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-black text-[11px] flex items-center justify-center shadow-sm shrink-0">
                   {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </div>
                 <span className="hidden sm:inline text-xs font-bold truncate max-w-[90px] text-purple-950">
@@ -277,14 +277,14 @@ export default function Header() {
               </button>
             )}
 
-            {/* Admin Access */}
+            {/* Admin Access (Desktop & Tablet) */}
             <Link
               href="/admin"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
               title="Admin CMS"
             >
               <Shield className="w-3.5 h-3.5 text-blue-400" />
-              <span className="hidden sm:inline">Admin</span>
+              <span>Admin</span>
             </Link>
           </div>
         </div>
