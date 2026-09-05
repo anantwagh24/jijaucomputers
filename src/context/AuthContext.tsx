@@ -29,7 +29,7 @@ interface AuthContextType {
     phone: string,
     password: string
   ) => Promise<{ success: boolean; error?: string }>;
-  googleLogin: (email?: string, name?: string) => Promise<{ success: boolean; error?: string }>;
+  googleLogin: (credential: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -117,22 +117,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const googleLogin = async (customEmail?: string, customName?: string) => {
+  const googleLogin = async (credential: string) => {
     try {
-      const email = customEmail || "anantwagh24@gmail.com";
-      const name = customName || "Anant Wagh";
       const res = await fetch("/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          name,
-          avatarUrl: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80`,
-        }),
+        body: JSON.stringify({ credential }),
       });
       const data = await res.json();
       if (!res.ok) {
-        return { success: false, error: data.error || "Google auth failed" };
+        return { success: false, error: data.error || "Google authentication failed" };
       }
       setUser(data.user);
       localStorage.setItem("jijau_customer_user", JSON.stringify(data.user));

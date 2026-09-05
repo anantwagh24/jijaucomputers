@@ -25,6 +25,12 @@ import {
   Info,
 } from "lucide-react";
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 export default function AuthModal() {
   const { isAuthModalOpen, closeAuthModal, authModalTab, openAuthModal, login, register, googleLogin } = useAuth();
   const { settings } = useSettings();
@@ -33,6 +39,7 @@ export default function AuthModal() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [googleClientConfigured, setGoogleClientConfigured] = useState<boolean>(true);
 
   // Form states
   const [name, setName] = useState("");
@@ -40,6 +47,57 @@ export default function AuthModal() {
   const [email, setEmail] = useState(""); // For Create Account
   const [phone, setPhone] = useState(""); // For Create Account
   const [password, setPassword] = useState("");
+
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+
+  // Initialize Google Identity Services (GSI)
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleCredentialResponse = async (response: any) => {
+      if (response && response.credential) {
+        setLoading(true);
+        setError(null);
+        try {
+          const res = await googleLogin(response.credential);
+          if (!res.success) {
+            setError(res.error || "Google sign-in failed.");
+          }
+        } catch (err: any) {
+          setError(err.message || "An error occurred during Google sign-in.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    const initGsi = () => {
+      if (window.google?.accounts?.id && googleClientId) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+        } catch (e) {
+          console.error("GSI init error:", e);
+        }
+      }
+    };
+
+    if (!document.getElementById("google-gsi-client")) {
+      const script = document.createElement("script");
+      script.id = "google-gsi-client";
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.onload = initGsi;
+      document.head.appendChild(script);
+    } else {
+      initGsi();
+    }
+  }, [googleClientId, googleLogin]);
 
   // Sync tab with context when modal opens
   React.useEffect(() => {
@@ -127,14 +185,30 @@ export default function AuthModal() {
     }
   };
 
-  const handleGoogleClick = async () => {
+  const handleGoogleClick = () => {
     setError(null);
-    setLoading(true);
-    const res = await googleLogin();
-    if (!res.success) {
-      setError(res.error || "Google authentication failed.");
+
+    if (!googleClientId) {
+      setError(
+        "Real Google Sign-In requires NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set in .env.local. Please log in or register with your Mobile Number or Email above."
+      );
+      return;
     }
-    setLoading(false);
+
+    if (window.google?.accounts?.id) {
+      try {
+        window.google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // If One-Tap prompt is suppressed/skipped, render fallback notice
+            setError("Google sign-in popup was dismissed or blocked by browser settings. Please try again or use Mobile/Email.");
+          }
+        });
+      } catch (e: any) {
+        setError("Unable to open Google Sign-In. Please check your browser popup settings.");
+      }
+    } else {
+      setError("Google Sign-In SDK is still loading. Please check your internet connection and try again in a few seconds.");
+    }
   };
 
   return (
