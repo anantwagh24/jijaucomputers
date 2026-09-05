@@ -124,7 +124,11 @@ export default function UniversalTrackerPage() {
     e.preventDefault();
     setNewReqError("");
 
-    const cleanPhone = newReqForm.phone.replace(/\D/g, "");
+    const rawDigits = newReqForm.phone.replace(/\D/g, "");
+    const cleanPhone = rawDigits.length === 11 && rawDigits.startsWith("0") 
+      ? rawDigits.slice(1) 
+      : (rawDigits.length > 10 ? rawDigits.slice(-10) : rawDigits);
+
     if (!cleanPhone || cleanPhone.length < 10) {
       setNewReqError("Please enter a valid 10-digit mobile number.");
       return;
@@ -135,20 +139,23 @@ export default function UniversalTrackerPage() {
       const res = await fetch("/api/service-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newReqForm),
+        body: JSON.stringify({
+          ...newReqForm,
+          phone: cleanPhone,
+        }),
       });
 
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && data?.id) {
         setNewReqSuccess(data);
         // Refresh and search for this newly created ticket
-        setSearchQuery(data.phone || cleanPhone);
-        performSearch(data.phone || cleanPhone);
+        setSearchQuery(cleanPhone);
+        performSearch(cleanPhone);
       } else {
-        setNewReqError(data.error || "Failed to submit repair request. Please try again.");
+        setNewReqError(data?.error || "Failed to submit repair request. Please try again.");
       }
-    } catch (err) {
-      setNewReqError("Network connection error. Please try again.");
+    } catch (err: any) {
+      setNewReqError(err?.message || "Network connection error. Please try again.");
     } finally {
       setNewReqSubmitting(false);
     }

@@ -38,7 +38,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const cleanPhone = (data.phone || "").replace(/[^0-9]/g, "");
+    const rawDigits = (data.phone || "").replace(/[^0-9]/g, "");
+    const cleanPhone = rawDigits.length === 11 && rawDigits.startsWith("0") 
+      ? rawDigits.slice(1) 
+      : (rawDigits.length > 10 ? rawDigits.slice(-10) : rawDigits);
 
     if (!data.customerName || !data.customerName.trim()) {
       return NextResponse.json(
@@ -54,7 +57,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const ticketId = data.ticketId && data.ticketId.trim() ? data.ticketId.trim() : generateTicketId();
+    let ticketId = data.ticketId && data.ticketId.trim() ? data.ticketId.trim() : generateTicketId();
+
+    // Guarantee ticketId uniqueness
+    const existing = await prisma.serviceRequest.findFirst({
+      where: { ticketId },
+    });
+    if (existing) {
+      ticketId = `JC-SRV-${Date.now().toString().slice(-4)}-${Math.floor(100 + Math.random() * 900)}`;
+    }
 
     const newRequest = await prisma.serviceRequest.create({
       data: {
@@ -64,19 +75,22 @@ export async function POST(req: Request) {
         email: data.email?.trim() || null,
         deviceType: data.deviceType || "Laptop",
         brand: data.brand || "Standard Brand",
-        model: data.model || "Standard Model",
-        serialNo: data.serialNo || null,
-        issueDesc: data.issueDesc || "Diagnostics & Service Checkup",
+        model: data.model?.trim() || "Standard Model",
+        serialNo: data.serialNo?.trim() || null,
+        issueDesc: data.issueDesc?.trim() || "Diagnostics & Service Checkup",
         status: data.status || "Received",
         estimatedCost: data.estimatedCost ? parseFloat(data.estimatedCost) : null,
-        adminNotes: data.adminNotes || null,
+        adminNotes: data.adminNotes?.trim() || null,
       },
     });
 
     return NextResponse.json(newRequest);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating service request:", error);
-    return NextResponse.json({ error: "Failed to create service request" }, { status: 500 });
+    return NextResponse.json(
+      { error: error?.message || "Failed to create service request" },
+      { status: 500 }
+    );
   }
 }
 
