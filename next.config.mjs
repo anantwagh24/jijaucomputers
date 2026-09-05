@@ -31,7 +31,7 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
-  output: "standalone",
+  ...(process.env.VERCEL ? {} : { output: "standalone" }),
   reactStrictMode: true,
   typescript: {
     // Prevent type checking from blocking builds on constrained CI/CD environments
