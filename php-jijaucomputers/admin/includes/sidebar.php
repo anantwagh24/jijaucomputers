@@ -21,6 +21,10 @@ $currentUri = $_SERVER['REQUEST_URI'];
       <span>📊</span> Dashboard
     </a>
 
+    <a href="/admin/users.php" class="nav-item <?= str_contains($currentUri, 'users.php') ? 'active' : '' ?>">
+      <span>👥</span> Registered Customers
+    </a>
+
     <a href="/admin/orders.php" class="nav-item <?= str_contains($currentUri, 'orders.php') ? 'active' : '' ?>">
       <span>📦</span> Orders
       <?php if (!empty($pendingOrdersCount)): ?>
