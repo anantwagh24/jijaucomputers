@@ -45,8 +45,11 @@ export default function CheckoutPage() {
     city: user?.city || "Pune",
     pincode: user?.pincode || "411005",
     notes: "",
-    paymentMode: "UPI_WHATSAPP", // Default to Instant UPI for seamless Indian checkout
+    paymentMode: "UPI_WHATSAPP", // Default to Instant UPI
+    upiReference: "", // Mandatory 12-digit UTR / Transaction ID for UPI payments
   });
+
+  const [upiError, setUpiError] = useState("");
 
   // Pre-fill user data if auth loads after mount
   useEffect(() => {
@@ -99,13 +102,11 @@ export default function CheckoutPage() {
   };
 
   const handleLaunchUpi = (appUrl: string) => {
-    // Fallback to standard UPI url if specific scheme is not supported
     try {
       window.location.href = appUrl;
       setTimeout(() => {
-        // Fallback generic UPI intent
         window.location.href = genericUpiUrl;
-      }, 500);
+      }, 800);
     } catch {
       window.location.href = genericUpiUrl;
     }
@@ -114,11 +115,25 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
+    setUpiError("");
 
     // Strict account control: require login before placing order
     if (!user) {
       openAuthModal("signin");
       return;
+    }
+
+    // Strict UPI validation: if UPI is selected, require valid UTR transaction reference
+    if (formData.paymentMode === "UPI_WHATSAPP") {
+      const cleanUtr = formData.upiReference.trim();
+      if (!cleanUtr) {
+        setUpiError("Please complete the UPI payment and enter your 12-digit UTR / Transaction ID to place the order.");
+        return;
+      }
+      if (cleanUtr.length < 8) {
+        setUpiError("Please enter a valid 12-digit UPI Reference / UTR Number from your payment app.");
+        return;
+      }
     }
 
     try {
@@ -129,6 +144,10 @@ export default function CheckoutPage() {
         price: item.product.salePrice ?? item.product.price,
         quantity: item.quantity,
       }));
+
+      const combinedNotes = formData.paymentMode === "UPI_WHATSAPP"
+        ? `[UPI UTR / Ref: ${formData.upiReference.trim()}] ${formData.notes ? " | Note: " + formData.notes : ""}`
+        : (formData.notes || "");
 
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -141,8 +160,9 @@ export default function CheckoutPage() {
           address: formData.address,
           city: formData.city,
           pincode: formData.pincode,
-          notes: formData.notes,
+          notes: combinedNotes,
           paymentMode: formData.paymentMode,
+          upiReference: formData.upiReference.trim(),
           subtotal,
           discount,
           tax: 0,
@@ -155,7 +175,10 @@ export default function CheckoutPage() {
         const data = await res.json();
         const finalItems = (data.items && data.items.length > 0) ? data.items : orderPayloadItems;
         setOrderedItems(finalItems);
-        setPlacedOrder(data);
+        setPlacedOrder({
+          ...data,
+          upiReference: formData.upiReference.trim(),
+        });
         clearCart();
 
         // Trigger celebratory confetti
@@ -164,17 +187,13 @@ export default function CheckoutPage() {
           spread: 70,
           origin: { y: 0.6 },
         });
-
-        // If user chose UPI, auto-trigger UPI intent on mobile
-        if (formData.paymentMode === "UPI_WHATSAPP" && typeof window !== "undefined") {
-          const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-          if (isMobile) {
-            window.location.href = buildUpiUrl(data.orderNumber);
-          }
-        }
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setUpiError(errData.error || "Failed to place order. Please try again.");
       }
     } catch (e) {
       console.error("Order placement failed:", e);
+      setUpiError("Connection error while placing order. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -202,6 +221,10 @@ export default function CheckoutPage() {
             .join("\n")
         : "1. Hardware & Components";
 
+    const upiRefLine = placedOrder.upiReference
+      ? `\n*UPI Transaction UTR / Ref:* ${placedOrder.upiReference}`
+      : "";
+
     const msg = `*Order Placed Online #${placedOrder.orderNumber}*
 
 *Customer:* ${placedOrder.customerName}
@@ -212,17 +235,14 @@ export default function CheckoutPage() {
 ${itemsList}
 
 *Total Amount:* ${formatPrice(placedOrder.total)}
-*Payment Method:* ${placedOrder.paymentMode}
+*Payment Method:* ${placedOrder.paymentMode === "UPI_WHATSAPP" ? "Instant UPI (Paid)" : "Cash on Delivery / Pickup"}${upiRefLine}
 
-Hi Jijau Computers team, I have placed this order on your website. Please share dispatch update!`;
+Hi Jijau Computers team, I have placed this order on your website. Please confirm dispatch!`;
 
     window.open(generateWhatsAppUrl(storeNumber, msg), "_blank");
   };
 
   if (placedOrder) {
-    const orderUpiUrl = buildUpiUrl(placedOrder.orderNumber);
-    const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(orderUpiUrl)}`;
-
     return (
       <div className="min-h-screen flex flex-col bg-[#f8fafc]">
         <Header />
@@ -246,85 +266,27 @@ Hi Jijau Computers team, I have placed this order on your website. Please share 
               </p>
             </div>
 
-            {/* Instant UPI Payment Launchers & QR (If UPI Chosen) */}
+            {/* UPI Payment Confirmation Card */}
             {placedOrder.paymentMode === "UPI_WHATSAPP" && (
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-950 text-white border border-slate-800 space-y-4 text-left">
+              <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-left space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
-                    <Smartphone className="w-4 h-4" />
-                    <span>Instant UPI Payment ({formatPrice(placedOrder.total)})</span>
-                  </div>
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">
-                    Zero Extra Fee
+                  <span className="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    UPI Payment Submitted
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
+                    UTR RECORDED
                   </span>
                 </div>
-
-                <p className="text-xs text-slate-300">
-                  Tap below to launch your preferred UPI app directly on your phone, or scan the QR code:
+                {placedOrder.upiReference && (
+                  <div className="bg-white p-3 rounded-xl border border-emerald-100 flex items-center justify-between text-xs">
+                    <span className="text-slate-500 font-medium">Transaction UTR / Ref:</span>
+                    <span className="font-mono font-bold text-emerald-700">{placedOrder.upiReference}</span>
+                  </div>
+                )}
+                <p className="text-[11px] text-emerald-800">
+                  Our accounts team will verify this UTR against store receipts and notify you upon verification.
                 </p>
-
-                {/* Direct App Launchers */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
-                  <button
-                    type="button"
-                    onClick={() => handleLaunchUpi(gpayUrl)}
-                    className="py-2.5 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-900 flex items-center justify-center gap-1.5 shadow transition-all hover:scale-105"
-                  >
-                    <span>Google Pay</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleLaunchUpi(phonepeUrl)}
-                    className="py-2.5 px-3 rounded-xl bg-[#5f259f] hover:bg-[#4d1e82] text-white flex items-center justify-center gap-1.5 shadow transition-all hover:scale-105"
-                  >
-                    <span>PhonePe</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleLaunchUpi(paytmUrl)}
-                    className="py-2.5 px-3 rounded-xl bg-[#002970] hover:bg-[#001f57] text-white flex items-center justify-center gap-1.5 shadow transition-all hover:scale-105"
-                  >
-                    <span>Paytm</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleLaunchUpi(genericUpiUrl)}
-                    className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-1.5 shadow transition-all hover:scale-105"
-                  >
-                    <span>Any UPI App</span>
-                  </button>
-                </div>
-
-                {/* QR Code & VPA ID Details */}
-                <div className="flex flex-col sm:flex-row items-center gap-4 pt-3 border-t border-slate-800">
-                  <div className="bg-white p-2 rounded-xl border border-slate-700 shrink-0">
-                    <img
-                      src={qrCodeApiUrl}
-                      alt="UPI QR Code"
-                      className="w-28 h-28 object-contain"
-                    />
-                  </div>
-                  <div className="text-xs space-y-1.5">
-                    <span className="text-slate-400 block text-[11px]">Pay directly to Store UPI ID:</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-amber-300 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
-                        {upiId}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleCopyUpi}
-                        className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300"
-                        title="Copy UPI ID"
-                      >
-                        {copiedUpi ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                    <span className="text-[11px] text-slate-400 block">Payee: {upiName}</span>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -370,7 +332,9 @@ Hi Jijau Computers team, I have placed this order on your website. Please share 
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Payment Option:</span>
-                <span className="font-semibold text-slate-800">{placedOrder.paymentMode}</span>
+                <span className="font-semibold text-slate-800">
+                  {placedOrder.paymentMode === "UPI_WHATSAPP" ? "Instant UPI (GPay / PhonePe / Paytm)" : "Cash on Delivery / Pickup"}
+                </span>
               </div>
             </div>
 
@@ -397,6 +361,8 @@ Hi Jijau Computers team, I have placed this order on your website. Please share 
       </div>
     );
   }
+
+  const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(genericUpiUrl)}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc]">
@@ -566,10 +532,17 @@ Hi Jijau Computers team, I have placed this order on your website. Please share 
                   2. Choose Payment Method
                 </h3>
 
+                {upiError && (
+                  <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold animate-in fade-in flex items-center gap-2">
+                    <span>⚠️</span>
+                    <span>{upiError}</span>
+                  </div>
+                )}
+
                 <div className="space-y-3 text-xs">
                   {/* Instant UPI Option */}
                   <label
-                    className={`block p-4 rounded-2xl border cursor-pointer transition-all ${
+                    className={`block p-4 sm:p-5 rounded-2xl border cursor-pointer transition-all ${
                       formData.paymentMode === "UPI_WHATSAPP"
                         ? "bg-emerald-50/70 border-emerald-600 ring-2 ring-emerald-100"
                         : "bg-slate-50 border-slate-200"
@@ -581,7 +554,10 @@ Hi Jijau Computers team, I have placed this order on your website. Please share 
                         name="payment"
                         value="UPI_WHATSAPP"
                         checked={formData.paymentMode === "UPI_WHATSAPP"}
-                        onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
+                        onChange={(e) => {
+                          setFormData({ ...formData, paymentMode: e.target.value });
+                          setUpiError("");
+                        }}
                       />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
@@ -593,45 +569,108 @@ Hi Jijau Computers team, I have placed this order on your website. Please share 
                           </span>
                         </div>
                         <span className="text-slate-500 block mt-0.5">
-                          Directly triggers Google Pay, PhonePe, or Paytm app on your phone.
+                          Pay directly via UPI and enter your 12-digit transaction UTR to verify your order instantly.
                         </span>
                       </div>
                     </div>
 
                     {formData.paymentMode === "UPI_WHATSAPP" && (
-                      <div className="mt-4 pt-3 border-t border-emerald-200/70 space-y-2 animate-in fade-in">
-                        <span className="font-bold text-slate-700 block text-[11px]">
-                          Quick Launch UPI App on Phone:
-                        </span>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
-                          <button
-                            type="button"
-                            onClick={() => handleLaunchUpi(gpayUrl)}
-                            className="py-2 px-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 border border-slate-300 flex items-center justify-center gap-1 shadow-sm"
-                          >
-                            <span>Google Pay</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleLaunchUpi(phonepeUrl)}
-                            className="py-2 px-2.5 rounded-xl bg-[#5f259f] hover:bg-[#4d1e82] text-white flex items-center justify-center gap-1 shadow-sm"
-                          >
-                            <span>PhonePe</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleLaunchUpi(paytmUrl)}
-                            className="py-2 px-2.5 rounded-xl bg-[#002970] hover:bg-[#001f57] text-white flex items-center justify-center gap-1 shadow-sm"
-                          >
-                            <span>Paytm</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleLaunchUpi(genericUpiUrl)}
-                            className="py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-1 shadow-sm"
-                          >
-                            <span>Other UPI</span>
-                          </button>
+                      <div className="mt-4 pt-4 border-t border-emerald-200/80 space-y-4 animate-in fade-in">
+                        {/* Step 1: Pay */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center">1</span>
+                            <span className="font-bold text-slate-800 text-xs">
+                              Step 1: Pay {formatPrice(total)} via UPI App or Scan QR
+                            </span>
+                          </div>
+
+                          {/* App Launchers */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold mb-3">
+                            <button
+                              type="button"
+                              onClick={() => handleLaunchUpi(gpayUrl)}
+                              className="py-2.5 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-900 border border-slate-300 flex items-center justify-center gap-1.5 shadow-sm transition-transform active:scale-95"
+                            >
+                              <span>Google Pay</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleLaunchUpi(phonepeUrl)}
+                              className="py-2.5 px-3 rounded-xl bg-[#5f259f] hover:bg-[#4d1e82] text-white flex items-center justify-center gap-1.5 shadow-sm transition-transform active:scale-95"
+                            >
+                              <span>PhonePe</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleLaunchUpi(paytmUrl)}
+                              className="py-2.5 px-3 rounded-xl bg-[#002970] hover:bg-[#001f57] text-white flex items-center justify-center gap-1.5 shadow-sm transition-transform active:scale-95"
+                            >
+                              <span>Paytm</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleLaunchUpi(genericUpiUrl)}
+                              className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-1.5 shadow-sm transition-transform active:scale-95"
+                            >
+                              <span>Any UPI App</span>
+                            </button>
+                          </div>
+
+                          {/* Dynamic QR Box */}
+                          <div className="flex flex-col sm:flex-row items-center gap-4 p-3 rounded-xl bg-white border border-emerald-200">
+                            <div className="bg-white p-1.5 rounded-lg border border-slate-200 shrink-0 shadow-sm">
+                              <img
+                                src={qrCodeApiUrl}
+                                alt="UPI QR Code"
+                                className="w-24 h-24 object-contain"
+                              />
+                            </div>
+                            <div className="text-xs space-y-1">
+                              <span className="text-slate-500 block text-[11px]">Pay directly to Official Store UPI ID:</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                                  {upiId}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={handleCopyUpi}
+                                  className="p-1 bg-slate-200 hover:bg-slate-300 rounded-md text-slate-700 transition-colors"
+                                  title="Copy UPI ID"
+                                >
+                                  {copiedUpi ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                                </button>
+                              </div>
+                              <span className="text-[11px] text-slate-500 block">Payee: {upiName} • Amount: {formatPrice(total)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Step 2: Enter UTR Reference */}
+                        <div className="pt-3 border-t border-emerald-200/70">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center">2</span>
+                            <label htmlFor="upiReferenceInput" className="font-bold text-slate-800 text-xs">
+                              Step 2: Enter UPI UTR / Transaction Reference ID *
+                            </label>
+                          </div>
+                          <div className="space-y-1">
+                            <input
+                              id="upiReferenceInput"
+                              type="text"
+                              required={formData.paymentMode === "UPI_WHATSAPP"}
+                              value={formData.upiReference}
+                              onChange={(e) => {
+                                setFormData({ ...formData, upiReference: e.target.value });
+                                if (upiError) setUpiError("");
+                              }}
+                              placeholder="e.g. 423589123456 (12-digit UTR from payment receipt)"
+                              className="w-full px-3.5 py-2.5 border-2 border-emerald-500 rounded-xl outline-none focus:ring-2 focus:ring-emerald-200 font-mono text-sm font-semibold bg-white"
+                            />
+                            <p className="text-[11px] text-slate-500">
+                              ℹ️ You can find the 12-digit UTR or Transaction ID in your GPay / PhonePe / Paytm payment details.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -650,32 +689,14 @@ Hi Jijau Computers team, I have placed this order on your website. Please share 
                       name="payment"
                       value="CASH_ON_DELIVERY"
                       checked={formData.paymentMode === "CASH_ON_DELIVERY"}
-                      onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, paymentMode: e.target.value });
+                        setUpiError("");
+                      }}
                     />
                     <div>
                       <span className="font-bold text-slate-900 block text-sm">Cash on Delivery / Store Pickup</span>
-                      <span className="text-slate-500">Pay cash or scan QR when collecting items or upon delivery</span>
-                    </div>
-                  </label>
-
-                  {/* Bank Transfer */}
-                  <label
-                    className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
-                      formData.paymentMode === "BANK_TRANSFER"
-                        ? "bg-purple-50/70 border-purple-600 ring-2 ring-purple-100"
-                        : "bg-slate-50 border-slate-200"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="BANK_TRANSFER"
-                      checked={formData.paymentMode === "BANK_TRANSFER"}
-                      onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
-                    />
-                    <div>
-                      <span className="font-bold text-slate-900 block text-sm">NEFT / RTGS / Corporate Bank Transfer</span>
-                      <span className="text-slate-500">For companies & business accounts requiring GST invoice</span>
+                      <span className="text-slate-500">Pay cash or scan QR when collecting items at our store or upon doorstep delivery</span>
                     </div>
                   </label>
                 </div>
@@ -742,10 +763,20 @@ Hi Jijau Computers team, I have placed this order on your website. Please share 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50"
+                  className={`w-full py-4 rounded-2xl text-white font-black text-sm shadow-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-50 ${
+                    formData.paymentMode === "UPI_WHATSAPP"
+                      ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30"
+                      : "bg-blue-600 hover:bg-blue-700 shadow-blue-600/30"
+                  }`}
                 >
                   <PackageCheck className="w-5 h-5" />
-                  <span>{loading ? "Placing Order..." : `Confirm & Place Order (${formatPrice(total)})`}</span>
+                  <span>
+                    {loading
+                      ? "Placing Order..."
+                      : formData.paymentMode === "UPI_WHATSAPP"
+                      ? `Submit Order with UPI (${formatPrice(total)})`
+                      : `Confirm Order (Cash on Delivery - ${formatPrice(total)})`}
+                  </span>
                 </button>
               )}
 
@@ -762,3 +793,4 @@ Hi Jijau Computers team, I have placed this order on your website. Please share 
     </div>
   );
 }
+

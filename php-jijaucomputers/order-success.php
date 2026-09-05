@@ -28,8 +28,12 @@ $pageTitle = 'Order Confirmed - ' . $order['orderNumber'] . ' | ' . ($storeSetti
 require_once __DIR__ . '/includes/header.php';
 
 // Prepare WhatsApp message
-$waMessage = "Hello Jijau Computers! I just placed order #" . $order['orderNumber'] . " for total " . formatPrice($order['total']) . ". Please confirm delivery details.";
-$waUrl = generateWhatsAppUrl($storeSettings['whatsapp'] ?? '919876543210', $waMessage);
+$utrInfo = '';
+if (!empty($order['notes']) && strpos($order['notes'], '[UPI UTR') !== false) {
+    $utrInfo = " (Payment Mode: " . $order['paymentMode'] . " | Note: " . $order['notes'] . ")";
+}
+$waMessage = "Hello Jijau Computers! I just placed order #" . $order['orderNumber'] . " for total " . formatPrice($order['total']) . $utrInfo . ". Please confirm delivery details.";
+$waUrl = generateWhatsAppUrl($storeSettings['whatsapp'] ?? '918805607908', $waMessage);
 ?>
 
 <div class="order-success-page" style="padding: 60px 0; background: #f8fafc; min-height: 80vh;">
