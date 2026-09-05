@@ -1,13 +1,34 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generatePcReqNumber } from "@/lib/utils";
+import { getAdminSessionFromReq, getCustomerSessionFromReq } from "@/lib/session";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const requests = await prisma.customPcRequest.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json(requests);
+    const adminSession = await getAdminSessionFromReq(req);
+    const customerSession = await getCustomerSessionFromReq(req);
+
+    if (adminSession) {
+      const requests = await prisma.customPcRequest.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json(requests);
+    }
+
+    if (customerSession) {
+      const requests = await prisma.customPcRequest.findMany({
+        where: {
+          email: customerSession.email.toLowerCase(),
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json(requests);
+    }
+
+    return NextResponse.json(
+      { error: "Unauthorized: Please sign in to view custom PC build requests." },
+      { status: 401 }
+    );
   } catch (error) {
     console.error("Error fetching custom pc requests:", error);
     return NextResponse.json({ error: "Failed to fetch custom pc requests" }, { status: 500 });
@@ -47,6 +68,14 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    const adminSession = await getAdminSessionFromReq(req);
+    if (!adminSession) {
+      return NextResponse.json(
+        { error: "Unauthorized: Administrator privileges required." },
+        { status: 401 }
+      );
+    }
+
     const data = await req.json();
     if (!data.id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 

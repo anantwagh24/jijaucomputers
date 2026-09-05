@@ -1,12 +1,33 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAdminSessionFromReq, getCustomerSessionFromReq } from "@/lib/session";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const enquiries = await prisma.enquiry.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json(enquiries);
+    const adminSession = await getAdminSessionFromReq(req);
+    const customerSession = await getCustomerSessionFromReq(req);
+
+    if (adminSession) {
+      const enquiries = await prisma.enquiry.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json(enquiries);
+    }
+
+    if (customerSession) {
+      const enquiries = await prisma.enquiry.findMany({
+        where: {
+          email: customerSession.email.toLowerCase(),
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json(enquiries);
+    }
+
+    return NextResponse.json(
+      { error: "Unauthorized: Please sign in to view enquiries." },
+      { status: 401 }
+    );
   } catch (error) {
     console.error("Error fetching enquiries:", error);
     return NextResponse.json({ error: "Failed to fetch enquiries" }, { status: 500 });
@@ -38,6 +59,14 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    const adminSession = await getAdminSessionFromReq(req);
+    if (!adminSession) {
+      return NextResponse.json(
+        { error: "Unauthorized: Administrator privileges required." },
+        { status: 401 }
+      );
+    }
+
     const data = await req.json();
     if (!data.id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 

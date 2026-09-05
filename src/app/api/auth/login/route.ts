@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizePhone, verifyPassword, hashPassword } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { setCustomerSessionCookie } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
@@ -75,11 +76,16 @@ export async function POST(req: Request) {
       pincode: user.pincode,
     };
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: `Welcome back, ${user.name}!`,
       user: safeUser,
     });
+
+    // Set secure HttpOnly Customer Session Cookie
+    await setCustomerSessionCookie(response, user);
+
+    return response;
   } catch (error: any) {
     console.error("Login Error:", error);
     return NextResponse.json(

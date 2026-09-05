@@ -6,7 +6,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 export async function GET(req: Request) {
   try {
     const ip = getClientIp(req);
-    const rateCheck = checkRateLimit(`track_${ip}`, { limit: 30, windowSeconds: 60 });
+    const rateCheck = checkRateLimit(`track_${ip}`, { limit: 20, windowSeconds: 60 });
     if (!rateCheck.success) {
       return NextResponse.json(
         { error: "Too many tracking lookups. Please wait a minute." },
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("query")?.trim();
 
-    if (!query) {
+    if (!query || query.length < 4) {
       return NextResponse.json({
         orders: [],
         serviceRequests: [],
@@ -27,19 +27,16 @@ export async function GET(req: Request) {
     }
 
     const cleanPhone = normalizePhone(query);
-    const cleanEmail = query.toLowerCase();
     const isIdOrNumber = query.toUpperCase();
 
-    // Query across all models in parallel
+    // Query across models with EXACT or strict identifiers rather than loose single-character wildcards
     const [orders, serviceRequests, customPcRequests, quotations] = await Promise.all([
-      // 1. Orders
+      // 1. Orders (Exact Order Number or Exact Phone Match)
       prisma.order.findMany({
         where: {
           OR: [
-            ...(cleanPhone ? [{ phone: { contains: cleanPhone } }] : []),
-            { orderNumber: { contains: isIdOrNumber } },
-            { email: { contains: cleanEmail } },
-            { customerName: { contains: query } },
+            { orderNumber: isIdOrNumber },
+            ...(cleanPhone && cleanPhone.length === 10 ? [{ phone: cleanPhone }] : []),
           ],
         },
         include: {
@@ -48,14 +45,12 @@ export async function GET(req: Request) {
         orderBy: { createdAt: "desc" },
       }),
 
-      // 2. Service Requests
+      // 2. Service Requests (Exact Ticket ID or Exact Phone Match)
       prisma.serviceRequest.findMany({
         where: {
           OR: [
-            ...(cleanPhone ? [{ phone: { contains: cleanPhone } }] : []),
-            { ticketId: { contains: isIdOrNumber } },
-            { email: { contains: cleanEmail } },
-            { customerName: { contains: query } },
+            { ticketId: isIdOrNumber },
+            ...(cleanPhone && cleanPhone.length === 10 ? [{ phone: cleanPhone }] : []),
           ],
         },
         orderBy: { createdAt: "desc" },
@@ -65,10 +60,8 @@ export async function GET(req: Request) {
       prisma.customPcRequest.findMany({
         where: {
           OR: [
-            ...(cleanPhone ? [{ phone: { contains: cleanPhone } }] : []),
-            { id: { contains: query } },
-            { email: { contains: cleanEmail } },
-            { customerName: { contains: query } },
+            { reqNumber: isIdOrNumber },
+            ...(cleanPhone && cleanPhone.length === 10 ? [{ phone: cleanPhone }] : []),
           ],
         },
         orderBy: { createdAt: "desc" },
@@ -78,22 +71,46 @@ export async function GET(req: Request) {
       prisma.quotationRequest.findMany({
         where: {
           OR: [
-            ...(cleanPhone ? [{ phone: { contains: cleanPhone } }] : []),
-            { quoteNumber: { contains: isIdOrNumber } },
-            { email: { contains: cleanEmail } },
-            { customerName: { contains: query } },
+            { quoteNumber: isIdOrNumber },
+            ...(cleanPhone && cleanPhone.length === 10 ? [{ phone: cleanPhone }] : []),
           ],
         },
         orderBy: { createdAt: "desc" },
       }),
     ]);
 
+    // Redact overly sensitive full PII for public tracking lookups
+    const safeOrders = orders.map((o) => ({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      customerName: o.customerName ? `${o.customerName.slice(0, 1)}***` : "Customer",
+      city: o.city,
+      pincode: o.pincode,
+      total: o.total,
+      paymentMode: o.paymentMode,
+      status: o.status,
+      items: o.items.map((it) => ({ name: it.name, quantity: it.quantity, price: it.price })),
+      createdAt: o.createdAt,
+    }));
+
+    const safeServices = serviceRequests.map((s) => ({
+      id: s.id,
+      ticketId: s.ticketId,
+      customerName: s.customerName ? `${s.customerName.slice(0, 1)}***` : "Customer",
+      deviceType: s.deviceType,
+      brand: s.brand,
+      model: s.model,
+      status: s.status,
+      estimatedCost: s.estimatedCost,
+      createdAt: s.createdAt,
+    }));
+
     return NextResponse.json({
-      orders,
-      serviceRequests,
+      orders: safeOrders,
+      serviceRequests: safeServices,
       customPcRequests,
       quotations,
-      totalCount: orders.length + serviceRequests.length + customPcRequests.length + quotations.length,
+      totalCount: safeOrders.length + safeServices.length + customPcRequests.length + quotations.length,
     });
   } catch (error) {
     console.error("Tracking lookup error:", error);

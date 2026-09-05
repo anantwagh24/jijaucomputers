@@ -14,19 +14,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $valid = false;
     if ($admin) {
-        if ($admin['password'] === $password || password_verify($password, $admin['password']) || $password === 'adminpassword123' || $password === 'admin123') {
+        if (password_verify($password, $admin['password']) || $admin['password'] === $password) {
             $valid = true;
         }
-    } else if (($username === 'admin' || $username === 'admin@jijaucomputers.in') && ($password === 'adminpassword123' || $password === 'admin123')) {
-        // Fallback default admin
-        $admin = [
-            'id' => 'cmtgybk3r0000dxbbxkyqr4to',
-            'username' => 'admin',
-            'name' => 'Store Administrator',
-            'email' => 'admin@jijaucomputers.in',
-            'role' => 'SUPER_ADMIN'
-        ];
-        $valid = true;
     }
 
     if ($valid) {

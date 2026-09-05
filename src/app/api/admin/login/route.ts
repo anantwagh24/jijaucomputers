@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-import { verifyPassword } from "@/lib/auth";
+import { verifyPassword, hashPassword } from "@/lib/auth";
+import { setAdminSessionCookie } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
@@ -25,33 +26,36 @@ export async function POST(req: Request) {
       );
     }
 
-    const defaultAdminPassword = process.env.ADMIN_DEFAULT_PASSWORD || "adminpassword123";
-    const isMasterReset =
-      (username.trim().toLowerCase() === "admin" || username.trim().toLowerCase() === "admin@jijaucomputers.in") &&
-      password === defaultAdminPassword;
+    const cleanUsername = username.trim();
 
     let admin = await prisma.adminUser.findFirst({
       where: {
         OR: [
-          { username: username.trim() },
-          { email: username.trim() },
-          { username: "admin" },
+          { username: cleanUsername },
+          { email: cleanUsername.toLowerCase() },
         ],
       },
     });
 
+    // If no admin user exists in DB at all, provision the initial superadmin with a secure bcrypt hash
     if (!admin) {
-      if (isMasterReset) {
-        admin = await prisma.adminUser.create({
-          data: {
-            username: "admin",
-            password: defaultAdminPassword,
-            name: "Jijau Store Administrator",
-            email: "admin@jijaucomputers.in",
-            role: "SUPERADMIN",
-          },
-        });
-      } else {
+      const adminCount = await prisma.adminUser.count();
+      if (adminCount === 0 && cleanUsername === "admin") {
+        const defaultPassword = process.env.ADMIN_DEFAULT_PASSWORD || "adminpassword123";
+        if (password === defaultPassword) {
+          admin = await prisma.adminUser.create({
+            data: {
+              username: "admin",
+              password: hashPassword(defaultPassword),
+              name: "Jijau Store Administrator",
+              email: "admin@jijaucomputers.in",
+              role: "SUPERADMIN",
+            },
+          });
+        }
+      }
+      
+      if (!admin) {
         return NextResponse.json(
           { error: "Invalid username or password" },
           { status: 401 }
@@ -59,11 +63,8 @@ export async function POST(req: Request) {
       }
     }
 
-    // Support both direct match, bcrypt hashed password, and master default reset
-    const isPasswordValid =
-      isMasterReset ||
-      admin.password === password ||
-      verifyPassword(password, admin.password);
+    // Verify password strictly against bcrypt hash (with fallback hash upgrade)
+    const isPasswordValid = verifyPassword(password, admin.password);
 
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -72,12 +73,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // If master reset password was used and db had drifted, sync it
-    if (isMasterReset && admin.password !== defaultAdminPassword) {
+    // Upgrade unhashed or legacy password hash to modern bcrypt on successful login
+    if (!admin.password.startsWith("$2a$") && !admin.password.startsWith("$2b$")) {
       await prisma.adminUser.update({
         where: { id: admin.id },
-        data: { password: defaultAdminPassword },
-      });
+        data: { password: hashPassword(password) },
+      }).catch((err) => console.warn("Admin hash upgrade notice:", err));
     }
 
     const response = NextResponse.json({
@@ -91,14 +92,8 @@ export async function POST(req: Request) {
       },
     });
 
-    // 2. Set Admin Session Cookie with Security Flags
-    response.cookies.set("jijau_admin_auth", "true", {
-      path: "/",
-      httpOnly: false,
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      secure: process.env.NODE_ENV === "production",
-    });
+    // Issue cryptographic HttpOnly Admin Session Cookie
+    await setAdminSessionCookie(response, admin);
 
     return response;
   } catch (error) {

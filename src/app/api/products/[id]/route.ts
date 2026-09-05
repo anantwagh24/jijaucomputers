@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
+import { getAdminSessionFromReq } from "@/lib/session";
 
 export async function GET(
   req: Request,
@@ -37,6 +38,15 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Require authenticated Admin session
+    const adminSession = await getAdminSessionFromReq(req);
+    if (!adminSession) {
+      return NextResponse.json(
+        { error: "Unauthorized: Administrator privileges required to update products." },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     const data = await req.json();
     const slug = data.slug ? slugify(data.slug) : slugify(data.name);
@@ -106,6 +116,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Require authenticated Admin session
+    const adminSession = await getAdminSessionFromReq(req);
+    if (!adminSession) {
+      return NextResponse.json(
+        { error: "Unauthorized: Administrator privileges required to delete products." },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     await prisma.product.delete({
       where: { id },

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAdminSessionFromReq, getCustomerSessionFromReq } from "@/lib/session";
 
 export async function GET(
   req: Request,
@@ -9,6 +10,9 @@ export async function GET(
     const { id } = await params;
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type") || "order"; // 'order' or 'service'
+
+    const adminSession = await getAdminSessionFromReq(req);
+    const customerSession = await getCustomerSessionFromReq(req);
 
     const settings = await prisma.websiteSetting.findUnique({
       where: { id: "default" },
@@ -23,6 +27,18 @@ export async function GET(
 
       if (!service) {
         return NextResponse.json({ error: "Service ticket not found" }, { status: 404 });
+      }
+
+      // If customer session present, verify ownership unless admin
+      if (!adminSession && customerSession) {
+        const matchesEmail = service.email && service.email.toLowerCase() === customerSession.email.toLowerCase();
+        if (!matchesEmail) {
+          // Allow customer if phone matches
+          const userRecord = await prisma.user.findUnique({ where: { id: customerSession.userId } });
+          if (userRecord && userRecord.phone !== service.phone) {
+            return NextResponse.json({ error: "Unauthorized access to this invoice." }, { status: 403 });
+          }
+        }
       }
 
       return NextResponse.json({
@@ -62,6 +78,13 @@ export async function GET(
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    // Check ownership if user is logged in
+    if (!adminSession && customerSession) {
+      if (order.userId && order.userId !== customerSession.userId && order.email?.toLowerCase() !== customerSession.email.toLowerCase()) {
+        return NextResponse.json({ error: "Unauthorized access to this invoice." }, { status: 403 });
+      }
     }
 
     return NextResponse.json({

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
+import { getAdminSessionFromReq } from "@/lib/session";
 
 export async function GET(req: Request) {
   try {
@@ -94,6 +95,15 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    // Require authenticated Admin session
+    const adminSession = await getAdminSessionFromReq(req);
+    if (!adminSession) {
+      return NextResponse.json(
+        { error: "Unauthorized: Administrator privileges required to create products." },
+        { status: 401 }
+      );
+    }
+
     const data = await req.json();
     const slug = data.slug ? slugify(data.slug) : slugify(data.name);
 

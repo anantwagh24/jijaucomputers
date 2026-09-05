@@ -13,6 +13,7 @@ export interface AuthUser {
   city?: string;
   pincode?: string;
   createdAt?: string;
+  role?: string;
 }
 
 interface AuthContextType {
@@ -55,17 +56,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authModalTab, setAuthModalTab] = useState<"signin" | "signup">("signin");
 
   useEffect(() => {
-    // Load persisted user session from localStorage
+    // 1. First restore optimistic cache from localStorage for instant UI rendering
     try {
       const savedUser = localStorage.getItem("jijau_customer_user");
       if (savedUser) {
         setUser(JSON.parse(savedUser));
       }
     } catch (e) {
-      console.error("Failed to load user session:", e);
-    } finally {
-      setLoading(false);
+      console.error("Failed to load user cache:", e);
     }
+
+    // 2. Validate real cryptographic session with server /api/auth/me
+    fetch("/api/auth/me")
+      .then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+          localStorage.setItem("jijau_customer_user", JSON.stringify(data.user));
+        } else {
+          // If session expired or invalid on server, clear local cache
+          if (res.status === 401) {
+            setUser(null);
+            localStorage.removeItem("jijau_customer_user");
+          }
+        }
+      })
+      .catch(() => null)
+      .finally(() => setLoading(false));
   }, []);
 
   const openAuthModal = (tab: "signin" | "signup" = "signin") => {
@@ -146,12 +163,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("jijau_customer_user");
+    // Clear cookies on server by hitting logout if needed
+    document.cookie = "jijau_customer_session=; path=/; max-age=0";
   };
 
   const refreshUser = async () => {
-    if (!user) return;
     try {
-      const res = await fetch(`/api/auth/me?userId=${user.id}`);
+      const res = await fetch("/api/auth/me");
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);

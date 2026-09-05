@@ -1,13 +1,34 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateQuoteNumber } from "@/lib/utils";
+import { getAdminSessionFromReq, getCustomerSessionFromReq } from "@/lib/session";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const quotations = await prisma.quotationRequest.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json(quotations);
+    const adminSession = await getAdminSessionFromReq(req);
+    const customerSession = await getCustomerSessionFromReq(req);
+
+    if (adminSession) {
+      const quotations = await prisma.quotationRequest.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json(quotations);
+    }
+
+    if (customerSession) {
+      const quotations = await prisma.quotationRequest.findMany({
+        where: {
+          email: customerSession.email.toLowerCase(),
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json(quotations);
+    }
+
+    return NextResponse.json(
+      { error: "Unauthorized: Please sign in to view your quotations." },
+      { status: 401 }
+    );
   } catch (error) {
     console.error("Error fetching quotations:", error);
     return NextResponse.json({ error: "Failed to fetch quotations" }, { status: 500 });
@@ -42,6 +63,14 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    const adminSession = await getAdminSessionFromReq(req);
+    if (!adminSession) {
+      return NextResponse.json(
+        { error: "Unauthorized: Administrator privileges required." },
+        { status: 401 }
+      );
+    }
+
     const data = await req.json();
     if (!data.id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 

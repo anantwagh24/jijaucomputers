@@ -1,48 +1,47 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validatePasswordPolicy } from "@/lib/passwordPolicy";
-import { verifyPassword } from "@/lib/auth";
+import { verifyPassword, hashPassword } from "@/lib/auth";
+import { getAdminSessionFromReq } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
+    // 1. Enforce verified Admin cryptographic session
+    const session = await getAdminSessionFromReq(req);
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized: Valid administrator session required." },
+        { status: 401 }
+      );
+    }
+
     const { currentPassword, newPassword } = await req.json();
 
-    if (!newPassword) {
+    if (!newPassword || !currentPassword) {
       return NextResponse.json(
-        { error: "New password is required" },
+        { error: "Current password and new password are both required." },
         { status: 400 }
       );
     }
 
-    // Find any existing admin record (by username, SUPERADMIN role, or ADMIN role)
-    let admin = await prisma.adminUser.findFirst({
+    // Find authenticated admin user
+    const admin = await prisma.adminUser.findUnique({
+      where: { id: session.userId },
+    }) || await prisma.adminUser.findFirst({
       where: {
         OR: [
           { username: "admin" },
-          { role: "SUPERADMIN" },
-          { role: "ADMIN" },
+          { email: session.email },
         ],
       },
     });
 
-    // If no admin user exists in DB, create the default admin account
     if (!admin) {
-      admin = await prisma.adminUser.create({
-        data: {
-          username: "admin",
-          password: "adminpassword123",
-          name: "Jijau Store Administrator",
-          email: "admin@jijaucomputers.in",
-          role: "SUPERADMIN",
-        },
-      });
+      return NextResponse.json({ error: "Administrator account not found." }, { status: 404 });
     }
 
-    // Validate current password (support direct match, bcrypt, or default admin password)
-    const isCurrentValid =
-      admin.password === currentPassword ||
-      verifyPassword(currentPassword, admin.password) ||
-      currentPassword === "adminpassword123";
+    // 2. Validate current password strictly against stored bcrypt hash (no hardcoded bypass)
+    const isCurrentValid = verifyPassword(currentPassword, admin.password);
 
     if (!isCurrentValid) {
       return NextResponse.json(
@@ -51,7 +50,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Enforce Password Policy for Admin
+    // 3. Enforce Strong Password Policy
     const pwdValidation = validatePasswordPolicy(newPassword, {
       name: admin.name,
       email: admin.email,
@@ -67,15 +66,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Update password
+    // 4. Securely hash new password with bcrypt (10 rounds) before saving
+    const secureHash = hashPassword(newPassword);
+
     await prisma.adminUser.update({
       where: { id: admin.id },
-      data: { password: newPassword },
+      data: { password: secureHash },
     });
 
     return NextResponse.json({
       success: true,
-      message: "Admin password updated successfully! Please use your new password next time you log in.",
+      message: "Admin password updated and securely hashed with bcrypt!",
     });
   } catch (error) {
     console.error("Change password error:", error);

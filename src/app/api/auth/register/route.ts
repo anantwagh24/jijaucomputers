@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, validateIndianMobile, validatePasswordPolicy } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { setCustomerSessionCookie } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
@@ -100,11 +101,16 @@ export async function POST(req: Request) {
       pincode: newUser.pincode,
     };
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: "Account created successfully!",
       user: safeUser,
     });
+
+    // Issue secure HttpOnly Customer Session Cookie
+    await setCustomerSessionCookie(response, newUser);
+
+    return response;
   } catch (error: any) {
     console.error("Register Error:", error);
     return NextResponse.json(

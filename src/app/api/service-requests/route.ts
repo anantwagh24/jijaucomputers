@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateTicketId } from "@/lib/utils";
+import { getAdminSessionFromReq, getCustomerSessionFromReq } from "@/lib/session";
 
 export async function GET(req: Request) {
   try {
@@ -9,6 +10,9 @@ export async function GET(req: Request) {
     const ticketId = searchParams.get("ticketId");
     const phone = searchParams.get("phone");
 
+    const adminSession = await getAdminSessionFromReq(req);
+    const customerSession = await getCustomerSessionFromReq(req);
+
     if (ticketId || phone || query) {
       const searchKey = ticketId || query || "";
       const searchPhone = phone || query || "";
@@ -16,8 +20,8 @@ export async function GET(req: Request) {
       const requests = await prisma.serviceRequest.findMany({
         where: {
           OR: [
-            { ticketId: { contains: searchKey } },
-            { phone: { contains: searchPhone } },
+            { ticketId: searchKey },
+            { phone: searchPhone },
           ],
         },
         orderBy: { createdAt: "desc" },
@@ -25,10 +29,28 @@ export async function GET(req: Request) {
       return NextResponse.json(requests);
     }
 
-    const allRequests = await prisma.serviceRequest.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json(allRequests);
+    // Listing all tickets requires Admin session (or customer sees only their tickets)
+    if (adminSession) {
+      const allRequests = await prisma.serviceRequest.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json(allRequests);
+    }
+
+    if (customerSession) {
+      const customerRequests = await prisma.serviceRequest.findMany({
+        where: {
+          email: customerSession.email.toLowerCase(),
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json(customerRequests);
+    }
+
+    return NextResponse.json(
+      { error: "Unauthorized: Please log in to view service records." },
+      { status: 401 }
+    );
   } catch (error) {
     console.error("Error fetching service requests:", error);
     return NextResponse.json({ error: "Failed to fetch service requests" }, { status: 500 });
@@ -96,6 +118,14 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    const adminSession = await getAdminSessionFromReq(req);
+    if (!adminSession) {
+      return NextResponse.json(
+        { error: "Unauthorized: Administrator privileges required." },
+        { status: 401 }
+      );
+    }
+
     const data = await req.json();
     if (!data.id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
