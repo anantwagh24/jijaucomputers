@@ -276,16 +276,6 @@ export default function Header() {
                 <span className="hidden sm:inline">Sign In</span>
               </button>
             )}
-
-            {/* Admin Access (Desktop & Tablet) */}
-            <Link
-              href="/admin"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
-              title="Admin CMS"
-            >
-              <Shield className="w-3.5 h-3.5 text-blue-400" />
-              <span>Admin</span>
-            </Link>
           </div>
         </div>
 
@@ -548,14 +538,6 @@ export default function Header() {
                   className="block py-1 px-3 hover:text-blue-600"
                 >
                   Store Location & Timings
-                </Link>
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 py-2 px-3 text-blue-600 font-bold bg-blue-50 rounded-lg mt-2"
-                >
-                  <Shield className="w-4 h-4" />
-                  Admin Panel Login
                 </Link>
               </div>
             </div>

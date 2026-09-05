@@ -199,11 +199,6 @@ export default function Footer() {
                   About Our Service Center
                 </Link>
               </li>
-              <li>
-                <Link href="/admin" className="text-slate-500 hover:text-blue-400 transition-colors">
-                  Admin Login
-                </Link>
-              </li>
             </ul>
           </div>
 
