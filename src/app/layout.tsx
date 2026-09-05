@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { SettingsProvider } from "@/context/SettingsContext";
 import { CartProvider } from "@/context/CartContext";
@@ -64,6 +65,12 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <head>
+        <Script
+          src="https://accounts.google.com/gsi/client"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-[#f8fafc]">
         <SettingsProvider initialSettings={initialSettings as any}>
           <AuthProvider>

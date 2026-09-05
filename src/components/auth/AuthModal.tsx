@@ -201,29 +201,61 @@ export default function AuthModal() {
     }
   };
 
-  const handleGoogleClick = () => {
+  const handleGoogleClick = async () => {
     setError(null);
+    setLoading(true);
 
     if (!googleClientId) {
+      setLoading(false);
       setError(
-        "Real Google Sign-In requires NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set in .env.local. Please log in or register with your Mobile Number or Email above."
+        "Real Google Sign-In requires NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set. Please log in or register with your Mobile Number or Email above."
       );
       return;
     }
 
+    // Await Google Identity Services script if not ready
+    if (!window.google?.accounts?.id) {
+      let attempts = 0;
+      while (!window.google?.accounts?.id && attempts < 15) {
+        await new Promise((r) => setTimeout(r, 150));
+        attempts++;
+      }
+    }
+
     if (window.google?.accounts?.id) {
       try {
+        window.google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: async (response: any) => {
+            if (response?.credential) {
+              setLoading(true);
+              const res = await googleLogin(response.credential);
+              if (!res.success) {
+                setError(res.error || "Google sign-in failed.");
+              }
+              setLoading(false);
+            }
+          },
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
         window.google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // If One-Tap prompt is suppressed/skipped, render fallback notice
-            setError("Google sign-in popup was dismissed or blocked by browser settings. Please try again or use Mobile/Email.");
+          setLoading(false);
+          if (notification.isNotDisplayed()) {
+            const reason = notification.getNotDisplayedReason?.() || "";
+            if (reason === "opt_out_or_no_session") {
+              setError("Please ensure you are signed into Google in your browser, or log in using Mobile/Email.");
+            }
           }
         });
       } catch (e: any) {
-        setError("Unable to open Google Sign-In. Please check your browser popup settings.");
+        setLoading(false);
+        setError("Unable to open Google Sign-In. Please check your browser settings or pop-up blocker.");
       }
     } else {
-      setError("Google Sign-In SDK is still loading. Please check your internet connection and try again in a few seconds.");
+      setLoading(false);
+      setError("Google Sign-In library is loading. If you have an ad-blocker blocking Google scripts, please disable it or use Mobile/Email.");
     }
   };
 
