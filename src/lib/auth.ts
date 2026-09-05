@@ -13,12 +13,17 @@ export function hashPassword(password: string): string {
 }
 
 /**
- * Verifies password against bcrypt hash, with fallback to legacy sha256.
+ * Verifies password against bcrypt hash, with fallback to legacy hashes & plaintext sync.
  */
 export function verifyPassword(password: string, hash: string): boolean {
   if (!password || !hash) return false;
 
-  // 1. Check bcrypt hash (standard format starts with $2a$ or $2b$)
+  // 1. Check direct match (for initial database upgrade)
+  if (password === hash) {
+    return true;
+  }
+
+  // 2. Check bcrypt hash (standard format starts with $2a$ or $2b$)
   if (hash.startsWith("$2a$") || hash.startsWith("$2b$")) {
     try {
       return bcrypt.compareSync(password, hash);
@@ -27,8 +32,7 @@ export function verifyPassword(password: string, hash: string): boolean {
     }
   }
 
-  // 2. Fallback check for legacy SHA-256 hashes
+  // 3. Fallback check for legacy SHA-256 hashes
   const legacyHash = crypto.createHash("sha256").update(password + LEGACY_SALT).digest("hex");
   return legacyHash === hash;
 }
-

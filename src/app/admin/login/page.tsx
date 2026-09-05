@@ -31,9 +31,8 @@ export default function AdminLoginPage() {
         // Set local storage session flag
         if (typeof window !== "undefined") {
           localStorage.setItem("jijau_admin_session", JSON.stringify(data.user));
-          document.cookie = `jijau_admin_auth=true; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
+          window.location.href = "/admin";
         }
-        router.push("/admin");
       } else {
         setError(data.error || "Invalid username or password");
       }
