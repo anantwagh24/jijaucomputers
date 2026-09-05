@@ -53,6 +53,34 @@ export default function UniversalTrackerPage() {
     service?: any;
   } | null>(null);
 
+  // New Service Request Modal State
+  const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
+  const [newReqSubmitting, setNewReqSubmitting] = useState(false);
+  const [newReqSuccess, setNewReqSuccess] = useState<any | null>(null);
+  const [newReqError, setNewReqError] = useState("");
+  const [newReqForm, setNewReqForm] = useState({
+    customerName: user?.name || "",
+    phone: user?.phone || "",
+    email: user?.email || "",
+    deviceType: "Laptop",
+    brand: "Dell",
+    model: "",
+    serialNo: "",
+    issueDesc: "",
+  });
+
+  // Pre-fill user data if auth loads
+  useEffect(() => {
+    if (user) {
+      setNewReqForm((prev) => ({
+        ...prev,
+        customerName: prev.customerName || user.name || "",
+        phone: prev.phone || user.phone || "",
+        email: prev.email || user.email || "",
+      }));
+    }
+  }, [user]);
+
   // Auto-search if user is logged in
   useEffect(() => {
     if (user && user.phone) {
@@ -92,6 +120,40 @@ export default function UniversalTrackerPage() {
     }
   };
 
+  const handleCreateServiceRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNewReqError("");
+
+    const cleanPhone = newReqForm.phone.replace(/\D/g, "");
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setNewReqError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    try {
+      setNewReqSubmitting(true);
+      const res = await fetch("/api/service-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newReqForm),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setNewReqSuccess(data);
+        // Refresh and search for this newly created ticket
+        setSearchQuery(data.phone || cleanPhone);
+        performSearch(data.phone || cleanPhone);
+      } else {
+        setNewReqError(data.error || "Failed to submit repair request. Please try again.");
+      }
+    } catch (err) {
+      setNewReqError("Network connection error. Please try again.");
+    } finally {
+      setNewReqSubmitting(false);
+    }
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     performSearch(searchQuery);
@@ -120,6 +182,21 @@ export default function UniversalTrackerPage() {
           <p className="text-xs sm:text-sm text-slate-500">
             Enter your registered 10-digit mobile number, Order #, or Ticket ID to check real-time dispatch status, diagnostics updates, and invoices in one place.
           </p>
+
+          <div className="pt-2 flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                setNewReqSuccess(null);
+                setNewReqError("");
+                setIsNewRequestOpen(true);
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white text-xs sm:text-sm font-black shadow-lg shadow-emerald-600/20 transition-all hover:scale-105"
+            >
+              <Wrench className="w-4 h-4" />
+              <span>+ Book a Repair / Check-in Device</span>
+            </button>
+          </div>
         </div>
 
         {/* Universal Search Bar */}
@@ -572,6 +649,213 @@ export default function UniversalTrackerPage() {
           order={selectedInvoiceData?.order}
           service={selectedInvoiceData?.service}
         />
+
+        {/* Book a Repair / Service Request Modal */}
+        {isNewRequestOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 border border-slate-200 shadow-2xl space-y-6 animate-in zoom-in-95">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-inner">
+                    <Wrench className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-slate-900 text-lg">Book Repair / Check-in Device</h3>
+                    <p className="text-xs text-slate-500">Jijau Computers Hardware Diagnostics & Service</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsNewRequestOpen(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {newReqSuccess ? (
+                <div className="text-center py-6 space-y-5 animate-in zoom-in-95">
+                  <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-10 h-10" />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">
+                      TICKET RAISED SUCCESSFULLY
+                    </span>
+                    <h4 className="text-2xl font-black text-slate-900 mt-2">
+                      Ticket #{newReqSuccess.ticketId}
+                    </h4>
+                    <p className="text-xs text-slate-600 max-w-sm mx-auto">
+                      Your repair request for <strong>{newReqSuccess.brand} {newReqSuccess.model}</strong> has been logged. You can track real-time progress using your phone number <strong>{newReqSuccess.phone}</strong>.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const storeNumber = settings.whatsapp || "918805607908";
+                        const msg = `*New Hardware Repair Ticket #${newReqSuccess.ticketId}*\n\n*Customer:* ${newReqSuccess.customerName}\n*Phone:* ${newReqSuccess.phone}\n*Device:* ${newReqSuccess.brand} ${newReqSuccess.model} (${newReqSuccess.deviceType})\n*Issue:* ${newReqSuccess.issueDesc}\n\nHi Jijau Computers team, I have registered my device for repair. Please confirm intake!`;
+                        window.open(generateWhatsAppUrl(storeNumber, msg), "_blank");
+                      }}
+                      className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span>Send Details on WhatsApp</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsNewRequestOpen(false)}
+                      className="px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
+                    >
+                      <span>View in Tracker</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleCreateServiceRequest} className="space-y-4">
+                  {newReqError && (
+                    <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold">
+                      ⚠️ {newReqError}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Customer Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Ramesh Shinde"
+                        value={newReqForm.customerName}
+                        onChange={(e) => setNewReqForm({ ...newReqForm, customerName: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Mobile / WhatsApp Number *</label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="10-digit mobile number"
+                        value={newReqForm.phone}
+                        onChange={(e) => setNewReqForm({ ...newReqForm, phone: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-xs">
+                    <label className="font-bold text-slate-700 block mb-1">Email Address (Optional)</label>
+                    <input
+                      type="email"
+                      placeholder="name@email.com"
+                      value={newReqForm.email}
+                      onChange={(e) => setNewReqForm({ ...newReqForm, email: e.target.value })}
+                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Device Category *</label>
+                      <select
+                        value={newReqForm.deviceType}
+                        onChange={(e) => setNewReqForm({ ...newReqForm, deviceType: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600 bg-white"
+                      >
+                        <option value="Laptop">Laptop (Windows / Linux)</option>
+                        <option value="MacBook / Apple Mac">Apple MacBook / iMac</option>
+                        <option value="Desktop / Custom PC">Desktop / Gaming PC</option>
+                        <option value="Printer / Scanner">Printer / Scanner</option>
+                        <option value="CCTV System / DVR">CCTV Camera / DVR</option>
+                        <option value="GPU / Graphics Card">GPU / Graphics Card</option>
+                        <option value="Motherboard / Component">Motherboard / Hardware Part</option>
+                        <option value="Other">Other Electronic Device</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Brand / Make *</label>
+                      <select
+                        value={newReqForm.brand}
+                        onChange={(e) => setNewReqForm({ ...newReqForm, brand: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600 bg-white"
+                      >
+                        <option value="Dell">Dell</option>
+                        <option value="HP">HP</option>
+                        <option value="Lenovo">Lenovo</option>
+                        <option value="Apple">Apple</option>
+                        <option value="ASUS">ASUS</option>
+                        <option value="Acer">Acer</option>
+                        <option value="MSI">MSI</option>
+                        <option value="Epson">Epson</option>
+                        <option value="Canon">Canon</option>
+                        <option value="Hikvision">Hikvision (CCTV)</option>
+                        <option value="CP PLUS">CP PLUS (CCTV)</option>
+                        <option value="Other">Other Brand</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Model Name / Number (Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Inspiron 15 3520 / ROG Strix"
+                        value={newReqForm.model}
+                        onChange={(e) => setNewReqForm({ ...newReqForm, model: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">Serial Number / Service Tag (Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 7XG9B42"
+                        value={newReqForm.serialNo}
+                        onChange={(e) => setNewReqForm({ ...newReqForm, serialNo: e.target.value })}
+                        className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-xs">
+                    <label className="font-bold text-slate-700 block mb-1">Issue / Problem Description *</label>
+                    <textarea
+                      rows={3}
+                      required
+                      placeholder="Describe the issue (e.g. Not turning on, screen flickering, heating issue, liquid spill, Windows corrupted...)"
+                      value={newReqForm.issueDesc}
+                      onChange={(e) => setNewReqForm({ ...newReqForm, issueDesc: e.target.value })}
+                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                    />
+                  </div>
+
+                  <div className="pt-2 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsNewRequestOpen(false)}
+                      className="w-1/3 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={newReqSubmitting}
+                      className="w-2/3 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <Wrench className="w-4 h-4" />
+                      <span>{newReqSubmitting ? "Creating Ticket..." : "Submit Repair Request"}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />

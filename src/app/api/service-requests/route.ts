@@ -40,6 +40,13 @@ export async function POST(req: Request) {
     const data = await req.json();
     const cleanPhone = (data.phone || "").replace(/[^0-9]/g, "");
 
+    if (!data.customerName || !data.customerName.trim()) {
+      return NextResponse.json(
+        { error: "Customer name is required." },
+        { status: 400 }
+      );
+    }
+
     if (!cleanPhone || cleanPhone.length < 10) {
       return NextResponse.json(
         { error: "Please enter a valid 10-digit mobile number." },
@@ -47,38 +54,22 @@ export async function POST(req: Request) {
       );
     }
 
-    const trackingPhone = cleanPhone.slice(-10);
-
-    // Block duplicate active registrations for the same mobile number
-    const existingActive = await prisma.serviceRequest.findFirst({
-      where: {
-        phone: { contains: trackingPhone },
-        status: { notIn: ["Completed", "Delivered", "Cancelled"] },
-      },
-    });
-
-    if (existingActive) {
-      return NextResponse.json(
-        {
-          error: `An active service ticket (#${trackingPhone}) is already open for this mobile number with status "${existingActive.status}". Duplicate registration is not allowed. You can track this device status directly using your phone number.`,
-          existingTicket: existingActive,
-        },
-        { status: 400 }
-      );
-    }
+    const ticketId = data.ticketId && data.ticketId.trim() ? data.ticketId.trim() : generateTicketId();
 
     const newRequest = await prisma.serviceRequest.create({
       data: {
-        ticketId: trackingPhone, // Ticket number is strictly the mobile number
-        customerName: data.customerName,
-        phone: data.phone,
-        email: data.email,
-        deviceType: data.deviceType,
-        brand: data.brand,
-        model: data.model,
-        serialNo: data.serialNo,
-        issueDesc: data.issueDesc,
-        status: "Received",
+        ticketId,
+        customerName: data.customerName.trim(),
+        phone: cleanPhone,
+        email: data.email?.trim() || null,
+        deviceType: data.deviceType || "Laptop",
+        brand: data.brand || "Standard Brand",
+        model: data.model || "Standard Model",
+        serialNo: data.serialNo || null,
+        issueDesc: data.issueDesc || "Diagnostics & Service Checkup",
+        status: data.status || "Received",
+        estimatedCost: data.estimatedCost ? parseFloat(data.estimatedCost) : null,
+        adminNotes: data.adminNotes || null,
       },
     });
 

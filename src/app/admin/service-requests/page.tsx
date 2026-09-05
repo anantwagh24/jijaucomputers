@@ -29,6 +29,24 @@ export default function AdminServiceRequestsPage() {
   const [adminNotes, setAdminNotes] = useState("");
   const [estimatedCost, setEstimatedCost] = useState("");
 
+  // Create New Service Ticket Modal State
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [createForm, setCreateForm] = useState({
+    customerName: "",
+    phone: "",
+    email: "",
+    deviceType: "Laptop",
+    brand: "Dell",
+    model: "",
+    serialNo: "",
+    issueDesc: "",
+    status: "Received",
+    estimatedCost: "",
+    adminNotes: "",
+  });
+
   // Invoice modal state
   const [selectedInvoiceService, setSelectedInvoiceService] = useState<any | null>(null);
 
@@ -48,6 +66,51 @@ export default function AdminServiceRequestsPage() {
   useEffect(() => {
     fetchRequests();
   }, []);
+
+  const handleCreateTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateError("");
+
+    const cleanPhone = createForm.phone.replace(/\D/g, "");
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setCreateError("Please enter a valid 10-digit customer mobile number.");
+      return;
+    }
+
+    try {
+      setCreateLoading(true);
+      const res = await fetch("/api/service-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(createForm),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        await fetchRequests();
+        setIsCreateOpen(false);
+        setCreateForm({
+          customerName: "",
+          phone: "",
+          email: "",
+          deviceType: "Laptop",
+          brand: "Dell",
+          model: "",
+          serialNo: "",
+          issueDesc: "",
+          status: "Received",
+          estimatedCost: "",
+          adminNotes: "",
+        });
+      } else {
+        setCreateError(data.error || "Failed to create service ticket.");
+      }
+    } catch (err) {
+      setCreateError("Network error while creating ticket.");
+    } finally {
+      setCreateLoading(false);
+    }
+  };
 
   const handleOpenEdit = (req: any) => {
     setSelectedReq(req);
@@ -112,6 +175,18 @@ export default function AdminServiceRequestsPage() {
             Update repair statuses, assign technician remarks, send WhatsApp updates, and generate GST service bills.
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setCreateError("");
+            setIsCreateOpen(true);
+          }}
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all hover:scale-105 shrink-0"
+        >
+          <Wrench className="w-4 h-4" />
+          <span>+ New Service Ticket / Check-in Device</span>
+        </button>
       </div>
 
       <div className="flex items-center gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800">
@@ -292,6 +367,204 @@ export default function AdminServiceRequestsPage() {
                   className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
                 >
                   Save Status
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create New Service Ticket / Walk-in Check-in Modal */}
+      {isCreateOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsCreateOpen(false)} />
+          <div className="relative bg-slate-950 rounded-3xl border border-slate-800 p-6 sm:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl z-10 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-emerald-500" />
+                <span>Check-in Device / New Service Ticket</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(false)}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {createError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold">
+                ⚠️ {createError}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateTicket} className="space-y-3.5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">Customer Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Ramesh Shinde"
+                    value={createForm.customerName}
+                    onChange={(e) => setCreateForm({ ...createForm, customerName: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">Mobile / WhatsApp *</label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="10-digit number"
+                    value={createForm.phone}
+                    onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-300 block mb-1">Email Address (Optional)</label>
+                <input
+                  type="email"
+                  placeholder="customer@email.com"
+                  value={createForm.email}
+                  onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">Device Type *</label>
+                  <select
+                    value={createForm.deviceType}
+                    onChange={(e) => setCreateForm({ ...createForm, deviceType: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                  >
+                    <option value="Laptop">Laptop (Windows / Linux)</option>
+                    <option value="MacBook / Apple Mac">Apple MacBook / iMac</option>
+                    <option value="Desktop / Custom PC">Desktop / Gaming PC</option>
+                    <option value="Printer / Scanner">Printer / Scanner</option>
+                    <option value="CCTV System / DVR">CCTV Camera / DVR</option>
+                    <option value="GPU / Graphics Card">GPU / Graphics Card</option>
+                    <option value="Motherboard / Component">Motherboard / Hardware Part</option>
+                    <option value="Other">Other Electronic Device</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">Brand *</label>
+                  <select
+                    value={createForm.brand}
+                    onChange={(e) => setCreateForm({ ...createForm, brand: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                  >
+                    <option value="Dell">Dell</option>
+                    <option value="HP">HP</option>
+                    <option value="Lenovo">Lenovo</option>
+                    <option value="Apple">Apple</option>
+                    <option value="ASUS">ASUS</option>
+                    <option value="Acer">Acer</option>
+                    <option value="MSI">MSI</option>
+                    <option value="Epson">Epson</option>
+                    <option value="Canon">Canon</option>
+                    <option value="Hikvision">Hikvision</option>
+                    <option value="CP PLUS">CP PLUS</option>
+                    <option value="Other">Other Brand</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">Model Name / Spec</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Latitude 3420"
+                    value={createForm.model}
+                    onChange={(e) => setCreateForm({ ...createForm, model: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">Serial / Service Tag</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. SN-8921"
+                    value={createForm.serialNo}
+                    onChange={(e) => setCreateForm({ ...createForm, serialNo: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-300 block mb-1">Reported Issue / Symptoms *</label>
+                <textarea
+                  rows={2}
+                  required
+                  placeholder="e.g. Screen flickering, battery not charging, liquid spill damage..."
+                  value={createForm.issueDesc}
+                  onChange={(e) => setCreateForm({ ...createForm, issueDesc: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">Initial Status</label>
+                  <select
+                    value={createForm.status}
+                    onChange={(e) => setCreateForm({ ...createForm, status: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                  >
+                    <option>Received</option>
+                    <option>Under Inspection</option>
+                    <option>Repairing</option>
+                    <option>Waiting for Parts</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-300 block mb-1">Est. Cost (₹, optional)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 1500"
+                    value={createForm.estimatedCost}
+                    onChange={(e) => setCreateForm({ ...createForm, estimatedCost: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-300 block mb-1">Technician / Internal Notes</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Adapter & bag submitted with device"
+                  value={createForm.adminNotes}
+                  onChange={(e) => setCreateForm({ ...createForm, adminNotes: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createLoading}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  <Wrench className="w-4 h-4" />
+                  <span>{createLoading ? "Creating..." : "Check-in & Create Ticket"}</span>
                 </button>
               </div>
             </form>
