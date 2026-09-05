@@ -1,0 +1,47 @@
+# Apache & LiteSpeed Configuration for Hostinger Shared Web Hosting
+# Jijau Computers - Clean URLs (No .php extensions)
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Block direct web access to SQLite database files
+    RewriteRule ^database/ - [F,L,NC]
+    RewriteRule \.(db|sqlite|sqlite3|sql|bak|log)$ - [F,L,NC]
+
+    # Block access to hidden files
+    RewriteRule ^\.(.*)$ - [F,L]
+
+    # 1. External redirect: Convert request with .php to clean URL (e.g. /about.php -> /about)
+    RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+    RewriteCond %{REQUEST_URI} !^/admin/ [NC]
+    RewriteRule ^ %1 [R=301,L,NE]
+
+    # 2. Internal rewrite: If requesting clean URL and matching .php file exists, serve it
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.+?)/?$ $1.php [L,QSA]
+
+    # Pass Authorization Headers
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# PHP Execution & Upload Settings
+<IfModule mod_php.c>
+    php_value upload_max_filesize 64M
+    php_value post_max_size 64M
+    php_value max_execution_time 300
+    php_value memory_limit 256M
+</IfModule>
+
+# Default index file
+DirectoryIndex index.php index.html

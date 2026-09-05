@@ -5,6 +5,7 @@ import MobileBannerSlider from "@/components/home/MobileBannerSlider";
 import LaptopBrandsSection from "@/components/home/LaptopBrandsSection";
 import MobileBrandsSection from "@/components/home/MobileBrandsSection";
 import AssembleDesktopCard from "@/components/home/AssembleDesktopCard";
+import HappyCustomersBanner from "@/components/home/HappyCustomersBanner";
 import AllProductsLazySection from "@/components/home/AllProductsLazySection";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import DealsSection from "@/components/home/DealsSection";
@@ -13,23 +14,11 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloating from "@/components/layout/WhatsAppFloating";
 import CartDrawer from "@/components/layout/CartDrawer";
-import {
-  Sparkles,
-  ArrowRight,
-  ShieldCheck,
-  Wrench,
-  Cpu,
-  Laptop,
-  CheckCircle2,
-  TrendingUp,
-  Award,
-  Truck,
-} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [banners, categories, brands, allProducts, featuredProducts, gamingDeals] =
+  const [banners, categories, brands, allProducts, featuredProducts, gamingDeals, happyCustomers] =
     await Promise.all([
       prisma.banner.findMany({
         where: { isActive: true },
@@ -59,6 +48,11 @@ export default async function HomePage() {
         take: 4,
         include: { category: true, brand: true, images: { orderBy: { order: "asc" } } },
       }),
+      prisma.happyCustomer.findMany({
+        where: { isActive: true },
+        orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+        take: 8,
+      }),
     ]);
 
   return (
@@ -68,25 +62,28 @@ export default async function HomePage() {
       <WhatsAppFloating />
 
       <main className="flex-1 space-y-2">
-        {/* 1. HOMEPAGE BANNER SLIDER (Matching Reference UI) */}
+        {/* 1. HOMEPAGE BANNER SLIDER */}
         <MobileBannerSlider banners={banners} />
 
-        {/* 2. LAPTOP BRANDS SHOWCASE (MacBook, HP, Dell, Asus, Lenovo, Acer) */}
+        {/* 2. LAPTOP BRANDS SHOWCASE */}
         <LaptopBrandsSection products={allProducts as any} />
 
-        {/* 3. MOBILES SHOWCASE (iPhones, Samsung, OnePlus, Google Pixel, Xiaomi) */}
+        {/* 3. MOBILES SHOWCASE */}
         <MobileBrandsSection products={allProducts as any} />
 
         {/* 4. ASSEMBLE A DESKTOP / CUSTOM GAMING PC RIG BANNER */}
         <AssembleDesktopCard />
 
-        {/* 5. ALL HARDWARE CATEGORIES BROWSER */}
+        {/* 5. HAPPY CUSTOMERS SOCIAL PROOF BANNER */}
+        <HappyCustomersBanner customers={happyCustomers} />
+
+        {/* 6. ALL HARDWARE CATEGORIES BROWSER */}
         <CategoryGrid categories={categories} />
 
-        {/* 6. ALL PRODUCTS SECTION WITH LAZY LOADING & LIVE SEARCH/FILTERS */}
+        {/* 7. ALL PRODUCTS SECTION WITH LAZY LOADING & LIVE SEARCH/FILTERS */}
         <AllProductsLazySection initialProducts={allProducts as any} categories={categories} />
 
-        {/* 7. OFFICIAL BRAND PARTNERS */}
+        {/* 8. OFFICIAL BRAND PARTNERS */}
         <BrandCarousel brands={brands} />
       </main>
 

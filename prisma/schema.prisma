@@ -292,3 +292,23 @@ model Review {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model HappyCustomer {
+  id           String   @id @default(cuid())
+  name         String
+  city         String
+  village      String?
+  district     String   @default("Pune")
+  phone        String?
+  productName  String
+  photoUrl     String
+  review       String?
+  rating       Int      @default(5)
+  purchaseDate String?
+  isFeatured   Boolean  @default(true)
+  isActive     Boolean  @default(true)
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+

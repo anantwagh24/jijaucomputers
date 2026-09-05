@@ -23,11 +23,13 @@ import {
   LogOut,
   Users,
   Star,
+  HeartHandshake,
 } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "Happy Customers", href: "/admin/happy-customers", icon: HeartHandshake },
   { label: "Visitors", href: "/admin/visitors", icon: Users },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Product Reviews", href: "/admin/reviews", icon: Star },
