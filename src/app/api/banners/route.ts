@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         title: data.title,
         subtitle: data.subtitle,
         tag: data.tag || "Special Promotion",
-        imageUrl: data.imageUrl,
+        imageUrl: data.imageUrl || "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=1400&auto=format&fit=crop&q=80",
         ctaText: data.ctaText || "Shop Now",
         ctaLink: data.ctaLink || "/products",
         order: Number(data.order) || 0,
@@ -40,18 +40,19 @@ export async function PUT(req: Request) {
     const data = await req.json();
     if (!data.id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
+    const updateData: any = {};
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.subtitle !== undefined) updateData.subtitle = data.subtitle;
+    if (data.tag !== undefined) updateData.tag = data.tag;
+    if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+    if (data.ctaText !== undefined) updateData.ctaText = data.ctaText;
+    if (data.ctaLink !== undefined) updateData.ctaLink = data.ctaLink;
+    if (data.order !== undefined) updateData.order = Number(data.order);
+    if (data.isActive !== undefined) updateData.isActive = Boolean(data.isActive);
+
     const updated = await prisma.banner.update({
       where: { id: data.id },
-      data: {
-        title: data.title,
-        subtitle: data.subtitle,
-        tag: data.tag,
-        imageUrl: data.imageUrl,
-        ctaText: data.ctaText,
-        ctaLink: data.ctaLink,
-        order: Number(data.order) || 0,
-        isActive: data.isActive !== undefined ? data.isActive : true,
-      },
+      data: updateData,
     });
     return NextResponse.json(updated);
   } catch (error) {

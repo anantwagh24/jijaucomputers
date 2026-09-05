@@ -43,6 +43,10 @@ $currentUri = $_SERVER['REQUEST_URI'];
       <span>🤝</span> Happy Customers
     </a>
 
+    <a href="/admin/banners.php" class="nav-item <?= str_contains($currentUri, 'banners.php') ? 'active' : '' ?>">
+      <span>🖼️</span> Homepage Banners
+    </a>
+
     <a href="/admin/categories.php" class="nav-item <?= str_contains($currentUri, 'categories.php') ? 'active' : '' ?>">
       <span>🏷️</span> Categories & Brands
     </a>
