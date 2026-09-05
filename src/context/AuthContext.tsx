@@ -55,7 +55,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authModalTab, setAuthModalTab] = useState<"signin" | "signup">("signin");
 
   useEffect(() => {
-    // Load persisted user session from localStorage
+    // 1. Check for Google OAuth hash token (#id_token=... or #access_token=...)
+    if (typeof window !== "undefined" && window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const idToken = hashParams.get("id_token");
+      if (idToken) {
+        window.history.replaceState(null, "", window.location.pathname);
+        googleLogin(idToken);
+        return;
+      }
+    }
+
+    // 2. Load persisted user session from localStorage
     try {
       const savedUser = localStorage.getItem("jijau_customer_user");
       if (savedUser) {

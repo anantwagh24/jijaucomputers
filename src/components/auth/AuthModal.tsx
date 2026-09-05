@@ -203,25 +203,15 @@ export default function AuthModal() {
 
   const handleGoogleClick = async () => {
     setError(null);
-    setLoading(true);
 
     if (!googleClientId) {
-      setLoading(false);
       setError(
         "Real Google Sign-In requires NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set. Please log in or register with your Mobile Number or Email above."
       );
       return;
     }
 
-    // Await Google Identity Services script if not ready
-    if (!window.google?.accounts?.id) {
-      let attempts = 0;
-      while (!window.google?.accounts?.id && attempts < 15) {
-        await new Promise((r) => setTimeout(r, 150));
-        attempts++;
-      }
-    }
-
+    // 1. Try Google Identity Services (GSI) One-Tap / Popup if available
     if (window.google?.accounts?.id) {
       try {
         window.google.accounts.id.initialize({
@@ -241,22 +231,27 @@ export default function AuthModal() {
         });
 
         window.google.accounts.id.prompt((notification: any) => {
-          setLoading(false);
-          if (notification.isNotDisplayed()) {
-            const reason = notification.getNotDisplayedReason?.() || "";
-            if (reason === "opt_out_or_no_session") {
-              setError("Please ensure you are signed into Google in your browser, or log in using Mobile/Email.");
-            }
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // Prompt was dismissed or blocked by browser -> open standard Google OAuth URL
+            const redirectUri = window.location.origin + "/account";
+            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(
+              redirectUri
+            )}&response_type=token%20id_token&scope=openid%20email%20profile&nonce=${Date.now()}&prompt=select_account`;
+            window.location.href = authUrl;
           }
         });
-      } catch (e: any) {
-        setLoading(false);
-        setError("Unable to open Google Sign-In. Please check your browser settings or pop-up blocker.");
+        return;
+      } catch (e) {
+        console.warn("GSI prompt failed, falling back to OAuth redirect:", e);
       }
-    } else {
-      setLoading(false);
-      setError("Google Sign-In library is loading. If you have an ad-blocker blocking Google scripts, please disable it or use Mobile/Email.");
     }
+
+    // 2. Direct fallback to official Google OAuth 2.0 Account Picker dialog
+    const redirectUri = window.location.origin + "/account";
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&response_type=token%20id_token&scope=openid%20email%20profile&nonce=${Date.now()}&prompt=select_account`;
+    window.location.href = authUrl;
   };
 
   return (
