@@ -1,18 +1,22 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { getAdminSession, getCustomerSession } from "@/lib/session";
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get("productId");
-    const all = searchParams.get("all") === "true"; // For admin
+    const all = searchParams.get("all") === "true";
+
+    const adminSession = await getAdminSession(req);
 
     const whereClause: any = {};
     if (productId) {
       whereClause.productId = productId;
     }
-    if (!all) {
+    // Only verified admin can view unapproved reviews with ?all=true
+    if (!all || !adminSession) {
       whereClause.isApproved = true;
     }
 
@@ -82,8 +86,9 @@ export async function POST(req: Request) {
       );
     }
 
+    const customerSession = await getCustomerSession(req);
     const body = await req.json();
-    const { productId, customerName, customerPhone, rating, title, comment, userId } = body;
+    const { productId, customerName, customerPhone, rating, title, comment } = body;
 
     if (!productId || !customerName?.trim() || !title?.trim() || !comment?.trim()) {
       return NextResponse.json(
@@ -100,8 +105,8 @@ export async function POST(req: Request) {
 
     try {
       const matchConditions: any[] = [];
-      if (userId) {
-        matchConditions.push({ order: { userId } });
+      if (customerSession?.sub) {
+        matchConditions.push({ order: { userId: customerSession.sub } });
       }
       if (cleanPhone) {
         matchConditions.push({ order: { phone: { contains: cleanPhone } } });
@@ -127,12 +132,12 @@ export async function POST(req: Request) {
         productId,
         customerName: customerName.trim(),
         customerPhone: customerPhone ? customerPhone.trim() : null,
-        userId: userId || null,
+        userId: customerSession ? customerSession.sub : null,
         rating: numericRating,
         title: title.trim(),
         comment: comment.trim(),
         isVerifiedBuyer,
-        isApproved: true, // auto-approve with admin moderation
+        isApproved: true,
       },
     });
 
@@ -145,6 +150,11 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
+    const adminSession = await getAdminSession(req);
+    if (!adminSession) {
+      return NextResponse.json({ error: "Unauthorized: Admin privileges required." }, { status: 401 });
+    }
+
     const { id, isApproved } = await req.json();
     if (!id) {
       return NextResponse.json({ error: "Missing review ID" }, { status: 400 });
@@ -164,6 +174,11 @@ export async function PATCH(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const adminSession = await getAdminSession(req);
+    if (!adminSession) {
+      return NextResponse.json({ error: "Unauthorized: Admin privileges required." }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     if (!id) {

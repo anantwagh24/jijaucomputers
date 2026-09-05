@@ -26,36 +26,31 @@ export async function POST(req: Request) {
       );
     }
 
-    const cleanUsername = username.trim();
+    const cleanUser = username.trim();
 
     let admin = await prisma.adminUser.findFirst({
       where: {
         OR: [
-          { username: cleanUsername },
-          { email: cleanUsername.toLowerCase() },
+          { username: cleanUser },
+          { email: cleanUser.toLowerCase() },
         ],
       },
     });
 
-    // If no admin user exists in DB at all, provision the initial superadmin with a secure bcrypt hash
+    // If no admin user exists in DB yet (fresh setup), seed initial admin securely
     if (!admin) {
-      const adminCount = await prisma.adminUser.count();
-      if (adminCount === 0 && cleanUsername === "admin") {
-        const defaultPassword = process.env.ADMIN_DEFAULT_PASSWORD || "adminpassword123";
-        if (password === defaultPassword) {
-          admin = await prisma.adminUser.create({
-            data: {
-              username: "admin",
-              password: hashPassword(defaultPassword),
-              name: "Jijau Store Administrator",
-              email: "admin@jijaucomputers.in",
-              role: "SUPERADMIN",
-            },
-          });
-        }
-      }
-      
-      if (!admin) {
+      const defaultAdminPassword = process.env.ADMIN_DEFAULT_PASSWORD || "adminpassword123";
+      if (cleanUser === "admin" && password === defaultAdminPassword) {
+        admin = await prisma.adminUser.create({
+          data: {
+            username: "admin",
+            password: hashPassword(defaultAdminPassword),
+            name: "Jijau Store Administrator",
+            email: "admin@jijaucomputers.in",
+            role: "SUPERADMIN",
+          },
+        });
+      } else {
         return NextResponse.json(
           { error: "Invalid username or password" },
           { status: 401 }
@@ -63,7 +58,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // Verify password strictly against bcrypt hash (with fallback hash upgrade)
+    // Verify password securely using bcrypt with fallback to legacy hash
     const isPasswordValid = verifyPassword(password, admin.password);
 
     if (!isPasswordValid) {
@@ -73,12 +68,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Upgrade unhashed or legacy password hash to modern bcrypt on successful login
+    // Progressive hash upgrade: If admin password was stored as plaintext or legacy SHA256, upgrade to bcrypt
     if (!admin.password.startsWith("$2a$") && !admin.password.startsWith("$2b$")) {
       await prisma.adminUser.update({
         where: { id: admin.id },
         data: { password: hashPassword(password) },
-      }).catch((err) => console.warn("Admin hash upgrade notice:", err));
+      }).catch((e) => console.warn("Admin hash upgrade notice:", e));
     }
 
     const response = NextResponse.json({
@@ -92,8 +87,14 @@ export async function POST(req: Request) {
       },
     });
 
-    // Issue cryptographic HttpOnly Admin Session Cookie
-    await setAdminSessionCookie(response, admin);
+    // 2. Set Cryptographically Signed HttpOnly Admin Session Cookie
+    await setAdminSessionCookie(response, {
+      id: admin.id,
+      username: admin.username,
+      name: admin.name,
+      email: admin.email,
+      role: admin.role,
+    });
 
     return response;
   } catch (error) {

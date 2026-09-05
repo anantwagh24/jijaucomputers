@@ -1,27 +1,52 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateTicketId } from "@/lib/utils";
-import { getAdminSessionFromReq, getCustomerSessionFromReq } from "@/lib/session";
+import { getAdminSession, getCustomerSession } from "@/lib/session";
+import { normalizePhone } from "@/lib/auth";
 
 export async function GET(req: Request) {
   try {
+    const adminSession = await getAdminSession(req);
+    const customerSession = await getCustomerSession(req);
     const { searchParams } = new URL(req.url);
-    const query = searchParams.get("query"); // ticketId or phone
-    const ticketId = searchParams.get("ticketId");
-    const phone = searchParams.get("phone");
+    const ticketId = searchParams.get("ticketId")?.trim();
+    const phone = searchParams.get("phone")?.trim();
+    const query = searchParams.get("query")?.trim();
 
-    const adminSession = await getAdminSessionFromReq(req);
-    const customerSession = await getCustomerSessionFromReq(req);
+    // 1. If Admin, allow viewing all or filtered
+    if (adminSession) {
+      if (ticketId || phone || query) {
+        const searchKey = ticketId || query || "";
+        const searchPhone = phone ? normalizePhone(phone) : (query ? normalizePhone(query) : "");
+        const requests = await prisma.serviceRequest.findMany({
+          where: {
+            OR: [
+              { ticketId: { contains: searchKey } },
+              ...(searchPhone ? [{ phone: { contains: searchPhone } }] : []),
+            ],
+          },
+          orderBy: { createdAt: "desc" },
+        });
+        return NextResponse.json(requests);
+      }
 
-    if (ticketId || phone || query) {
-      const searchKey = ticketId || query || "";
-      const searchPhone = phone || query || "";
+      const allRequests = await prisma.serviceRequest.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json(allRequests);
+    }
+
+    // 2. If Customer/Public, require specific ticketId OR customer session to prevent mass scraping
+    if (customerSession) {
+      const user = await prisma.user.findUnique({ where: { id: customerSession.sub } });
+      const userPhone = user?.phone ? normalizePhone(user.phone) : "";
+      const userEmail = user?.email?.toLowerCase();
 
       const requests = await prisma.serviceRequest.findMany({
         where: {
           OR: [
-            { ticketId: searchKey },
-            { phone: searchPhone },
+            ...(userPhone ? [{ phone: userPhone }] : []),
+            ...(userEmail ? [{ email: userEmail }] : []),
           ],
         },
         orderBy: { createdAt: "desc" },
@@ -29,26 +54,17 @@ export async function GET(req: Request) {
       return NextResponse.json(requests);
     }
 
-    // Listing all tickets requires Admin session (or customer sees only their tickets)
-    if (adminSession) {
-      const allRequests = await prisma.serviceRequest.findMany({
+    // 3. For guest tracking, require both ticketId or exact phone
+    if (ticketId) {
+      const requests = await prisma.serviceRequest.findMany({
+        where: { ticketId: ticketId.toUpperCase() },
         orderBy: { createdAt: "desc" },
       });
-      return NextResponse.json(allRequests);
-    }
-
-    if (customerSession) {
-      const customerRequests = await prisma.serviceRequest.findMany({
-        where: {
-          email: customerSession.email.toLowerCase(),
-        },
-        orderBy: { createdAt: "desc" },
-      });
-      return NextResponse.json(customerRequests);
+      return NextResponse.json(requests);
     }
 
     return NextResponse.json(
-      { error: "Unauthorized: Please log in to view service records." },
+      { error: "Unauthorized: Please log in or provide a valid Service Ticket ID." },
       { status: 401 }
     );
   } catch (error) {
@@ -60,10 +76,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const rawDigits = (data.phone || "").replace(/[^0-9]/g, "");
-    const cleanPhone = rawDigits.length === 11 && rawDigits.startsWith("0") 
-      ? rawDigits.slice(1) 
-      : (rawDigits.length > 10 ? rawDigits.slice(-10) : rawDigits);
+    const cleanPhone = normalizePhone(data.phone || "");
 
     if (!data.customerName || !data.customerName.trim()) {
       return NextResponse.json(
@@ -118,10 +131,10 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const adminSession = await getAdminSessionFromReq(req);
+    const adminSession = await getAdminSession(req);
     if (!adminSession) {
       return NextResponse.json(
-        { error: "Unauthorized: Administrator privileges required." },
+        { error: "Unauthorized: Admin privileges required." },
         { status: 401 }
       );
     }

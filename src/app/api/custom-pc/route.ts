@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generatePcReqNumber } from "@/lib/utils";
-import { getAdminSessionFromReq, getCustomerSessionFromReq } from "@/lib/session";
+import { getAdminSession, getCustomerSession } from "@/lib/session";
+import { normalizePhone } from "@/lib/auth";
 
 export async function GET(req: Request) {
   try {
-    const adminSession = await getAdminSessionFromReq(req);
-    const customerSession = await getCustomerSessionFromReq(req);
+    const adminSession = await getAdminSession(req);
+    const customerSession = await getCustomerSession(req);
 
     if (adminSession) {
       const requests = await prisma.customPcRequest.findMany({
@@ -16,9 +17,16 @@ export async function GET(req: Request) {
     }
 
     if (customerSession) {
+      const user = await prisma.user.findUnique({ where: { id: customerSession.sub } });
+      const phone = user?.phone ? normalizePhone(user.phone) : "";
+      const email = user?.email?.toLowerCase();
+
       const requests = await prisma.customPcRequest.findMany({
         where: {
-          email: customerSession.email.toLowerCase(),
+          OR: [
+            ...(phone ? [{ phone }] : []),
+            ...(email ? [{ email }] : []),
+          ],
         },
         orderBy: { createdAt: "desc" },
       });
@@ -26,7 +34,7 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json(
-      { error: "Unauthorized: Please sign in to view custom PC build requests." },
+      { error: "Unauthorized: Please log in to view custom PC requests." },
       { status: 401 }
     );
   } catch (error) {
@@ -68,12 +76,9 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const adminSession = await getAdminSessionFromReq(req);
+    const adminSession = await getAdminSession(req);
     if (!adminSession) {
-      return NextResponse.json(
-        { error: "Unauthorized: Administrator privileges required." },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized: Admin privileges required." }, { status: 401 });
     }
 
     const data = await req.json();

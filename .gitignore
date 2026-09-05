@@ -1,3 +1,5 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
 # dependencies
 /node_modules
 /.pnp
@@ -44,10 +46,12 @@ hostinger_package/
 hostinger_deploy.zip
 *.zip
 
-# Database files - Exclude all SQLite databases from Git tracking
+# Database files
 *.db
 *.db-journal
 *.sqlite
 *.sqlite3
-prisma/dev.db
-php-jijaucomputers/database/jijau.db
+prisma/*.db
+prisma/*.db-journal
+php-jijaucomputers/database/*.db
+php-jijaucomputers/database/*.db-journal

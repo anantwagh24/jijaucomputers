@@ -2,6 +2,25 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizePhone } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { getAdminSession } from "@/lib/session";
+
+function maskPhone(phone: string | null | undefined): string {
+  if (!phone) return "";
+  const clean = phone.replace(/\D/g, "");
+  if (clean.length >= 10) {
+    return clean.slice(0, 2) + "******" + clean.slice(-2);
+  }
+  return "******";
+}
+
+function maskName(name: string | null | undefined): string {
+  if (!name) return "Customer";
+  const parts = name.trim().split(" ");
+  if (parts.length > 1) {
+    return `${parts[0]} ${parts[1].charAt(0)}.`;
+  }
+  return parts[0];
+}
 
 export async function GET(req: Request) {
   try {
@@ -17,7 +36,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("query")?.trim();
 
-    if (!query || query.length < 4) {
+    if (!query || query.length < 3) {
       return NextResponse.json({
         orders: [],
         serviceRequests: [],
@@ -26,17 +45,18 @@ export async function GET(req: Request) {
       });
     }
 
+    const adminSession = await getAdminSession(req);
     const cleanPhone = normalizePhone(query);
     const isIdOrNumber = query.toUpperCase();
 
-    // Query across models with EXACT or strict identifiers rather than loose single-character wildcards
+    // Query across models with exact matching on identifiers
     const [orders, serviceRequests, customPcRequests, quotations] = await Promise.all([
-      // 1. Orders (Exact Order Number or Exact Phone Match)
+      // 1. Orders
       prisma.order.findMany({
         where: {
           OR: [
             { orderNumber: isIdOrNumber },
-            ...(cleanPhone && cleanPhone.length === 10 ? [{ phone: cleanPhone }] : []),
+            ...(cleanPhone ? [{ phone: cleanPhone }] : []),
           ],
         },
         include: {
@@ -45,12 +65,12 @@ export async function GET(req: Request) {
         orderBy: { createdAt: "desc" },
       }),
 
-      // 2. Service Requests (Exact Ticket ID or Exact Phone Match)
+      // 2. Service Requests
       prisma.serviceRequest.findMany({
         where: {
           OR: [
             { ticketId: isIdOrNumber },
-            ...(cleanPhone && cleanPhone.length === 10 ? [{ phone: cleanPhone }] : []),
+            ...(cleanPhone ? [{ phone: cleanPhone }] : []),
           ],
         },
         orderBy: { createdAt: "desc" },
@@ -61,7 +81,7 @@ export async function GET(req: Request) {
         where: {
           OR: [
             { reqNumber: isIdOrNumber },
-            ...(cleanPhone && cleanPhone.length === 10 ? [{ phone: cleanPhone }] : []),
+            ...(cleanPhone ? [{ phone: cleanPhone }] : []),
           ],
         },
         orderBy: { createdAt: "desc" },
@@ -72,45 +92,69 @@ export async function GET(req: Request) {
         where: {
           OR: [
             { quoteNumber: isIdOrNumber },
-            ...(cleanPhone && cleanPhone.length === 10 ? [{ phone: cleanPhone }] : []),
+            ...(cleanPhone ? [{ phone: cleanPhone }] : []),
           ],
         },
         orderBy: { createdAt: "desc" },
       }),
     ]);
 
-    // Redact overly sensitive full PII for public tracking lookups
+    // If caller is NOT Admin, mask PII in tracking response
     const safeOrders = orders.map((o) => ({
       id: o.id,
       orderNumber: o.orderNumber,
-      customerName: o.customerName ? `${o.customerName.slice(0, 1)}***` : "Customer",
+      customerName: adminSession ? o.customerName : maskName(o.customerName),
+      phone: adminSession ? o.phone : maskPhone(o.phone),
       city: o.city,
-      pincode: o.pincode,
-      total: o.total,
-      paymentMode: o.paymentMode,
       status: o.status,
-      items: o.items.map((it) => ({ name: it.name, quantity: it.quantity, price: it.price })),
+      paymentMode: o.paymentMode,
+      total: o.total,
       createdAt: o.createdAt,
+      items: o.items.map((it) => ({
+        name: it.name,
+        quantity: it.quantity,
+      })),
     }));
 
     const safeServices = serviceRequests.map((s) => ({
       id: s.id,
       ticketId: s.ticketId,
-      customerName: s.customerName ? `${s.customerName.slice(0, 1)}***` : "Customer",
+      customerName: adminSession ? s.customerName : maskName(s.customerName),
       deviceType: s.deviceType,
       brand: s.brand,
       model: s.model,
+      issueDesc: s.issueDesc,
       status: s.status,
       estimatedCost: s.estimatedCost,
       createdAt: s.createdAt,
     }));
 
+    const safeCustomPcs = customPcRequests.map((c) => ({
+      id: c.id,
+      reqNumber: c.reqNumber,
+      customerName: adminSession ? c.customerName : maskName(c.customerName),
+      purpose: c.purpose,
+      budget: c.budget,
+      status: c.status,
+      totalEst: c.totalEst,
+      createdAt: c.createdAt,
+    }));
+
+    const safeQuotes = quotations.map((q) => ({
+      id: q.id,
+      quoteNumber: q.quoteNumber,
+      customerName: adminSession ? q.customerName : maskName(q.customerName),
+      type: q.type,
+      status: q.status,
+      createdAt: q.createdAt,
+    }));
+
     return NextResponse.json({
       orders: safeOrders,
       serviceRequests: safeServices,
-      customPcRequests,
-      quotations,
-      totalCount: safeOrders.length + safeServices.length + customPcRequests.length + quotations.length,
+      customPcRequests: safeCustomPcs,
+      quotations: safeQuotes,
+      totalCount: safeOrders.length + safeServices.length + safeCustomPcs.length + safeQuotes.length,
     });
   } catch (error) {
     console.error("Tracking lookup error:", error);

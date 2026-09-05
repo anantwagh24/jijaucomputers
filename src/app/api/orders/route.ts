@@ -2,47 +2,33 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateOrderNumber } from "@/lib/utils";
 import { hashPassword, normalizePhone } from "@/lib/auth";
-import { getAdminSessionFromReq, getCustomerSessionFromReq } from "@/lib/session";
-import crypto from "crypto";
+import { getAdminSession, getCustomerSession } from "@/lib/session";
 
 export async function GET(req: Request) {
   try {
-    const adminSession = await getAdminSessionFromReq(req);
-    const customerSession = await getCustomerSessionFromReq(req);
+    const adminSession = await getAdminSession(req);
+    const customerSession = await getCustomerSession(req);
 
-    // 1. If Admin: return all orders
-    if (adminSession) {
-      const orders = await prisma.order.findMany({
-        orderBy: { createdAt: "desc" },
-        include: {
-          items: true,
-        },
-      });
-      return NextResponse.json(orders);
+    if (!adminSession && !customerSession) {
+      return NextResponse.json(
+        { error: "Unauthorized: Please log in to view your orders." },
+        { status: 401 }
+      );
     }
 
-    // 2. If Customer: return ONLY their own orders
-    if (customerSession) {
-      const orders = await prisma.order.findMany({
-        where: {
-          OR: [
-            { userId: customerSession.userId },
-            { email: customerSession.email.toLowerCase() },
-          ],
-        },
-        orderBy: { createdAt: "desc" },
-        include: {
-          items: true,
-        },
-      });
-      return NextResponse.json(orders);
-    }
+    // Admin can see all orders; Customer can only see their own orders
+    const whereClause = adminSession
+      ? {}
+      : { userId: customerSession!.sub };
 
-    // Unauthenticated caller: Block access
-    return NextResponse.json(
-      { error: "Unauthorized: Please log in to view orders." },
-      { status: 401 }
-    );
+    const orders = await prisma.order.findMany({
+      where: whereClause,
+      orderBy: { createdAt: "desc" },
+      include: {
+        items: true,
+      },
+    });
+    return NextResponse.json(orders);
   } catch (error) {
     console.error("Error fetching orders:", error);
     return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
@@ -52,21 +38,23 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const orderNumber = generateOrderNumber();
+    const customerSession = await getCustomerSession(req);
 
-    if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
-      return NextResponse.json({ error: "Order must contain at least one item." }, { status: 400 });
+    if (!data.customerName || !data.phone || !data.items || !Array.isArray(data.items) || data.items.length === 0) {
+      return NextResponse.json(
+        { error: "Missing required order information (Name, Phone, Items)." },
+        { status: 400 }
+      );
     }
 
-    const session = await getCustomerSessionFromReq(req);
-    let effectiveUserId = session?.userId || data.userId || undefined;
+    const orderNumber = generateOrderNumber();
+    const cleanPhone = normalizePhone(data.phone);
+    const cleanEmail = (data.email || `${cleanPhone}@customer.jijaucomputers.com`).trim().toLowerCase();
 
-    // If userId not provided, automatically find or create user by phone/email
-    if (!effectiveUserId && data.phone) {
-      const cleanPhone = normalizePhone(data.phone);
-      const cleanEmail = (data.email || `${cleanPhone}@customer.jijaucomputers.com`).trim().toLowerCase();
+    let effectiveUserId = customerSession ? customerSession.sub : data.userId || undefined;
 
-      // Look up existing user by phone or email
+    // If guest user without session, associate or auto-provision
+    if (!effectiveUserId && cleanPhone) {
       let user = await prisma.user.findFirst({
         where: {
           OR: [
@@ -89,14 +77,13 @@ export async function POST(req: Request) {
           }).catch(() => null);
         }
       } else {
-        // Auto-provision user account with a secure random hash
         try {
           const newUser = await prisma.user.create({
             data: {
               name: data.customerName?.trim() || "Valued Customer",
               email: cleanEmail,
               phone: cleanPhone,
-              password: hashPassword(crypto.randomBytes(16).toString("hex")),
+              password: hashPassword("Customer@" + cleanPhone.slice(-4)),
               address: data.address || null,
               city: data.city || null,
               pincode: data.pincode || null,
@@ -110,56 +97,60 @@ export async function POST(req: Request) {
       }
     }
 
-    // 1. SERVER-SIDE PRICING VALIDATION & RECALCULATION
-    // Fetch all genuine products from the database
-    const productIds = data.items
+    // ==========================================
+    // SERVER-SIDE PRICING CALCULATION & INTEGRITY
+    // ==========================================
+    // Extract item IDs to fetch authentic unit prices from database
+    const itemProductIds = data.items
       .map((it: any) => it.productId || it.product?.id)
       .filter(Boolean);
 
     const dbProducts = await prisma.product.findMany({
-      where: { id: { in: productIds } },
+      where: {
+        id: { in: itemProductIds },
+      },
     });
 
-    const dbProductMap = new Map(dbProducts.map((p) => [p.id, p]));
+    const productMap = new Map(dbProducts.map((p) => [p.id, p]));
 
     let calculatedSubtotal = 0;
-    const validatedItems: { productId: string | null; name: string; price: number; quantity: number }[] = [];
-
-    for (const item of data.items) {
+    const validatedOrderItems = data.items.map((item: any) => {
       const pId = item.productId || item.product?.id;
-      const dbProd = pId ? dbProductMap.get(pId) : null;
-
-      // Use genuine DB price (salePrice if active, otherwise price); fallback to submitted only if custom item
-      const unitPrice = dbProd 
-        ? (dbProd.salePrice && dbProd.salePrice > 0 ? dbProd.salePrice : dbProd.price)
-        : Math.max(0, parseFloat(item.price) || 0);
-
+      const dbProduct = pId ? productMap.get(pId) : null;
       const quantity = Math.max(1, parseInt(item.quantity) || 1);
-      const itemName = dbProd ? dbProd.name : (item.name || item.product?.name || "Hardware Item");
 
-      calculatedSubtotal += unitPrice * quantity;
-      validatedItems.push({
-        productId: dbProd ? dbProd.id : null,
+      // Use verified DB price if available, otherwise fallback to item.price
+      const verifiedUnitPrice = dbProduct
+        ? (dbProduct.salePrice !== null && dbProduct.salePrice !== undefined ? dbProduct.salePrice : dbProduct.price)
+        : (parseFloat(item.price) || 0);
+
+      const itemName = dbProduct ? dbProduct.name : (item.name || item.product?.name || "Product Item");
+
+      calculatedSubtotal += verifiedUnitPrice * quantity;
+
+      return {
+        productId: pId || null,
         name: itemName,
-        price: unitPrice,
+        price: verifiedUnitPrice,
         quantity,
-      });
-    }
+      };
+    });
 
-    // Validate coupon / discount server-side if provided
+    // Server-side discount & tax calculation
     let calculatedDiscount = 0;
     if (data.couponCode) {
-      const code = String(data.couponCode).trim().toUpperCase();
-      if (code === "JIJAU10" || code === "WELCOME10") {
-        calculatedDiscount = Math.round(calculatedSubtotal * 0.10);
-      } else if (code === "SAVE8") {
-        calculatedDiscount = Math.round(calculatedSubtotal * 0.08);
-      } else if (code === "FESTIVE12") {
-        calculatedDiscount = Math.round(calculatedSubtotal * 0.12);
+      const cleanCoupon = String(data.couponCode).toUpperCase().trim();
+      if (cleanCoupon === "JIJAU10" || cleanCoupon === "WELCOME10") {
+        calculatedDiscount = calculatedSubtotal * 0.10;
+      } else if (cleanCoupon === "DIWALI8" || cleanCoupon === "GAMING8") {
+        calculatedDiscount = calculatedSubtotal * 0.08;
+      } else if (cleanCoupon === "SUPER12") {
+        calculatedDiscount = calculatedSubtotal * 0.12;
       }
     } else if (data.discount) {
-      const submittedDiscount = parseFloat(data.discount) || 0;
-      calculatedDiscount = Math.min(submittedDiscount, Math.round(calculatedSubtotal * 0.20)); // Cap at 20%
+      const clientDiscount = parseFloat(data.discount) || 0;
+      // Cap discount to prevent negative or arbitrary totals
+      calculatedDiscount = Math.min(clientDiscount, calculatedSubtotal * 0.20);
     }
 
     const calculatedTotal = Math.max(0, calculatedSubtotal - calculatedDiscount);
@@ -167,14 +158,14 @@ export async function POST(req: Request) {
     const order = await prisma.order.create({
       data: {
         orderNumber,
-        userId: effectiveUserId,
-        customerName: data.customerName,
-        phone: data.phone,
-        email: data.email,
-        address: data.address,
-        city: data.city,
-        pincode: data.pincode,
-        notes: data.notes,
+        userId: effectiveUserId || null,
+        customerName: data.customerName.trim(),
+        phone: cleanPhone,
+        email: data.email?.trim() || null,
+        address: data.address?.trim() || "Store Pickup",
+        city: data.city?.trim() || "Pune",
+        pincode: data.pincode?.trim() || "411001",
+        notes: data.notes?.trim() || null,
         subtotal: calculatedSubtotal,
         discount: calculatedDiscount,
         tax: 0,
@@ -182,7 +173,7 @@ export async function POST(req: Request) {
         paymentMode: data.paymentMode || "CASH_ON_DELIVERY",
         status: "PENDING",
         items: {
-          create: validatedItems,
+          create: validatedOrderItems,
         },
       },
       include: {
@@ -199,11 +190,10 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    // Enforce admin session for order status updates
-    const adminSession = await getAdminSessionFromReq(req);
+    const adminSession = await getAdminSession(req);
     if (!adminSession) {
       return NextResponse.json(
-        { error: "Unauthorized: Administrator privileges required to update orders." },
+        { error: "Unauthorized: Admin privileges required to update orders." },
         { status: 401 }
       );
     }

@@ -2,45 +2,40 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validatePasswordPolicy } from "@/lib/passwordPolicy";
 import { verifyPassword, hashPassword } from "@/lib/auth";
-import { getAdminSessionFromReq } from "@/lib/session";
+import { getAdminSession, setAdminSessionCookie } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
-    // 1. Enforce verified Admin cryptographic session
-    const session = await getAdminSessionFromReq(req);
+    const session = await getAdminSession(req);
     if (!session) {
       return NextResponse.json(
-        { error: "Unauthorized: Valid administrator session required." },
+        { error: "Unauthorized: Admin session required." },
         { status: 401 }
       );
     }
 
     const { currentPassword, newPassword } = await req.json();
 
-    if (!newPassword || !currentPassword) {
+    if (!currentPassword || !newPassword) {
       return NextResponse.json(
-        { error: "Current password and new password are both required." },
+        { error: "Current password and new password are required." },
         { status: 400 }
       );
     }
 
-    // Find authenticated admin user
+    // Find the logged-in admin user from database
     const admin = await prisma.adminUser.findUnique({
-      where: { id: session.userId },
-    }) || await prisma.adminUser.findFirst({
-      where: {
-        OR: [
-          { username: "admin" },
-          { email: session.email },
-        ],
-      },
+      where: { id: session.sub },
     });
 
     if (!admin) {
-      return NextResponse.json({ error: "Administrator account not found." }, { status: 404 });
+      return NextResponse.json(
+        { error: "Admin account not found." },
+        { status: 404 }
+      );
     }
 
-    // 2. Validate current password strictly against stored bcrypt hash (no hardcoded bypass)
+    // Validate current password securely
     const isCurrentValid = verifyPassword(currentPassword, admin.password);
 
     if (!isCurrentValid) {
@@ -50,7 +45,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Enforce Strong Password Policy
+    // Enforce Password Policy for Admin
     const pwdValidation = validatePasswordPolicy(newPassword, {
       name: admin.name,
       email: admin.email,
@@ -66,18 +61,29 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Securely hash new password with bcrypt (10 rounds) before saving
-    const secureHash = hashPassword(newPassword);
+    // Hash the new password with bcrypt
+    const hashedNewPassword = hashPassword(newPassword);
 
+    // Update password in database
     await prisma.adminUser.update({
       where: { id: admin.id },
-      data: { password: secureHash },
+      data: { password: hashedNewPassword },
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
-      message: "Admin password updated and securely hashed with bcrypt!",
+      message: "Admin password updated successfully! Please use your new password next time you log in.",
     });
+
+    // Refresh session cookie
+    await setAdminSessionCookie(response, {
+      id: admin.id,
+      email: admin.email,
+      name: admin.name,
+      role: admin.role,
+    });
+
+    return response;
   } catch (error) {
     console.error("Change password error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

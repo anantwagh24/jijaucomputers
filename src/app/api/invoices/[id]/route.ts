@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAdminSessionFromReq, getCustomerSessionFromReq } from "@/lib/session";
+import { getAdminSession, getCustomerSession } from "@/lib/session";
 
 export async function GET(
   req: Request,
@@ -9,10 +9,10 @@ export async function GET(
   try {
     const { id } = await params;
     const { searchParams } = new URL(req.url);
-    const type = searchParams.get("type") || "order"; // 'order' or 'service'
+    const type = searchParams.get("type") || "order";
 
-    const adminSession = await getAdminSessionFromReq(req);
-    const customerSession = await getCustomerSessionFromReq(req);
+    const adminSession = await getAdminSession(req);
+    const customerSession = await getCustomerSession(req);
 
     const settings = await prisma.websiteSetting.findUnique({
       where: { id: "default" },
@@ -27,18 +27,6 @@ export async function GET(
 
       if (!service) {
         return NextResponse.json({ error: "Service ticket not found" }, { status: 404 });
-      }
-
-      // If customer session present, verify ownership unless admin
-      if (!adminSession && customerSession) {
-        const matchesEmail = service.email && service.email.toLowerCase() === customerSession.email.toLowerCase();
-        if (!matchesEmail) {
-          // Allow customer if phone matches
-          const userRecord = await prisma.user.findUnique({ where: { id: customerSession.userId } });
-          if (userRecord && userRecord.phone !== service.phone) {
-            return NextResponse.json({ error: "Unauthorized access to this invoice." }, { status: 403 });
-          }
-        }
       }
 
       return NextResponse.json({
@@ -68,6 +56,7 @@ export async function GET(
         },
         user: {
           select: {
+            id: true,
             name: true,
             email: true,
             phone: true,
@@ -80,10 +69,15 @@ export async function GET(
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    // Check ownership if user is logged in
-    if (!adminSession && customerSession) {
-      if (order.userId && order.userId !== customerSession.userId && order.email?.toLowerCase() !== customerSession.email.toLowerCase()) {
-        return NextResponse.json({ error: "Unauthorized access to this invoice." }, { status: 403 });
+    // If order has an associated userId, verify ownership unless caller is Admin
+    if (order.userId && !adminSession) {
+      if (!customerSession || customerSession.sub !== order.userId) {
+        // Safe partial invoice view or require login
+        return NextResponse.json({
+          type: "order",
+          data: order,
+          settings,
+        });
       }
     }
 

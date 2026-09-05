@@ -139,10 +139,14 @@ export default function AdminLayout({
           </Link>
 
           <button
-            onClick={() => {
+            onClick={async () => {
+              try {
+                await fetch("/api/admin/logout", { method: "POST" });
+              } catch (e) {
+                // ignore
+              }
               if (typeof window !== "undefined") {
                 localStorage.removeItem("jijau_admin_session");
-                document.cookie = "jijau_admin_auth=; path=/; max-age=0";
                 window.location.href = "/admin/login";
               }
             }}

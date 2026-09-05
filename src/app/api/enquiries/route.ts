@@ -1,33 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAdminSessionFromReq, getCustomerSessionFromReq } from "@/lib/session";
+import { getAdminSession } from "@/lib/session";
 
 export async function GET(req: Request) {
   try {
-    const adminSession = await getAdminSessionFromReq(req);
-    const customerSession = await getCustomerSessionFromReq(req);
-
-    if (adminSession) {
-      const enquiries = await prisma.enquiry.findMany({
-        orderBy: { createdAt: "desc" },
-      });
-      return NextResponse.json(enquiries);
+    const adminSession = await getAdminSession(req);
+    if (!adminSession) {
+      return NextResponse.json({ error: "Unauthorized: Admin privileges required." }, { status: 401 });
     }
 
-    if (customerSession) {
-      const enquiries = await prisma.enquiry.findMany({
-        where: {
-          email: customerSession.email.toLowerCase(),
-        },
-        orderBy: { createdAt: "desc" },
-      });
-      return NextResponse.json(enquiries);
-    }
-
-    return NextResponse.json(
-      { error: "Unauthorized: Please sign in to view enquiries." },
-      { status: 401 }
-    );
+    const enquiries = await prisma.enquiry.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json(enquiries);
   } catch (error) {
     console.error("Error fetching enquiries:", error);
     return NextResponse.json({ error: "Failed to fetch enquiries" }, { status: 500 });
@@ -38,14 +23,18 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
+    if (!data.name || !data.phone || !data.message) {
+      return NextResponse.json({ error: "Name, phone, and message are required." }, { status: 400 });
+    }
+
     const enquiry = await prisma.enquiry.create({
       data: {
-        name: data.name,
-        phone: data.phone,
-        email: data.email,
+        name: data.name.trim(),
+        phone: data.phone.trim(),
+        email: data.email ? data.email.trim().toLowerCase() : null,
         subject: data.subject || "General Enquiry",
-        message: data.message,
-        productName: data.productName,
+        message: data.message.trim(),
+        productName: data.productName || null,
         status: "NEW",
       },
     });
@@ -59,12 +48,9 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const adminSession = await getAdminSessionFromReq(req);
+    const adminSession = await getAdminSession(req);
     if (!adminSession) {
-      return NextResponse.json(
-        { error: "Unauthorized: Administrator privileges required." },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized: Admin privileges required." }, { status: 401 });
     }
 
     const data = await req.json();

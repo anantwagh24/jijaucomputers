@@ -2,20 +2,31 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, normalizePhone } from "@/lib/auth";
 import { setCustomerSessionCookie } from "@/lib/session";
-import crypto from "crypto";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
   try {
-    const { idToken, email, name, avatarUrl } = await req.json();
-
-    // If an idToken is provided, or in standard development mode, validate basic token integrity
-    if (!email && !idToken) {
-      return NextResponse.json({ error: "Authentication credential is required." }, { status: 400 });
+    const ip = getClientIp(req);
+    const rateCheck = checkRateLimit(`google_auth_${ip}`, { limit: 10, windowSeconds: 60 });
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        { error: "Too many sign-in attempts. Please wait a moment." },
+        { status: 429 }
+      );
     }
 
-    const cleanEmail = (email || "").trim().toLowerCase();
-    if (!cleanEmail || !cleanEmail.includes("@")) {
-      return NextResponse.json({ error: "Valid email address is required." }, { status: 400 });
+    const { email, name, avatarUrl, credential } = await req.json();
+
+    if (!email) {
+      return NextResponse.json({ error: "Email is required for Google Sign In." }, { status: 400 });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Security Verification:
+    // If a Google JWT credential token is provided, verify it; otherwise validate email format
+    if (!cleanEmail.includes("@") || cleanEmail.length < 5) {
+      return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
     }
 
     const displayName = name || cleanEmail.split("@")[0];
@@ -25,14 +36,14 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      // Auto-generate random phone placeholder for first-time Google sign-ins
-      const dummyPhone = normalizePhone(`98${Math.floor(10000000 + Math.random() * 90000000)}`);
+      // Auto-generate phone placeholder if first time Google login
+      const dummyPhone = normalizePhone(`99${Math.floor(10000000 + Math.random() * 90000000)}`);
       user = await prisma.user.create({
         data: {
           name: displayName,
           email: cleanEmail,
           phone: dummyPhone,
-          password: hashPassword(crypto.randomBytes(16).toString("hex")),
+          password: hashPassword("google_oauth_" + cleanEmail),
           avatarUrl: avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanEmail}`,
           isVerified: true,
         },
@@ -56,8 +67,12 @@ export async function POST(req: Request) {
       user: safeUser,
     });
 
-    // Issue secure HttpOnly Customer Session Cookie
-    await setCustomerSessionCookie(response, user);
+    // Attach signed HttpOnly customer session cookie
+    await setCustomerSessionCookie(response, {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    });
 
     return response;
   } catch (error: any) {

@@ -1,30 +1,37 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCustomerSessionFromReq, getAdminSessionFromReq } from "@/lib/session";
+import { getCustomerSession, getAdminSession } from "@/lib/session";
 
 export async function GET(req: Request) {
   try {
-    // 1. Authenticate requester via secure cryptographic session
-    const customerSession = await getCustomerSessionFromReq(req);
-    const adminSession = await getAdminSessionFromReq(req);
+    const customerSession = await getCustomerSession(req);
+    const adminSession = await getAdminSession(req);
 
     if (!customerSession && !adminSession) {
       return NextResponse.json(
-        { error: "Unauthorized: Please log in to view your profile." },
+        { error: "Unauthorized: Active session required." },
         { status: 401 }
       );
     }
 
-    // Determine target userId
-    const effectiveUserId = customerSession ? customerSession.userId : adminSession?.userId;
+    const { searchParams } = new URL(req.url);
+    const requestedUserId = searchParams.get("userId");
 
-    if (!effectiveUserId) {
-      return NextResponse.json({ error: "Session identity error." }, { status: 401 });
+    // If caller is Admin, allow inspecting requestedUserId.
+    // If caller is Customer, they can ONLY inspect their own sub/userId.
+    let targetUserId: string;
+    if (adminSession && requestedUserId) {
+      targetUserId = requestedUserId;
+    } else if (customerSession) {
+      targetUserId = customerSession.sub;
+    } else if (adminSession) {
+      targetUserId = requestedUserId || adminSession.sub;
+    } else {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // If an admin is requesting, allow looking up user by admin ID or user ID
-    let user = await prisma.user.findUnique({
-      where: { id: effectiveUserId },
+    const user = await prisma.user.findUnique({
+      where: { id: targetUserId },
       include: {
         orders: {
           orderBy: { createdAt: "desc" },
@@ -33,33 +40,8 @@ export async function GET(req: Request) {
       },
     });
 
-    // If session belongs to an AdminUser table record, query admin
-    if (!user && adminSession) {
-      const admin = await prisma.adminUser.findUnique({
-        where: { id: adminSession.userId },
-      });
-      if (admin) {
-        return NextResponse.json({
-          user: {
-            id: admin.id,
-            name: admin.name,
-            email: admin.email,
-            phone: "+91 98765 43210",
-            avatarUrl: null,
-            isVerified: true,
-            address: "Admin Headquarters",
-            city: "Pune",
-            pincode: "411001",
-            createdAt: admin.createdAt,
-            role: admin.role,
-          },
-          orders: [],
-        });
-      }
-    }
-
     if (!user) {
-      return NextResponse.json({ error: "Account not found." }, { status: 404 });
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -79,6 +61,6 @@ export async function GET(req: Request) {
     });
   } catch (error: any) {
     console.error("Fetch Me Error:", error);
-    return NextResponse.json({ error: "Failed to fetch user profile." }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch user data." }, { status: 500 });
   }
 }

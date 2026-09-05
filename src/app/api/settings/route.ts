@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAdminSessionFromReq } from "@/lib/session";
+import { getAdminSession } from "@/lib/session";
 
 export async function GET() {
   try {
@@ -23,11 +23,10 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    // Enforce verified Admin session to modify store settings, bank details, or UPI ID
-    const adminSession = await getAdminSessionFromReq(req);
+    const adminSession = await getAdminSession(req);
     if (!adminSession) {
       return NextResponse.json(
-        { error: "Unauthorized: Administrator privileges required to modify website settings." },
+        { error: "Unauthorized: Admin privileges required to update website settings." },
         { status: 401 }
       );
     }

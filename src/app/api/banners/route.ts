@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAdminSessionFromReq } from "@/lib/session";
+import { getAdminSession } from "@/lib/session";
 
 export async function GET() {
   try {
@@ -16,12 +16,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const adminSession = await getAdminSessionFromReq(req);
+    const adminSession = await getAdminSession(req);
     if (!adminSession) {
-      return NextResponse.json(
-        { error: "Unauthorized: Administrator privileges required." },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized: Admin session required." }, { status: 401 });
     }
 
     const data = await req.json();
@@ -46,12 +43,9 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const adminSession = await getAdminSessionFromReq(req);
+    const adminSession = await getAdminSession(req);
     if (!adminSession) {
-      return NextResponse.json(
-        { error: "Unauthorized: Administrator privileges required." },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized: Admin session required." }, { status: 401 });
     }
 
     const data = await req.json();
@@ -80,12 +74,9 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const adminSession = await getAdminSessionFromReq(req);
+    const adminSession = await getAdminSession(req);
     if (!adminSession) {
-      return NextResponse.json(
-        { error: "Unauthorized: Administrator privileges required." },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized: Admin session required." }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);

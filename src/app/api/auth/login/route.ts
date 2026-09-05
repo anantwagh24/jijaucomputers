@@ -82,8 +82,12 @@ export async function POST(req: Request) {
       user: safeUser,
     });
 
-    // Set secure HttpOnly Customer Session Cookie
-    await setCustomerSessionCookie(response, user);
+    // Attach signed HttpOnly customer session cookie
+    await setCustomerSessionCookie(response, {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    });
 
     return response;
   } catch (error: any) {

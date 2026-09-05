@@ -3,7 +3,7 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-import { getAdminSessionFromReq } from "@/lib/session";
+import { getAdminSession } from "@/lib/session";
 
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
@@ -22,23 +22,68 @@ const ALLOWED_EXTENSIONS = new Set([
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
+/**
+ * Validates image magic bytes to prevent polyglot / disguised executable uploads
+ */
+function isValidImageHeader(buffer: Buffer): boolean {
+  if (buffer.length < 12) return false;
+
+  // JPEG: FF D8 FF
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return true;
+  }
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47
+  ) {
+    return true;
+  }
+  // GIF: 47 49 46 38
+  if (
+    buffer[0] === 0x47 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x38
+  ) {
+    return true;
+  }
+  // WEBP: 52 49 46 46 (RIFF) ... 57 45 42 50 (WEBP)
+  if (
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 export async function POST(req: Request) {
   try {
-    // 1. Enforce Admin session for file uploads
-    const adminSession = await getAdminSessionFromReq(req);
+    // 1. Admin Authentication Check
+    const adminSession = await getAdminSession(req);
     if (!adminSession) {
       return NextResponse.json(
-        { error: "Unauthorized: Administrator privileges required to upload media." },
+        { error: "Unauthorized: Admin privileges required to upload files." },
         { status: 401 }
       );
     }
 
     // 2. Rate Limiting Check
     const ip = getClientIp(req);
-    const rateCheck = checkRateLimit(`upload_${ip}`, { limit: 25, windowSeconds: 60 });
+    const rateCheck = checkRateLimit(`upload_${ip}`, { limit: 30, windowSeconds: 60 });
     if (!rateCheck.success) {
       return NextResponse.json(
-        { error: "Upload rate limit reached. Please wait a minute before uploading more files." },
+        { error: "Upload rate limit reached. Please wait a moment." },
         { status: 429 }
       );
     }
@@ -75,15 +120,15 @@ export async function POST(req: Request) {
         );
       }
 
-      // 4. MIME Type Validation (SVG explicitly removed to prevent Stored XSS)
+      // 4. Strict MIME Type Validation
       if (file.type && !ALLOWED_MIME_TYPES.has(file.type.toLowerCase())) {
         return NextResponse.json(
-          { error: `Invalid file type for "${file.name}". Only JPG, PNG, WEBP, and GIF raster images are permitted.` },
+          { error: `Invalid file type for "${file.name}". Only JPG, PNG, WEBP, and GIF images are permitted.` },
           { status: 400 }
         );
       }
 
-      // 5. File Extension Validation
+      // 5. Strict File Extension Validation (Disallows .svg / .html / .php)
       const ext = (path.extname(file.name) || ".jpg").toLowerCase();
       if (!ALLOWED_EXTENSIONS.has(ext)) {
         return NextResponse.json(
@@ -95,20 +140,15 @@ export async function POST(req: Request) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      // 6. Magic byte header verification (JPG, PNG, GIF, WEBP)
-      const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8;
-      const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
-      const isGif = buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46;
-      const isWebp = buffer.slice(8, 12).toString("ascii") === "WEBP";
-
-      if (!isJpeg && !isPng && !isGif && !isWebp) {
+      // 6. Magic Bytes / File Signature Inspection
+      if (!isValidImageHeader(buffer)) {
         return NextResponse.json(
-          { error: `File "${file.name}" has invalid image data. Only valid JPEG, PNG, GIF, or WEBP files are accepted.` },
+          { error: `File "${file.name}" has invalid image signatures and was rejected.` },
           { status: 400 }
         );
       }
 
-      // 7. Cryptographically secure random filename to prevent collisions and path traversal
+      // 7. Cryptographically secure randomized filename
       const randomId = crypto.randomBytes(8).toString("hex");
       const sanitizedBase = file.name
         .replace(/[^a-zA-Z0-9_-]/g, "_")
