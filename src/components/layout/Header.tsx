@@ -96,7 +96,7 @@ export default function Header() {
           <div className="flex items-center space-x-4 overflow-x-auto no-scrollbar py-0.5">
             <span className="flex items-center gap-1.5 text-amber-400 font-medium">
               <Sparkles className="w-3.5 h-3.5" />
-              Authorized Computer & Hardware Dealer in Pune
+              Authorized Computer & Hardware Dealer
             </span>
             <span className="hidden sm:inline-block text-slate-600">|</span>
             <span className="hidden sm:flex items-center gap-1">

@@ -11,7 +11,7 @@ try {
         name TEXT NOT NULL,
         city TEXT NOT NULL,
         village TEXT,
-        district TEXT DEFAULT "Pune",
+        district TEXT DEFAULT "Maharashtra",
         phone TEXT,
         productName TEXT NOT NULL,
         photoUrl TEXT NOT NULL,
@@ -65,7 +65,7 @@ $allRows = $db->query('SELECT district, city FROM "HappyCustomer" WHERE isActive
 $districts = array_values(array_unique(array_filter(array_column($allRows, 'district'))));
 $cities = array_values(array_unique(array_filter(array_column($allRows, 'city'))));
 
-$pageTitle = 'Our Happy Customers & Real Setups in Maharashtra - Jijau Computers';
+$pageTitle = 'Our Happy Customers & Real Setups - Jijau Computers';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
@@ -78,10 +78,10 @@ require_once __DIR__ . '/includes/header.php';
         ✨ REAL DELIVERIES & CUSTOMER SMILES
       </span>
       <h1 style="font-size: 32px; font-weight: 900; margin: 0 0 10px; line-height: 1.2;">
-        Our Happy Customers from <span style="color: #fbbf24;">Your City</span>
+        Our Happy Customers & <span style="color: #fbbf24;">Recent Deliveries</span>
       </h1>
       <p style="color: #cbd5e1; font-size: 14px; max-width: 600px; margin: 0 auto 24px;">
-        Explore authentic photos of happy customers who assembled custom gaming rigs, bought laptops, and upgraded tech with Jijau Computers Pune.
+        Explore authentic photos of happy customers who assembled custom gaming rigs, bought laptops, and upgraded tech with Jijau Computers.
       </p>
 
       <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">

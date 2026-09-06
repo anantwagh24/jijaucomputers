@@ -80,7 +80,7 @@ require_once __DIR__ . '/includes/header.php';
             </div>
             <div style="display: flex; justify-content: space-between; color: #64748b;">
               <span>Delivery:</span>
-              <span style="font-weight: 700; color: #16a34a;">FREE Store Pickup / Pune Dispatch</span>
+              <span style="font-weight: 700; color: #16a34a;">FREE Store Pickup / Express Courier</span>
             </div>
             <div style="border-top: 2px dashed #cbd5e1; margin-top: 8px; padding-top: 14px; display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; color: #0f172a;">
               <span>Total Amount:</span>

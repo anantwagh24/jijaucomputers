@@ -28,7 +28,7 @@ try {
             [
                 'id' => 'b-2',
                 'title' => 'Next-Gen Graphics Cards In Stock',
-                'subtitle' => 'GeForce RTX 4090, 4080 Super & 4070 Ti Super at Genuine Pune Dealer Prices',
+                'subtitle' => 'GeForce RTX 4090, 4080 Super & 4070 Ti Super at Genuine Dealer Prices',
                 'imageUrl' => 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=1400&auto=format&fit=crop&q=80',
                 'ctaLink' => '/products?category=graphics-cards',
                 'tag' => 'HARDWARE DEALS'
@@ -51,7 +51,7 @@ try {
     $featuredProducts = $featStmt->fetchAll();
 } catch (Exception $e) {}
 
-$pageTitle = 'Jijau Computers - Best Computer & Laptop Store in Pune | Custom Gaming PCs & Repairs';
+$pageTitle = 'Jijau Computers - Best Computer & Laptop Store | Custom Gaming PCs & Repairs';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
@@ -200,18 +200,10 @@ require_once __DIR__ . '/includes/header.php';
     <div style="background: linear-gradient(135deg, #020617, #1e1b4b); border: 1px solid #3730a3; border-radius: 20px; padding: 28px; color: white; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
       <div style="max-width: 650px;">
         <span style="display: inline-block; padding: 3px 10px; background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); border-radius: 20px; font-size: 10px; font-weight: 800; color: #fbbf24; margin-bottom: 6px;">
-          ✨ REAL MAHARASHTRA CUSTOMER DELIVERIES
+          ✨ REAL VERIFIED CUSTOMER DELIVERIES
         </span>
-        <h2 style="font-size: 22px; font-weight: 900; margin: 0 0 6px;">See Happy Customers from <span style="color: #fbbf24;">Your City</span></h2>
-        <p style="color: #cbd5e1; font-size: 13px; margin: 0 0 12px;">Explore authentic photos of happy customers who assembled custom rigs, laptops, and Apple MacBooks across Pune, Baramati, Shirur, Satara, and PCMC.</p>
-        
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <?php foreach (['Pune', 'Baramati', 'Shirur', 'Pimpri-Chinchwad', 'Satara', 'Ahmednagar'] as $city): ?>
-            <a href="/happy-customers?city=<?= urlencode($city) ?>" style="padding: 4px 10px; background: #1e293b; color: #e2e8f0; border-radius: 14px; font-size: 11px; font-weight: 700; text-decoration: none; border: 1px solid #334155;">
-              📍 <?= $city ?>
-            </a>
-          <?php endforeach; ?>
-        </div>
+        <h2 style="font-size: 22px; font-weight: 900; margin: 0 0 6px;">See Real Customer Builds & <span style="color: #fbbf24;">Deliveries</span></h2>
+        <p style="color: #cbd5e1; font-size: 13px; margin: 0 0 12px;">Explore authentic photos of happy customers who assembled custom rigs, laptops, and Apple MacBooks with Jijau Computers.</p>
       </div>
 
       <a href="/happy-customers" style="padding: 12px 24px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; border-radius: 10px; font-weight: 900; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(245,158,11,0.4);">
@@ -245,7 +237,7 @@ require_once __DIR__ . '/includes/header.php';
   <section style="max-width: 1320px; margin: 36px auto 0; padding: 0 16px;">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
       <div>
-        <span style="font-size: 10px; font-weight: 800; color: #ea580c; text-transform: uppercase; letter-spacing: 0.5px;">IN STOCK IN PUNE</span>
+        <span style="font-size: 10px; font-weight: 800; color: #ea580c; text-transform: uppercase; letter-spacing: 0.5px;">IN STOCK READY TO SHIP</span>
         <h2 style="font-size: 20px; font-weight: 900; color: #0f172a; margin: 2px 0 0;">Featured Hardware & Components</h2>
       </div>
       <a href="/products" style="font-size: 12px; font-weight: 700; color: #2563eb; text-decoration: none;">View All →</a>

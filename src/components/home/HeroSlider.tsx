@@ -124,7 +124,7 @@ export default function HeroSlider({ banners }: { banners: BannerItem[] }) {
               </div>
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>Best Pune Market Rates</span>
+                <span>Best Market Rates</span>
               </div>
             </div>
           </div>

@@ -33,7 +33,7 @@ $current_url = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
         <div class="flex items-center gap-4 text-[11px] sm:text-xs">
             <span class="flex items-center gap-1.5 font-medium text-amber-400">
                 <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-                Authorized Computer & Hardware Dealer in Pune
+                Authorized Computer & Hardware Dealer
             </span>
             <span class="hidden md:inline text-slate-700">|</span>
             <span class="hidden md:flex items-center gap-1.5 text-slate-400">

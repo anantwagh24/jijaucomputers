@@ -29,7 +29,7 @@ const DEFAULT_SLIDES: BannerItem[] = [
   {
     id: "b-2",
     title: "High-Performance Laptops",
-    subtitle: "MacBook Pro M3, ROG Strix RTX 4080 & Dell XPS at Best Pune Prices",
+    subtitle: "MacBook Pro M3, ROG Strix RTX 4080 & Dell XPS at Best Prices",
     tag: "MEGA FESTIVAL",
     imageUrl: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=1400&auto=format&fit=crop&q=80",
     ctaText: "Explore Laptops",

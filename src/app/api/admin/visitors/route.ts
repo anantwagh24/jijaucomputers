@@ -4,18 +4,18 @@ import { prisma } from "@/lib/prisma";
 // Location generator for realistic Indian visitor IP lookups
 function guessLocation(ip: string): string {
   if (ip.includes("2401:4900") || ip.startsWith("116.75")) {
-    return "Pune, Maharashtra, India";
+    return "Maharashtra, India";
   }
   if (ip.includes("2409:40c2")) {
-    return "Solapur, Maharashtra, India";
+    return "Maharashtra, India";
   }
   if (ip.includes("103.24") || ip.includes("49.36")) {
-    return "Mumbai, Maharashtra, India";
+    return "Maharashtra, India";
   }
   if (ip.includes("157.34") || ip.includes("106.210")) {
-    return "Aurangabad, Maharashtra, India";
+    return "Maharashtra, India";
   }
-  return "Pune, Maharashtra, India";
+  return "Maharashtra, India";
 }
 
 export async function GET(req: Request) {

@@ -42,8 +42,8 @@ export default function CheckoutPage() {
     phone: user?.phone || "",
     email: user?.email || "",
     address: user?.address || "",
-    city: user?.city || "Pune",
-    pincode: user?.pincode || "411005",
+    city: user?.city || "",
+    pincode: user?.pincode || "",
     notes: "",
     paymentMode: "UPI_WHATSAPP", // Default to Instant UPI
     upiReference: "", // Mandatory 12-digit UTR / Transaction ID for UPI payments
@@ -60,8 +60,8 @@ export default function CheckoutPage() {
         phone: prev.phone || user.phone || "",
         email: prev.email || user.email || "",
         address: prev.address || user.address || "",
-        city: prev.city || user.city || "Pune",
-        pincode: prev.pincode || user.pincode || "411005",
+        city: prev.city || user.city || "",
+        pincode: prev.pincode || user.pincode || "",
       }));
     }
   }, [user]);
@@ -740,7 +740,7 @@ Hi Jijau Computers team, I have placed this order on your website. Please confir
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span>Delivery in Pune</span>
+                  <span>Standard Delivery</span>
                   <span className="text-emerald-600 font-bold">FREE</span>
                 </div>
                 <div className="flex justify-between text-base font-black text-slate-900 pt-3 border-t border-slate-200">

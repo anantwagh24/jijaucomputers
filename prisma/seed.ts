@@ -21,8 +21,8 @@ async function main() {
       phone: "+91 88056 07908",
       whatsapp: "918805607908",
       email: "sales@jijaucomputers.in",
-      address: "Shop No. 12 & 13, Jijau Plaza, Near Railway Station, Shivajinagar, Pune, Maharashtra 411005",
-      googleMapsUrl: "https://maps.google.com/?q=Shivajinagar,Pune,Maharashtra",
+      address: "Shop No. 12 & 13, Jijau Plaza, Station Road, Maharashtra",
+      googleMapsUrl: "https://maps.google.com/?q=Maharashtra",
       openingHours: "Mon - Sat: 10:00 AM - 9:00 PM | Sun: 11:00 AM - 6:00 PM",
       gstin: "27AABCJ1234F1Z9",
       upiId: "jijauc@ibl",
@@ -31,9 +31,9 @@ async function main() {
       instagramUrl: "https://instagram.com/jijaucomputers",
       youtubeUrl: "https://youtube.com/jijaucomputers",
       linkedinUrl: "https://linkedin.com/company/jijaucomputers",
-      metaTitle: "Jijau Computers - Premium Laptops, Gaming PCs & Hardware Store in Pune",
-      metaDescription: "Explore the best deals on custom gaming PCs, laptops, graphics cards, processors, CCTV, and same-day repair services at Jijau Computers Pune.",
-      metaKeywords: "jijau computers pune, gaming pc build pune, custom pc quote, laptops shop pune, graphic card rtx 4070, intel i7 processor, computer repair pune"
+      metaTitle: "Jijau Computers - Premium Laptops, Gaming PCs & Hardware Store",
+      metaDescription: "Explore the best deals on custom gaming PCs, laptops, graphics cards, processors, CCTV, and same-day repair services at Jijau Computers.",
+      metaKeywords: "jijau computers, gaming pc build, custom pc quote, laptops shop, graphic card rtx 4070, intel i7 processor, computer repair"
     },
   });
 
@@ -147,7 +147,7 @@ async function main() {
     },
     {
       title: "Next-Gen Graphics Cards In Stock",
-      subtitle: "GeForce RTX 4090, 4080 Super & 4070 Ti Super at Genuine Pune Dealer Prices with Full Official Warranty",
+      subtitle: "GeForce RTX 4090, 4080 Super & 4070 Ti Super at Genuine Dealer Prices with Full Official Warranty",
       tag: "HARDWARE DEALS",
       imageUrl: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=1400&auto=format&fit=crop&q=80",
       ctaText: "View Graphics Cards",
@@ -279,7 +279,7 @@ async function main() {
       isTrending: true,
       isGamingDeal: true,
       shortDesc: "Intel Core i7-14700K, RTX 4080 Super 16GB, 32GB DDR5 6000MHz RGB, 2TB Gen4 SSD, 360mm AIO Liquid Cooler.",
-      description: "Hand-assembled and stress-tested in Pune by Jijau Computers master technicians. Features custom sleeved cables, ultra-clean cable routing, 360mm ARGB liquid cooler, and optimized airflow for extreme 4K gaming, Unreal Engine 5 rendering, and live streaming.",
+      description: "Hand-assembled and stress-tested by Jijau Computers master technicians. Features custom sleeved cables, ultra-clean cable routing, 360mm ARGB liquid cooler, and optimized airflow for extreme 4K gaming, Unreal Engine 5 rendering, and live streaming.",
       specsJson: JSON.stringify({
         Processor: "Intel Core i7-14700K (20 cores, 28 threads, up to 5.6 GHz)",
         Cooler: "DeepCool / Corsair 360mm ARGB Liquid AIO Cooler",

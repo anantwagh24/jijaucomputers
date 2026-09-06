@@ -32,7 +32,7 @@ $whatsapp = get_theme_mod('jijau_whatsapp', '918805607908');
             </div>
             <div>
                 <label class="font-bold text-slate-700 block mb-1">Company / Institution Name</label>
-                <input type="text" placeholder="e.g. Infotech Solutions Pune" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600" />
+                <input type="text" placeholder="e.g. Infotech Solutions" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600" />
             </div>
         </div>
 

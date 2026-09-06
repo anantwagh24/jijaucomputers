@@ -1694,11 +1694,11 @@ if (!function_exists('jijau_render_full_admin_hub')) {
             if (ord.status === 'CONFIRMED') {
                 msg = `Hello *${ord.customerName}*,\n\nYour order *#${ord.orderNumber}* at Jijau Computers is *CONFIRMED*!\n\n*Total:* ${formatINR(ord.total)}\n*Items:* ${ord.items || 'Hardware'}\n\nWe will update you once dispatched!`;
             } else if (ord.status === 'SHIPPED') {
-                msg = `Hello *${ord.customerName}*,\n\n🚀 Your order *#${ord.orderNumber}* has been *DISPATCHED*!\n\n*Address:* ${ord.address || ''}\n*Amount:* ${formatINR(ord.total)}\n\nThank you for choosing Jijau Computers Pune!`;
+                msg = `Hello *${ord.customerName}*,\n\n🚀 Your order *#${ord.orderNumber}* has been *DISPATCHED*!\n\n*Address:* ${ord.address || ''}\n*Amount:* ${formatINR(ord.total)}\n\nThank you for choosing Jijau Computers!`;
             } else if (ord.status === 'DELIVERED') {
                 msg = `Dear *${ord.customerName}*,\n\n🎉 Your order *#${ord.orderNumber}* has been successfully *DELIVERED*!\n\nThank you for shopping with Jijau Computers!`;
             } else {
-                msg = `Hello *${ord.customerName}*,\n\nOrder Update for *#${ord.orderNumber}*:\nStatus is now *${ord.status}*.\n\nJijau Computers Pune`;
+                msg = `Hello *${ord.customerName}*,\n\nOrder Update for *#${ord.orderNumber}*:\nStatus is now *${ord.status}*.\n\nJijau Computers`;
             }
 
             window.open(`https://wa.me/${targetPhone}?text=${encodeURIComponent(msg)}`, '_blank');

@@ -149,7 +149,7 @@ export default function AdminServiceRequestsPage() {
     const costText = req.estimatedCost ? `\n💰 *Estimated Cost:* ${formatPrice(req.estimatedCost)}` : "";
     const notesText = req.adminNotes ? `\n📝 *Technician Remarks:* ${req.adminNotes}` : "";
 
-    const message = `Hello *${req.customerName}*,\n\nUpdate on your service ticket *#${req.ticketId}* at *Jijau Computers Pune*:\n\n📱 *Device:* ${req.brand} ${req.model} (${req.deviceType})\n🔧 *Current Status:* *${req.status.toUpperCase()}*${costText}${notesText}\n\n🔍 *Live Status & Warranty Tracking:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(req.ticketId)}\n\nFor assistance, reply directly to this message or visit our Pune service center.\n\n*Jijau Computers Pune*`;
+    const message = `Hello *${req.customerName}*,\n\nUpdate on your service ticket *#${req.ticketId}* at *Jijau Computers*:\n\n📱 *Device:* ${req.brand} ${req.model} (${req.deviceType})\n🔧 *Current Status:* *${req.status.toUpperCase()}*${costText}${notesText}\n\n🔍 *Live Status & Warranty Tracking:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(req.ticketId)}\n\nFor assistance, reply directly to this message or visit our service center.\n\n*Jijau Computers*`;
 
     const url = generateWhatsAppUrl(req.phone, message);
     window.open(url, "_blank", "noopener,noreferrer");

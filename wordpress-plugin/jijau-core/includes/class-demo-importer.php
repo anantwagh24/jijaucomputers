@@ -14,18 +14,18 @@ class Jijau_Demo_Importer {
         return array(
             'settings' => array(
                 'storeName' => 'Jijau Computers',
-                'tagline' => 'Pune\'s #1 Destination for Laptops, Custom Gaming PCs & Computer Hardware',
+                'tagline' => 'Your #1 Destination for Laptops, Custom Gaming PCs & Computer Hardware',
                 'phone' => '+91 88056 07908',
                 'whatsapp' => '918805607908',
                 'email' => 'sales@jijaucomputers.in',
-                'address' => 'Shop No. 12 & 13, Jijau Plaza, Near Railway Station, Shivajinagar, Pune, Maharashtra 411005',
-                'googleMapsUrl' => 'https://maps.google.com/?q=Shivajinagar,Pune,Maharashtra',
+                'address' => 'Shop No. 12 & 13, Jijau Plaza, Station Road, Maharashtra',
+                'googleMapsUrl' => 'https://maps.google.com/?q=Maharashtra',
                 'openingHours' => 'Mon - Sat: 10:00 AM - 9:00 PM | Sun: 11:00 AM - 6:00 PM',
                 'gstin' => '27FQIPK5154C1ZU',
                 'upiId' => 'jijauc@ibl',
                 'upiName' => 'Jijau Computers',
-                'metaTitle' => 'Jijau Computers - Premium Laptops, Gaming PCs & Hardware Store in Pune',
-                'metaDescription' => 'Explore the best deals on custom gaming PCs, laptops, graphics cards, processors, CCTV, and same-day repair services at Jijau Computers Pune.'
+                'metaTitle' => 'Jijau Computers - Premium Laptops, Gaming PCs & Hardware Store',
+                'metaDescription' => 'Explore the best deals on custom gaming PCs, laptops, graphics cards, processors, CCTV, and same-day repair services at Jijau Computers.'
             ),
             'categories' => array(
                 array('id' => 'cat-1', 'name' => 'Laptop', 'slug' => 'laptops', 'description' => 'Gaming, Ultrabooks, Business & Student Laptops', 'imageUrl' => 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=800&auto=format&fit=crop&q=80', 'order' => 1, 'isActive' => true),
@@ -61,7 +61,7 @@ class Jijau_Demo_Importer {
                 array(
                     'id' => 'ban-1',
                     'title' => 'Jijau Custom Gaming Battlestations',
-                    'subtitle' => 'Unleash Ultimate Power with Intel 14th Gen & RTX 4080 Super | Custom Liquid Cooling & Rig Tuning in Pune',
+                    'subtitle' => 'Unleash Ultimate Power with Intel 14th Gen & RTX 4080 Super | Custom Liquid Cooling & Rig Tuning',
                     'tag' => 'FLAGSHIP PC BUILDS',
                     'imageUrl' => 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=1400&auto=format&fit=crop&q=80',
                     'ctaText' => 'Build Custom PC',
@@ -170,7 +170,7 @@ class Jijau_Demo_Importer {
                     'orderNumber' => 'JC-ORD-5501',
                     'customerName' => 'Aditya Patil',
                     'phone' => '9823098765',
-                    'address' => 'Flat 402, Green Acres, Baner, Pune 411045',
+                    'address' => 'Station Road, Maharashtra',
                     'items' => 'ASUS ROG Strix G16 (2024) (x1)',
                     'total' => 124990,
                     'paymentMethod' => 'Instant UPI via WhatsApp (jijauc@ibl)',
@@ -181,7 +181,7 @@ class Jijau_Demo_Importer {
                 array(
                     'quoteNumber' => 'JC-QTE-301',
                     'customerName' => 'Pravin Shinde',
-                    'companyName' => 'Apex Tech Solutions Pune',
+                    'companyName' => 'Apex Tech Solutions',
                     'phone' => '9822334455',
                     'email' => 'pravin@apextech.in',
                     'type' => 'Corporate B2B',

@@ -22,7 +22,7 @@ export default function CustomPcBanner() {
               </div>
 
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-                Build Your Dream <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-amber-300">Custom Gaming Rig</span> with Pune's Master Assemblers
+                Build Your Dream <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-amber-300">Custom Gaming Rig</span> with Master Assemblers
               </h2>
 
               <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">

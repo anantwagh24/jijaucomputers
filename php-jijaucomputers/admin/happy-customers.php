@@ -10,7 +10,7 @@ $db->exec('CREATE TABLE IF NOT EXISTS "HappyCustomer" (
     name TEXT NOT NULL,
     city TEXT NOT NULL,
     village TEXT,
-    district TEXT DEFAULT "Pune",
+    district TEXT DEFAULT "Maharashtra",
     phone TEXT,
     productName TEXT NOT NULL,
     photoUrl TEXT NOT NULL,
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = trim($_POST['name'] ?? '');
         $city = trim($_POST['city'] ?? '');
         $village = trim($_POST['village'] ?? '');
-        $district = trim($_POST['district'] ?? 'Pune');
+        $district = trim($_POST['district'] ?? 'Maharashtra');
         $phone = trim($_POST['phone'] ?? '');
         $productName = trim($_POST['productName'] ?? '');
         $photoUrl = trim($_POST['photoUrl'] ?? '');
@@ -159,8 +159,8 @@ require_once __DIR__ . '/includes/header.php';
               <label style="display: block; font-size: 12px; font-weight: 800; color: #94a3b8; margin-bottom: 4px;">District *</label>
               <select name="district" style="width: 100%; padding: 10px; background: #020617; border: 1px solid #334155; border-radius: 8px; color: white; font-size: 13px; box-sizing: border-box;">
                 <?php
-                $distList = ['Pune', 'Satara', 'Ahmednagar', 'Solapur', 'Kolhapur', 'Nashik', 'Sangli', 'Thane', 'Mumbai', 'Other'];
-                $selDist = $editTarget['district'] ?? 'Pune';
+                $distList = ['Maharashtra', 'Satara', 'Ahmednagar', 'Solapur', 'Kolhapur', 'Nashik', 'Sangli', 'Thane', 'Mumbai', 'Other'];
+                $selDist = $editTarget['district'] ?? 'Maharashtra';
                 foreach ($distList as $d): ?>
                   <option value="<?= $d ?>" <?= $selDist === $d ? 'selected' : '' ?>><?= $d ?></option>
                 <?php endforeach; ?>
@@ -169,12 +169,12 @@ require_once __DIR__ . '/includes/header.php';
 
             <div>
               <label style="display: block; font-size: 12px; font-weight: 800; color: #94a3b8; margin-bottom: 4px;">City / Town *</label>
-              <input type="text" name="city" required value="<?= htmlspecialchars($editTarget['city'] ?? '') ?>" placeholder="e.g. Pune / Baramati" style="width: 100%; padding: 10px; background: #020617; border: 1px solid #334155; border-radius: 8px; color: white; font-size: 13px; box-sizing: border-box;">
+              <input type="text" name="city" required value="<?= htmlspecialchars($editTarget['city'] ?? '') ?>" placeholder="Enter city or town" style="width: 100%; padding: 10px; background: #020617; border: 1px solid #334155; border-radius: 8px; color: white; font-size: 13px; box-sizing: border-box;">
             </div>
 
             <div>
               <label style="display: block; font-size: 12px; font-weight: 800; color: #94a3b8; margin-bottom: 4px;">Village / Area</label>
-              <input type="text" name="village" value="<?= htmlspecialchars($editTarget['village'] ?? '') ?>" placeholder="e.g. Kothrud / Manchar" style="width: 100%; padding: 10px; background: #020617; border: 1px solid #334155; border-radius: 8px; color: white; font-size: 13px; box-sizing: border-box;">
+              <input type="text" name="village" value="<?= htmlspecialchars($editTarget['village'] ?? '') ?>" placeholder="Enter area or locality" style="width: 100%; padding: 10px; background: #020617; border: 1px solid #334155; border-radius: 8px; color: white; font-size: 13px; box-sizing: border-box;">
             </div>
           </div>
 

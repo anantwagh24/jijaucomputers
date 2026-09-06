@@ -110,7 +110,7 @@ require_once __DIR__ . '/includes/header.php';
 
         <div>
           <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Additional Specifics / Target Budget</label>
-          <input type="text" name="message" placeholder="e.g. Need delivery within 3 days, require GST invoice for Pune company" value="<?= htmlspecialchars($_POST['message'] ?? '') ?>" style="width: 100%; padding: 12px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box;">
+          <input type="text" name="message" placeholder="e.g. Need delivery within 3 days, require GST tax invoice" value="<?= htmlspecialchars($_POST['message'] ?? '') ?>" style="width: 100%; padding: 12px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box;">
         </div>
 
         <button type="submit" style="padding: 16px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px;">

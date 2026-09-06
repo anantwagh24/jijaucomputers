@@ -124,7 +124,7 @@ export default function HappyCustomersPage() {
             </h1>
 
             <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-              Explore authentic photos of happy customers who assembled custom gaming rigs, bought laptops, and upgraded tech with Jijau Computers Pune.
+              Explore authentic photos of happy customers who assembled custom gaming rigs, bought laptops, and upgraded tech with Jijau Computers.
             </p>
 
             {/* Quick Metrics */}
@@ -159,7 +159,7 @@ export default function HappyCustomersPage() {
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search by customer name, village, city, product (e.g. RTX 4080, MacBook, Baramati)..."
+                  placeholder="Search by customer name, locality, product (e.g. RTX 4080, MacBook, Gaming PC)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-900 outline-none focus:border-blue-600 focus:bg-white transition-colors"

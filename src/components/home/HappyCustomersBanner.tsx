@@ -18,15 +18,6 @@ interface HappyCustomersBannerProps {
 }
 
 export default function HappyCustomersBanner({ customers = [] }: HappyCustomersBannerProps) {
-  const topCities = [
-    { name: "Pune", count: "80+" },
-    { name: "Baramati", count: "25+" },
-    { name: "Shirur", count: "20+" },
-    { name: "Pimpri-Chinchwad", count: "40+" },
-    { name: "Satara", count: "15+" },
-    { name: "Ahmednagar", count: "18+" },
-  ];
-
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/60 p-6 sm:p-8 md:p-10 shadow-2xl">
@@ -43,29 +34,27 @@ export default function HappyCustomersBanner({ customers = [] }: HappyCustomersB
             </div>
 
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-tight">
-              See Happy Customers from <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">Your City</span>
+              See Happy Customers & <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">Custom Builds</span>
             </h2>
 
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              Explore 150+ verified photos of custom gaming rigs, laptops, and Apple MacBooks delivered to customers across Pune, Baramati, Shirur, and Maharashtra.
+              Explore 150+ verified photos of custom gaming rigs, laptops, and Apple MacBooks delivered to happy customers.
             </p>
 
-            {/* Quick City Filter Navigation Pills */}
+            {/* Feature Highlights */}
             <div className="flex items-center gap-2 flex-wrap pt-2">
-              <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-rose-400" />
-                <span>Popular Cities:</span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 text-slate-200 border border-slate-700/80 text-xs font-bold">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Verified Deliveries</span>
               </span>
-              {topCities.map((city) => (
-                <Link
-                  key={city.name}
-                  href={`/happy-customers?city=${encodeURIComponent(city.name)}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 hover:bg-blue-600/30 text-slate-200 hover:text-white border border-slate-700/80 hover:border-blue-400 text-xs font-bold transition-all hover:scale-105"
-                >
-                  <span>{city.name}</span>
-                  <span className="text-[10px] text-amber-400 font-mono">({city.count})</span>
-                </Link>
-              ))}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 text-slate-200 border border-slate-700/80 text-xs font-bold">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Custom Gaming Rigs</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 text-slate-200 border border-slate-700/80 text-xs font-bold">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Original GST Invoices</span>
+              </span>
             </div>
           </div>
 

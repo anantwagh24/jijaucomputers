@@ -12,7 +12,7 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   return {
-    title: `Service Invoice ${id} | Jijau Computers Pune`,
+    title: `Service Invoice ${id} | Jijau Computers`,
     description: "Official GST Repair & Service Bill",
   };
 }
@@ -48,7 +48,7 @@ export default async function ServiceInvoiceStandalonePage({
           logoUrl: "/images/jijau-logo.jpg",
           phone: "+91 88056 07908",
           email: "sales@jijaucomputers.in",
-          address: "Shop No. 12 & 13, Jijau Plaza, Shivajinagar, Pune, Maharashtra 411005",
+          address: "Station Road, Maharashtra",
           gstin: "27FQIPK5154C1ZU",
           upiId: "jijauc@ibl",
           upiName: "Jijau Computers",

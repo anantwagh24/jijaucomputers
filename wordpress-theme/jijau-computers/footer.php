@@ -38,7 +38,7 @@ $gstin = get_theme_mod('jijau_gstin', '27FQIPK5154C1ZU');
             </div>
             <div>
                 <h4 class="font-bold text-sm text-white">Fast & Safe Delivery</h4>
-                <p class="text-xs text-slate-400 mt-0.5">Same-Day Pickup in Pune</p>
+                <p class="text-xs text-slate-400 mt-0.5">Fast Store Pickup & Express Delivery</p>
             </div>
         </div>
 
@@ -67,7 +67,7 @@ $gstin = get_theme_mod('jijau_gstin', '27FQIPK5154C1ZU');
                 <span class="text-xl font-black tracking-tight text-white">Jijau Computers</span>
             </div>
             <p class="text-slate-400 text-xs leading-relaxed">
-                Pune's #1 Destination for Laptops, Custom Gaming PCs & Computer Hardware.
+                Your #1 Destination for Laptops, Custom Gaming PCs & Computer Hardware.
             </p>
             <div class="space-y-2 text-xs text-slate-400">
                 <p class="flex items-start gap-2">
@@ -120,7 +120,7 @@ $gstin = get_theme_mod('jijau_gstin', '27FQIPK5154C1ZU');
                 Walk-in to experience live demo setups and speak with our PC hardware specialists in person.
             </p>
             <a
-                href="https://maps.google.com/?q=Shivajinagar+Pune"
+                href="https://maps.google.com/?q=Maharashtra"
                 target="_blank"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 text-xs font-bold hover:bg-slate-800 hover:text-white transition-colors"
             >

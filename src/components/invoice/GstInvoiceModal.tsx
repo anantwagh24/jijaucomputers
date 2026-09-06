@@ -81,7 +81,7 @@ export default function GstInvoiceModal({
   const customerName = isOrder ? order.customerName : service.customerName;
   const customerPhone = isOrder ? order.phone : service.phone;
   const customerEmail = isOrder ? order.email : service.email;
-  const address = isOrder ? `${order.address}, ${order.city} - ${order.pincode}` : "Pune, Maharashtra";
+  const address = isOrder ? `${order.address}, ${order.city} - ${order.pincode}` : "Maharashtra";
 
   // Calculate totals and 18% GST breakup (9% CGST + 9% SGST for Maharashtra Intra-state)
   const grandTotal = isOrder ? Number(order.total) || 0 : Number(service.estimatedCost) || 0;
@@ -196,7 +196,7 @@ export default function GstInvoiceModal({
                   {settings.tagline || "Your Tech Partner"}
                 </p>
                 <p className="text-[11px] text-slate-600 max-w-sm leading-relaxed">
-                  {settings.address || "Station Road, Shivajinagar, Pune, Maharashtra 411005"}
+                  {settings.address || "Station Road, Maharashtra"}
                 </p>
                 <p className="text-[11px] text-slate-600 font-mono">
                   Phone: {settings.phone || "+91 88056 07908"} | Email: {settings.email || "sales@jijaucomputers.in"}
@@ -241,7 +241,7 @@ export default function GstInvoiceModal({
                 Payment Mode: <span className="font-bold text-slate-900">{isOrder ? order.paymentMode : "Direct UPI / Cash"}</span>
               </p>
               <p className="text-[11px] text-slate-700 font-semibold">
-                Place of Supply: <span className="font-bold text-slate-900">Pune, Maharashtra (27)</span>
+                Place of Supply: <span className="font-bold text-slate-900">Maharashtra (27)</span>
               </p>
             </div>
           </div>
@@ -302,7 +302,7 @@ export default function GstInvoiceModal({
                   Official Bank & UPI Payment Details:
                 </span>
                 <p className="text-slate-700 font-mono">
-                  {settings.invoiceBankDetails || "Bank: HDFC Bank Ltd | A/C: 50200012345678 | IFSC: HDFC0001234 | Pune"}
+                  {settings.invoiceBankDetails || "Bank: HDFC Bank Ltd | A/C: 50200012345678 | IFSC: HDFC0001234"}
                 </p>
                 <p className="text-slate-700 font-mono font-bold">
                   UPI VPA: <span className="text-blue-700">{settings.upiId || "jijauc@ibl"}</span> ({settings.upiName || "Jijau Computers"})
@@ -338,10 +338,10 @@ export default function GstInvoiceModal({
               </span>
               <div className="text-[10px] text-slate-500 space-y-1 whitespace-pre-line leading-relaxed">
                 {settings.invoiceTerms ||
-                  "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to Pune Jurisdiction only."}
+                  "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to legal jurisdiction only."}
               </div>
               <p className="text-[10px] text-slate-400 italic pt-1">
-                {settings.invoiceNotes || "Thank you for choosing Jijau Computers Pune - Your Trusted Tech Partner!"}
+                {settings.invoiceNotes || "Thank you for choosing Jijau Computers - Your Trusted Tech Partner!"}
               </p>
             </div>
 

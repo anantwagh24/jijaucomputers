@@ -9,9 +9,9 @@ import DevicesClient from "./DevicesClient";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Device & Brand Hub - Laptops, Mobiles, Printers & CCTV | Jijau Computers Pune",
+  title: "Device & Brand Hub - Laptops, Mobiles, Printers & CCTV | Jijau Computers",
   description:
-    "Explore Laptops (Dell, HP, ASUS, Lenovo, Apple), Mobiles (Apple, Samsung, OnePlus), Printers (HP, Epson, Canon, Brother), and CCTV Cameras (CP PLUS, Hikvision, TP-Link) at Jijau Computers Pune.",
+    "Explore Laptops (Dell, HP, ASUS, Lenovo, Apple), Mobiles (Apple, Samsung, OnePlus), Printers (HP, Epson, Canon, Brother), and CCTV Cameras (CP PLUS, Hikvision, TP-Link) at Jijau Computers.",
 };
 
 export default async function DevicesPage() {

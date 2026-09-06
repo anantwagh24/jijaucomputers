@@ -53,7 +53,7 @@ export default function Footer() {
             </div>
             <div>
               <h4 className="text-sm font-bold text-white">Fast & Safe Delivery</h4>
-              <p className="text-xs text-slate-400">Same-Day Pickup in Pune</p>
+              <p className="text-xs text-slate-400">Fast Store Pickup & Express Delivery</p>
             </div>
           </div>
 
@@ -86,7 +86,7 @@ export default function Footer() {
             </div>
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
               {settings.tagline ||
-                "Pune's premier computer hardware and electronics center. Specializing in gaming rigs, workstation builds, student laptops, CCTV security, and reliable laptop chip-level repair services."}
+                "Premier computer hardware and electronics center. Specializing in gaming rigs, workstation builds, laptops, CCTV security, and reliable chip-level repair services."}
             </p>
 
             <div className="space-y-2 text-xs text-slate-300 pt-2">

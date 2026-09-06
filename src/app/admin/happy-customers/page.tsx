@@ -57,7 +57,7 @@ export default function AdminHappyCustomersPage() {
     name: "",
     city: "",
     village: "",
-    district: "Pune",
+    district: "Maharashtra",
     phone: "",
     productName: "",
     photoUrl: "",
@@ -69,7 +69,7 @@ export default function AdminHappyCustomersPage() {
   });
 
   const districtsList = [
-    "Pune",
+    "Maharashtra",
     "Satara",
     "Ahmednagar",
     "Solapur",
@@ -78,7 +78,7 @@ export default function AdminHappyCustomersPage() {
     "Sangli",
     "Thane",
     "Mumbai",
-    "Aurangabad / Chhatrapati Sambhajinagar",
+    "Chhatrapati Sambhajinagar",
     "Other",
   ];
 
@@ -107,7 +107,7 @@ export default function AdminHappyCustomersPage() {
       name: "",
       city: "",
       village: "",
-      district: "Pune",
+      district: "Maharashtra",
       phone: "",
       productName: "",
       photoUrl: "",
@@ -127,7 +127,7 @@ export default function AdminHappyCustomersPage() {
       name: c.name,
       city: c.city,
       village: c.village || "",
-      district: c.district || "Pune",
+      district: c.district || "Maharashtra",
       phone: c.phone || "",
       productName: c.productName,
       photoUrl: c.photoUrl,
@@ -515,7 +515,7 @@ export default function AdminHappyCustomersPage() {
                     required
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    placeholder="e.g. Pune / Baramati"
+                    placeholder="Enter city or town"
                     className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
                   />
                 </div>
@@ -526,7 +526,7 @@ export default function AdminHappyCustomersPage() {
                     type="text"
                     value={formData.village}
                     onChange={(e) => setFormData({ ...formData, village: e.target.value })}
-                    placeholder="e.g. Kothrud / Manchar"
+                    placeholder="Enter area / locality"
                     className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
                   />
                 </div>

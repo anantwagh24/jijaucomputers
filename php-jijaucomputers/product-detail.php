@@ -50,7 +50,7 @@ $pageTitle = $product['name'] . ' - Price & Specs | ' . ($storeSettings['storeNa
 require_once __DIR__ . '/includes/header.php';
 
 // Prepare WhatsApp Link
-$waMsg = "Hello Jijau Computers! I am interested in buying: *" . $product['name'] . "* priced at " . formatPrice($product['price']) . ". Please confirm availability and delivery in Pune.";
+$waMsg = "Hello Jijau Computers! I am interested in buying: *" . $product['name'] . "* priced at " . formatPrice($product['price']) . ". Please confirm availability and delivery.";
 $waUrl = generateWhatsAppUrl($storeSettings['whatsapp'] ?? '919876543210', $waMsg);
 ?>
 
@@ -146,7 +146,7 @@ $waUrl = generateWhatsAppUrl($storeSettings['whatsapp'] ?? '919876543210', $waMs
             <span>📄</span> Instant 1-Page GST Tax Invoice
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span>📍</span> Same-Day Store Pickup in Pune
+            <span>📍</span> Fast Store Pickup & Express Delivery
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <span>🔄</span> 7 Days Replacement Support

@@ -59,11 +59,11 @@ $storeSettings = getStoreSettings();
         </div>
 
         <p style="color: #64748b; font-size: 13px; line-height: 1.6; margin: 0 0 16px;">
-          Pune's premier destination for high-performance custom gaming rigs, business laptops, Apple MacBooks, CCTV surveillance security systems, and chip-level motherboard repairs.
+          Your premier destination for high-performance custom gaming rigs, business laptops, Apple MacBooks, CCTV surveillance security systems, and chip-level motherboard repairs.
         </p>
 
         <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
-          <div>📍 <?= htmlspecialchars($storeSettings['address'] ?? 'Shop No. 4, Jijau Complex, Station Road, Pune, Maharashtra 411001') ?></div>
+          <div>📍 <?= htmlspecialchars($storeSettings['address'] ?? 'Shop No. 4, Jijau Complex, Station Road, Maharashtra') ?></div>
           <div>📞 <a href="tel:<?= htmlspecialchars($storeSettings['phone'] ?? '+91 88056 07908') ?>" style="color: #cbd5e1; text-decoration: none; font-weight: 600;"><?= htmlspecialchars($storeSettings['phone'] ?? '+91 88056 07908') ?></a></div>
           <div>✉️ <a href="mailto:<?= htmlspecialchars($storeSettings['email'] ?? 'contact@jijaucomputers.com') ?>" style="color: #cbd5e1; text-decoration: none;"><?= htmlspecialchars($storeSettings['email'] ?? 'contact@jijaucomputers.com') ?></a></div>
         </div>
@@ -101,7 +101,7 @@ $storeSettings = getStoreSettings();
           <div style="color: #cbd5e1; font-size: 12px; line-height: 1.5;"><?= htmlspecialchars($storeSettings['openingHours'] ?? 'Mon - Sat: 10:00 AM - 9:00 PM | Sunday: 11:00 AM - 6:00 PM') ?></div>
         </div>
 
-        <a href="<?= htmlspecialchars($storeSettings['googleMapsUrl'] ?? 'https://maps.google.com/?q=Pune,Maharashtra') ?>" target="_blank" style="padding: 10px 16px; background: #1e293b; color: #38bdf8; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #334155;">
+        <a href="<?= htmlspecialchars($storeSettings['googleMapsUrl'] ?? 'https://maps.google.com/?q=Maharashtra') ?>" target="_blank" style="padding: 10px 16px; background: #1e293b; color: #38bdf8; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #334155;">
           <span>🗺️ Open in Google Maps</span>
         </a>
       </div>

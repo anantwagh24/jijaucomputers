@@ -194,7 +194,7 @@ export default function CustomPcPage() {
             Build Your Custom PC with Jijau Computers
           </h1>
           <p className="text-sm text-slate-600 mt-2">
-            Pick your desired hardware components below. Our Pune master technicians will assemble, cable-manage, and 24h stress-test your rig with full on-site warranty.
+            Pick your desired hardware components below. Our master technicians will assemble, cable-manage, and 24h stress-test your rig with full on-site warranty.
           </p>
         </div>
 
@@ -555,7 +555,7 @@ export default function CustomPcPage() {
                   <Check className="w-6 h-6 text-emerald-400 mx-auto" />
                   <p className="font-bold">Quotation Request #{createdReqId} Saved!</p>
                   <p className="text-[11px] text-slate-300">
-                    Our Pune technicians will contact you with final delivery timeframe.
+                    Our team will contact you with final delivery timeframe.
                   </p>
                 </div>
               ) : (

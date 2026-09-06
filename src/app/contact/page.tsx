@@ -76,7 +76,7 @@ export default function ContactPage() {
             Get in Touch with Jijau Computers
           </h1>
           <p className="text-sm text-slate-600">
-            Visit our retail store in Pune, call our support desk, or send an instant enquiry through the form below.
+            Visit our retail store, call our support desk, or send an instant enquiry through the form below.
           </p>
         </div>
 

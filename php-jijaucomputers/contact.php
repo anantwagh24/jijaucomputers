@@ -40,44 +40,42 @@ require_once __DIR__ . '/includes/header.php';
     
     <div style="text-align: center; max-width: 700px; margin: 0 auto 40px;">
       <span style="display: inline-block; padding: 4px 12px; background: #dbeafe; color: #1e40af; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 8px;">GET IN TOUCH</span>
-      <h1 style="font-size: 32px; font-weight: 800; color: #0f172a; margin: 0 0 12px;">Visit Our Pune Store or Message Us</h1>
-      <p style="color: #64748b; font-size: 15px; margin: 0;">We are here to assist with custom PC assembly, laptop repairs, bulk corporate hardware purchases, and CCTV surveillance.</p>
+      <h1 style="font-size: 32px; font-weight: 800; color: #0f172a; margin: 0 0 12px;">Visit Our Store or Message Us</h1>
+      <p style="color: #64748b; font-size: 16px; margin: 0;">Get customized hardware advice, check real-time stock, or drop off your device for certified repairs.</p>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: start;">
-      
-      <!-- Contact Info & Map -->
-      <div style="background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 32px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
-        <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 20px;">Store Information</h2>
-
-        <div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 28px;">
-          <div style="display: flex; gap: 14px; align-items: flex-start;">
-            <div style="width: 42px; height: 42px; background: #eff6ff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📍</div>
-            <div>
-              <div style="font-weight: 700; color: #0f172a; font-size: 15px;">Store Address</div>
-              <div style="color: #64748b; font-size: 14px; line-height: 1.5;"><?= htmlspecialchars($storeSettings['address'] ?? 'Shop No. 4, Jijau Complex, Station Road, Pune, Maharashtra 411001') ?></div>
-            </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px;">
+      <!-- Store Details -->
+      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 24px;">Store Location & Contacts</h2>
+        
+        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+          <div style="font-size: 24px;">📍</div>
+          <div>
+            <div style="font-weight: 700; color: #0f172a; font-size: 15px; margin-bottom: 4px;">Store Address</div>
+            <div style="color: #64748b; font-size: 14px; line-height: 1.5;"><?= htmlspecialchars($storeSettings['address'] ?? 'Shop No. 4, Jijau Complex, Station Road, Maharashtra') ?></div>
           </div>
+        </div>
 
-          <div style="display: flex; gap: 14px; align-items: flex-start;">
-            <div style="width: 42px; height: 42px; background: #eff6ff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">📞</div>
-            <div>
-              <div style="font-weight: 700; color: #0f172a; font-size: 15px;">Phone & WhatsApp</div>
-              <div style="color: #64748b; font-size: 14px;"><?= htmlspecialchars($storeSettings['phone'] ?? '+91 88056 07908') ?></div>
-              <div style="color: #2563eb; font-size: 13px; font-weight: 600; margin-top: 4px;">WhatsApp: <?= htmlspecialchars($storeSettings['whatsapp'] ?? '919876543210') ?></div>
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 14px; align-items: flex-start;">
-            <div style="width: 42px; height: 42px; background: #eff6ff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">⏰</div>
-            <div>
-              <div style="font-weight: 700; color: #0f172a; font-size: 15px;">Store Timings</div>
-              <div style="color: #64748b; font-size: 14px;"><?= htmlspecialchars($storeSettings['openingHours'] ?? 'Mon - Sat: 10:00 AM - 9:00 PM | Sunday: 11:00 AM - 6:00 PM') ?></div>
+        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+          <div style="font-size: 24px;">📞</div>
+          <div>
+            <div style="font-weight: 700; color: #0f172a; font-size: 15px; margin-bottom: 4px;">Phone & Support</div>
+            <div style="color: #64748b; font-size: 14px;">
+              <a href="tel:<?= htmlspecialchars($storeSettings['phone'] ?? '+918805607908') ?>" style="color: #2563eb; text-decoration: none; font-weight: 600;"><?= htmlspecialchars($storeSettings['phone'] ?? '+91 88056 07908') ?></a>
             </div>
           </div>
         </div>
 
-        <a href="<?= htmlspecialchars($storeSettings['googleMapsUrl'] ?? 'https://maps.google.com/?q=Pune,Maharashtra') ?>" target="_blank" style="width: 100%; padding: 12px; background: #f1f5f9; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;">
+        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+          <div style="font-size: 24px;">⏰</div>
+          <div>
+            <div style="font-weight: 700; color: #0f172a; font-size: 15px; margin-bottom: 4px;">Operating Hours</div>
+            <div style="color: #64748b; font-size: 14px;"><?= htmlspecialchars($storeSettings['openingHours'] ?? 'Mon - Sat: 10:00 AM - 9:00 PM | Sun: 11:00 AM - 6:00 PM') ?></div>
+          </div>
+        </div>
+
+        <a href="<?= htmlspecialchars($storeSettings['googleMapsUrl'] ?? 'https://maps.google.com/?q=Maharashtra') ?>" target="_blank" style="width: 100%; padding: 12px; background: #f1f5f9; color: #1e293b; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; font-size: 14px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box;">
           <span>🗺️ Open in Google Maps</span>
         </a>
       </div>

@@ -61,7 +61,7 @@ export async function POST(req: Request) {
         name: name.trim(),
         city: city.trim(),
         village: village ? village.trim() : null,
-        district: district ? district.trim() : "Pune",
+        district: district ? district.trim() : "",
         phone: phone ? phone.trim() : null,
         productName: productName.trim(),
         photoUrl: photoUrl.trim(),

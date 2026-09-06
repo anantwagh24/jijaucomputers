@@ -156,7 +156,7 @@ $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urle
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
             <div>
               <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">City / Town *</label>
-              <input type="text" name="city" required placeholder="e.g. Pune" value="<?= htmlspecialchars($_POST['city'] ?? 'Pune') ?>" style="width: 100%; padding: 12px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box;">
+              <input type="text" name="city" required placeholder="Enter city or town" value="<?= htmlspecialchars($_POST['city'] ?? '') ?>" style="width: 100%; padding: 12px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box;">
             </div>
             <div>
               <label style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">PIN Code *</label>
@@ -256,7 +256,7 @@ $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urle
             </div>
             <div style="display: flex; justify-content: space-between; color: #64748b;">
               <span>Shipping:</span>
-              <span style="font-weight: 700; color: #16a34a;">FREE (Pune Store)</span>
+              <span style="font-weight: 700; color: #16a34a;">FREE (Store Pickup / Express)</span>
             </div>
             <div style="border-top: 2px dashed #cbd5e1; margin-top: 6px; padding-top: 12px; display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; color: #0f172a;">
               <span>Total Amount:</span>

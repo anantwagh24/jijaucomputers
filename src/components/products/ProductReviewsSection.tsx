@@ -326,7 +326,7 @@ export default function ProductReviewsSection({
               required
               value={formData.comment}
               onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-              placeholder="Describe your user experience, build quality, thermals, packaging, or customer service from Jijau Computers Pune..."
+              placeholder="Describe your user experience, build quality, thermals, packaging, or customer service from Jijau Computers..."
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 outline-none focus:border-blue-600 focus:bg-white text-slate-900 leading-relaxed"
             />
           </div>
@@ -364,7 +364,7 @@ export default function ProductReviewsSection({
             </div>
             <h3 className="text-base font-black text-slate-900">Be the first to review this product!</h3>
             <p className="text-xs text-slate-500 max-w-md mx-auto">
-              Have you bought or tested this hardware? Share your honest feedback with fellow PC enthusiasts in Pune.
+              Have you bought or tested this hardware? Share your honest feedback with fellow PC enthusiasts.
             </p>
             <button
               type="button"

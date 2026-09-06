@@ -49,7 +49,7 @@ export default function AdminUsersPage() {
     email: "",
     phone: "",
     address: "",
-    city: "Pune",
+    city: "",
     pincode: "",
     password: "",
     isVerified: true,
@@ -83,7 +83,7 @@ export default function AdminUsersPage() {
       email: "",
       phone: "",
       address: "",
-      city: "Pune",
+      city: "",
       pincode: "",
       password: "",
       isVerified: true,
@@ -99,7 +99,7 @@ export default function AdminUsersPage() {
       email: user.email || "",
       phone: user.phone || "",
       address: user.address || "",
-      city: user.city || "Pune",
+      city: user.city || "",
       pincode: user.pincode || "",
       password: "",
       isVerified: user.isVerified ?? true,
@@ -191,7 +191,7 @@ export default function AdminUsersPage() {
   };
 
   const handleSendWhatsApp = (user: any) => {
-    const msg = `Hello ${user.name},\n\nGreetings from Jijau Computers Pune! Thank you for being our valued customer. If you need any assistance with computer hardware, laptops, or repairs, feel free to reply to this message.`;
+    const msg = `Hello ${user.name},\n\nGreetings from Jijau Computers! Thank you for being our valued customer. If you need any assistance with computer hardware, laptops, or repairs, feel free to reply to this message.`;
     const url = generateWhatsAppUrl(user.phone, msg);
     window.open(url, "_blank", "noopener,noreferrer");
   };
@@ -358,7 +358,7 @@ export default function AdminUsersPage() {
 
                     {/* Location */}
                     <td className="py-3.5 px-4">
-                      <div className="text-slate-300 font-medium">{user.city || "Pune"}</div>
+                      <div className="text-slate-300 font-medium">{user.city || "—"}</div>
                       <div className="text-slate-500 text-[11px] truncate max-w-[180px]" title={user.address}>
                         {user.address ? `${user.address} ${user.pincode ? "- " + user.pincode : ""}` : "No address logged"}
                       </div>
@@ -463,7 +463,7 @@ export default function AdminUsersPage() {
                 </div>
                 <div className="mt-2">
                   <span className="text-slate-500 block text-[10px] uppercase">City</span>
-                  <span className="font-bold text-white">{selectedUser.city || "Pune"}</span>
+                  <span className="font-bold text-white">{selectedUser.city || "—"}</span>
                 </div>
                 <div className="mt-2">
                   <span className="text-slate-500 block text-[10px] uppercase">Pincode</span>
@@ -612,7 +612,7 @@ export default function AdminUsersPage() {
                   <label className="font-bold text-slate-300 block mb-1">City / Region</label>
                   <input
                     type="text"
-                    placeholder="Pune"
+                    placeholder="Enter city or district"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
@@ -622,7 +622,7 @@ export default function AdminUsersPage() {
                   <label className="font-bold text-slate-300 block mb-1">Pincode</label>
                   <input
                     type="text"
-                    placeholder="411005"
+                    placeholder="e.g. 411001"
                     value={formData.pincode}
                     onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono"

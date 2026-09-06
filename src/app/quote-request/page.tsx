@@ -80,7 +80,7 @@ export default function QuoteRequestPage() {
             Request an Official Quotation
           </h1>
           <p className="text-sm text-slate-600 mt-2">
-            Get authorized commercial pricing with GST bill, bulk discounts, and on-site delivery for companies, schools, institutions, and labs in Pune.
+            Get authorized commercial pricing with GST bill, bulk discounts, and express delivery for companies, schools, institutions, and labs.
           </p>
         </div>
 
@@ -93,92 +93,112 @@ export default function QuoteRequestPage() {
                 <h3 className="text-xl font-black">
                   Quotation Request #{submittedQuoteNo} Received!
                 </h3>
-                <p className="text-sm text-slate-600 max-w-md mx-auto">
-                  Thank you for contacting Jijau Computers. Our corporate sales desk will review your bill of materials and provide an official quotation via PDF & WhatsApp within 2 hours.
+                <p className="text-sm max-w-md mx-auto">
+                  Our corporate sales representative will review your item requirements and prepare an official GST quotation with special bulk discounting.
                 </p>
-                <div className="pt-2">
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                   <button
                     onClick={() => {
                       setSubmittedQuoteNo(null);
                       setFormData({
-                        customerName: "",
                         companyName: "",
-                        phone: "",
+                        contactPerson: "",
                         email: "",
-                        type: "Bulk Order (10+ Systems)",
-                        itemsSummary: "",
-                        message: "",
+                        phone: "",
+                        gstNumber: "",
+                        deliveryPincode: "",
+                        itemsRequirement: "",
+                        targetBudget: "",
+                        urgency: "Standard (2-3 Days)",
                       });
                     }}
-                    className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 shadow"
+                    className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
                   >
-                    Submit Another Request
+                    Submit Another Quote Request
                   </button>
+                  <Link
+                    href="/"
+                    className="px-5 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs"
+                  >
+                    Back to Store
+                  </Link>
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">Contact Person Name *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Company / Organization / School Name *
+                    </label>
                     <input
                       type="text"
                       required
-                      value={formData.customerName}
-                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                      placeholder="e.g. Ramesh Kulkarni"
-                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Company / Organization / School</label>
-                    <input
-                      type="text"
+                      placeholder="e.g. Infotech Solutions Pvt Ltd"
                       value={formData.companyName}
                       onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                      placeholder="Company Name & GSTIN (Optional)"
-                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Contact Person Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Rahul Sharma"
+                      value={formData.contactPerson}
+                      onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="font-bold text-slate-700 block mb-1">Mobile / WhatsApp Number *</label>
-                    <input
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="10-digit phone number"
-                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-bold text-slate-700 block mb-1">Official Email Address *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Official Email Address *
+                    </label>
                     <input
                       type="email"
                       required
+                      placeholder="purchase@company.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="name@company.com"
-                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Mobile / WhatsApp Number *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="10-digit mobile"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 outline-none font-mono"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Requirement Type *</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Quotation Requirement Type
+                  </label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600 bg-white"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                   >
-                    <option>Bulk Order (10+ Office Desktops / Laptops)</option>
-                    <option>Computer Lab Setup (Colleges / Schools)</option>
-                    <option>CCTV & Surveillance System Installation</option>
-                    <option>High-End Rendering / AI Workstations</option>
-                    <option>Corporate Annual Maintenance Contract (AMC)</option>
+                    <option>Bulk Order (10+ Systems)</option>
+                    <option>Corporate Office IT Setup</option>
+                    <option>School / College Computer Lab Setup</option>
+                    <option>CCTV Surveillance Multi-Camera Project</option>
                     <option>Single High-Value Hardware Quote</option>
                   </select>
                 </div>
@@ -201,7 +221,7 @@ export default function QuoteRequestPage() {
                     rows={2}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="e.g. Delivery in Hinjawadi IT Park Phase 1, need installation by next Friday..."
+                    placeholder="e.g. Delivery required within 3-5 business days, need on-site setup..."
                     className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl outline-none focus:border-blue-600"
                   />
                 </div>
@@ -242,7 +262,7 @@ export default function QuoteRequestPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Award className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                  <span>Direct Authorized tier-1 vendor distributor pricing in Pune.</span>
+                  <span>Direct Authorized tier-1 vendor distributor pricing.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Truck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />

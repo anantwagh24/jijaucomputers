@@ -42,5 +42,5 @@ This guide walks you through installing and configuring the **Jijau Computers Wo
 2. **UPI Merchant Details**:
    - Set **Store UPI VPA ID** to `jijauc@ibl` and **Merchant Name** to `Jijau Computers`.
 3. **GSTIN & Physical Address**:
-   - Set **GSTIN** to `27FQIPK5154C1ZU` and address to `Shop No. 12 & 13, Jijau Plaza, Near Railway Station, Shivajinagar, Pune, Maharashtra 411005`.
+   - Set **GSTIN** to `27FQIPK5154C1ZU` and address to `Shop No. 12 & 13, Jijau Plaza, Station Road, Maharashtra`.
 4. Click **Save Settings**.

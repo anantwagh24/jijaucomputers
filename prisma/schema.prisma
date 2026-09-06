@@ -19,8 +19,8 @@ model WebsiteSetting {
   phone           String   @default("+91 98765 43210")
   whatsapp        String   @default("919876543210")
   email           String   @default("contact@jijaucomputers.com")
-  address         String   @default("Shop No. 4, Jijau Complex, Station Road, Pune, Maharashtra 411001")
-  googleMapsUrl   String   @default("https://maps.google.com/?q=Pune,Maharashtra")
+  address         String   @default("Shop No. 4, Jijau Complex, Station Road, Maharashtra")
+  googleMapsUrl   String   @default("https://maps.google.com/?q=Maharashtra")
   openingHours    String   @default("Mon - Sat: 10:00 AM - 9:00 PM | Sunday: 11:00 AM - 6:00 PM")
   gstin           String   @default("27AAAAA0000A1Z5")
   upiId           String   @default("jijauc@ibl")
@@ -29,14 +29,14 @@ model WebsiteSetting {
   instagramUrl    String   @default("https://instagram.com")
   youtubeUrl      String   @default("https://youtube.com")
   linkedinUrl     String   @default("https://linkedin.com")
-  metaTitle       String   @default("Jijau Computers - Best Computer & Laptop Store in Pune")
+  metaTitle       String   @default("Jijau Computers - Best Computer & Laptop Store")
   metaDescription String   @default("Shop high performance gaming PCs, laptops, components, CCTV, and get quick repair services at Jijau Computers.")
   metaKeywords    String   @default("computer store, gaming pc, laptops, pc repair, processors, graphics card, jijau computers")
   sliderInterval     Int      @default(5) // Default auto-slider interval in seconds
-  invoiceTerms       String   @default("1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to Pune Jurisdiction only.")
-  invoiceBankDetails String   @default("Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234 | Branch: Station Road, Pune")
+  invoiceTerms       String   @default("1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to legal jurisdiction only.")
+  invoiceBankDetails String   @default("Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234 | Branch: Station Road")
   invoiceHsnCode     String   @default("84713010")
-  invoiceNotes       String   @default("Thank you for choosing Jijau Computers Pune - Your Trusted Tech Partner!")
+  invoiceNotes       String   @default("Thank you for choosing Jijau Computers - Your Trusted Tech Partner!")
   updatedAt          DateTime @updatedAt
 }
 
@@ -267,7 +267,7 @@ model OrderItem {
 model VisitorLog {
   id        String   @id @default(cuid())
   ip        String
-  location  String?  @default("Pune, Maharashtra, India")
+  location  String?  @default("Maharashtra, India")
   device    String?  @default("Desktop")
   browser   String?  @default("Chrome")
   os        String?  @default("Windows")
@@ -298,7 +298,7 @@ model HappyCustomer {
   name         String
   city         String
   village      String?
-  district     String   @default("Pune")
+  district     String   @default("Maharashtra")
   phone        String?
   productName  String
   photoUrl     String

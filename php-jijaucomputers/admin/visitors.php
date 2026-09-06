@@ -31,7 +31,7 @@ $logs = $db->query('SELECT * FROM "VisitorLog" ORDER BY createdAt DESC LIMIT 100
               <tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 10px; color: #64748b;"><?= date('d M, h:i:s A', strtotime($log['createdAt'])) ?></td>
                 <td style="padding: 10px; font-family: monospace; font-weight: 700; color: #0f172a;"><?= htmlspecialchars($log['ip']) ?></td>
-                <td style="padding: 10px;"><?= htmlspecialchars($log['location'] ?? 'Pune, India') ?></td>
+                <td style="padding: 10px;"><?= htmlspecialchars($log['location'] ?? 'Maharashtra, India') ?></td>
                 <td style="padding: 10px; font-family: monospace; color: #2563eb;"><?= htmlspecialchars($log['page']) ?></td>
                 <td style="padding: 10px;"><?= htmlspecialchars($log['device'] ?? 'Desktop') ?> (<?= htmlspecialchars($log['os'] ?? 'Mac') ?>)</td>
                 <td style="padding: 10px;"><?= htmlspecialchars($log['browser'] ?? 'Chrome') ?></td>

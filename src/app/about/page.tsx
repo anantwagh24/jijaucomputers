@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "About Us | Jijau Computers Pune",
-  description: "Learn about Jijau Computers - Pune's premier hardware retailer, custom PC builder and certified repair center.",
+  title: "About Us | Jijau Computers",
+  description: "Learn about Jijau Computers - Premier hardware retailer, custom PC builder and certified repair center.",
 };
 
 export default function AboutPage() {
@@ -33,10 +33,10 @@ export default function AboutPage() {
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-500/20 text-blue-700 text-xs font-bold uppercase tracking-wider border border-blue-500/30">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Serving Pune Since 2012</span>
+            <span>Serving Customers Since 2012</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-            Pune's Premier Computer Hardware & Custom PC Specialists
+            Premier Computer Hardware & Custom PC Specialists
           </h1>
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
             Welcome to <span className="font-bold text-slate-900">Jijau Computers</span>. Founded with a vision to deliver genuine computing technology, extreme gaming hardware, and reliable chip-level laptop repairs at transparent prices.
@@ -50,7 +50,7 @@ export default function AboutPage() {
               Our Journey & Mission
             </h2>
             <p>
-              Over the last decade, Jijau Computers has evolved from a local retail store into Pune's most trusted destination for PC gamers, content creators, architecture studios, and corporate IT departments.
+              Over the last decade, Jijau Computers has evolved into a trusted destination for PC gamers, content creators, architecture studios, and corporate IT departments.
             </p>
             <p>
               We believe every PC build should be a masterpiece. We hand-select high-grade silicon, design optimal airflow dynamics, execute clean hidden cable management, and stress-test every setup under maximum thermal load before handover.
@@ -63,7 +63,7 @@ export default function AboutPage() {
               </div>
               <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
                 <span className="text-2xl sm:text-3xl font-black text-amber-500 block">4.9 ★</span>
-                <span className="text-xs text-slate-500 font-semibold">Google Customer Rating</span>
+                <span className="text-xs text-slate-500 font-semibold">Customer Rating</span>
               </div>
             </div>
           </div>
@@ -118,7 +118,7 @@ export default function AboutPage() {
             Ready to Upgrade Your Computing Setup?
           </h2>
           <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
-            Visit our Shivajinagar Pune experience store to test high-refresh displays, mechanical keyboards, and custom liquid-cooled PC rigs in person.
+            Contact our experience team to customize high-refresh displays, mechanical keyboards, and liquid-cooled PC rigs.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
@@ -131,7 +131,7 @@ export default function AboutPage() {
               href="/contact"
               className="px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-slate-700 transition-colors"
             >
-              Get Store Directions
+              Contact Us
             </Link>
           </div>
         </div>

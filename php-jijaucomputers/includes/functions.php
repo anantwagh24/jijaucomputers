@@ -19,16 +19,16 @@ function getSettings(): array {
                 'phone' => '+91 88056 07908',
                 'whatsapp' => '918805607908',
                 'email' => 'contact@jijaucomputers.com',
-                'address' => 'Shop No. 4, Jijau Complex, Station Road, Pune, Maharashtra 411001',
-                'googleMapsUrl' => 'https://maps.google.com/?q=Pune,Maharashtra',
+                'address' => 'Shop No. 4, Jijau Complex, Station Road, Maharashtra',
+                'googleMapsUrl' => 'https://maps.google.com/?q=Maharashtra',
                 'openingHours' => 'Mon - Sat: 10:00 AM - 9:00 PM | Sunday: 11:00 AM - 6:00 PM',
                 'gstin' => '27FQIPK5154C1ZU',
                 'upiId' => 'jijauc@ibl',
                 'upiName' => 'Jijau Computers',
-                'invoiceTerms' => "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to Pune Jurisdiction only.",
-                'invoiceBankDetails' => 'Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234 | Branch: Station Road, Pune',
+                'invoiceTerms' => "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to legal jurisdiction only.",
+                'invoiceBankDetails' => 'Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234 | Branch: Station Road',
                 'invoiceHsnCode' => '84713010',
-                'invoiceNotes' => 'Thank you for choosing Jijau Computers Pune - Your Trusted Tech Partner!',
+                'invoiceNotes' => 'Thank you for choosing Jijau Computers - Your Trusted Tech Partner!',
             ];
         }
     } catch (Exception $e) {
@@ -38,15 +38,15 @@ function getSettings(): array {
             'phone' => '+91 88056 07908',
             'whatsapp' => '918805607908',
             'email' => 'contact@jijaucomputers.com',
-            'address' => 'Shop No. 4, Jijau Complex, Station Road, Pune, Maharashtra 411001',
+            'address' => 'Shop No. 4, Jijau Complex, Station Road, Maharashtra',
             'openingHours' => 'Mon - Sat: 10:00 AM - 9:00 PM | Sunday: 11:00 AM - 6:00 PM',
             'gstin' => '27FQIPK5154C1ZU',
             'upiId' => 'jijauc@ibl',
             'upiName' => 'Jijau Computers',
             'invoiceHsnCode' => '84713010',
             'invoiceTerms' => 'Standard manufacturer warranty applies.',
-            'invoiceBankDetails' => 'HDFC Bank Pune',
-            'invoiceNotes' => 'Thank you for choosing Jijau Computers Pune!'
+            'invoiceBankDetails' => 'HDFC Bank',
+            'invoiceNotes' => 'Thank you for choosing Jijau Computers!'
         ];
     }
     return $settings;
@@ -200,7 +200,7 @@ function logVisitor($page = '/', $referrer = '—'): void {
         $stmt->execute([
             'vis_' . bin2hex(random_bytes(8)),
             $ip,
-            'Pune, Maharashtra, India',
+            'Maharashtra, India',
             'Desktop',
             'Chrome',
             'macOS',

@@ -25,7 +25,7 @@ $whatsapp = get_theme_mod('jijau_whatsapp', '918805607908');
                     Jijau Custom Gaming Battlestations.
                 </h1>
                 <p class="text-sm sm:text-base text-slate-300 max-w-xl leading-relaxed">
-                    Unleash Ultimate Power with Intel 14th Gen & RTX 4080 Super | Custom Liquid Cooling, Cable Sleeving & Professional Hardware Tuning in Pune.
+                    Unleash Ultimate Power with Intel 14th Gen & RTX 4080 Super | Custom Liquid Cooling, Cable Sleeving & Professional Hardware Tuning.
                 </p>
                 <div class="flex flex-wrap gap-3 pt-2">
                     <a href="<?php echo esc_url(home_url('/devices')); ?>" class="px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs shadow-xl shadow-blue-600/30 flex items-center gap-2 transition-all hover:scale-105">
@@ -48,7 +48,7 @@ $whatsapp = get_theme_mod('jijau_whatsapp', '918805607908');
                     />
                     <div class="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-slate-950/80 backdrop-blur-md border border-slate-800 flex items-center justify-between">
                         <div>
-                            <span class="text-[10px] uppercase font-bold text-amber-400">Handcrafted in Pune</span>
+                            <span class="text-[10px] uppercase font-bold text-amber-400">Master Craftsmanship</span>
                             <h4 class="font-black text-xs text-white">Apex Titan RTX 4080 Super Build</h4>
                         </div>
                         <span class="text-xs font-black text-emerald-400">₹2,29,990</span>

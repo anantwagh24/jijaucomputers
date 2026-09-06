@@ -128,14 +128,14 @@ export default function AdminSettingsPage() {
         metaKeywords: settings.metaKeywords || "",
         invoiceTerms:
           settings.invoiceTerms ||
-          "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to Pune Jurisdiction only.",
+          "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to legal jurisdiction only.",
         invoiceBankDetails:
           settings.invoiceBankDetails ||
-          "Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234 | Branch: Station Road, Pune",
+          "Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234",
         invoiceHsnCode: settings.invoiceHsnCode || "84713010",
         invoiceNotes:
           settings.invoiceNotes ||
-          "Thank you for choosing Jijau Computers Pune - Your Trusted Tech Partner!",
+          "Thank you for choosing Jijau Computers - Your Trusted Tech Partner!",
       });
     }
   }, [settings]);
@@ -465,7 +465,7 @@ export default function AdminSettingsPage() {
               </h2>
             </div>
             <span className="text-[10px] text-blue-400 font-bold bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
-              Pune / Maharashtra GST
+              Maharashtra GST (27)
             </span>
           </div>
 
@@ -510,7 +510,7 @@ export default function AdminSettingsPage() {
               required
               value={formData.invoiceBankDetails}
               onChange={(e) => setFormData({ ...formData, invoiceBankDetails: e.target.value })}
-              placeholder="Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234 | Branch: Station Road, Pune"
+              placeholder="Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234"
               className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white font-mono outline-none focus:border-blue-500"
             />
           </div>
@@ -537,7 +537,7 @@ export default function AdminSettingsPage() {
               type="text"
               value={formData.invoiceNotes}
               onChange={(e) => setFormData({ ...formData, invoiceNotes: e.target.value })}
-              placeholder="Thank you for choosing Jijau Computers Pune - Your Trusted Tech Partner!"
+              placeholder="Thank you for choosing Jijau Computers - Your Trusted Tech Partner!"
               className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
             />
           </div>

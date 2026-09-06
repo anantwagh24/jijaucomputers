@@ -537,7 +537,7 @@ export default function ProductDetailClient({
           {/* Reassurance Footer */}
           <div className="pt-6 mt-6 border-t border-slate-100 flex flex-wrap items-center justify-between text-[11px] text-slate-500 gap-2">
             <span className="flex items-center gap-1">
-              <Truck className="w-3.5 h-3.5 text-blue-600" /> Fast Delivery in Pune
+              <Truck className="w-3.5 h-3.5 text-blue-600" /> Fast Express Delivery
             </span>
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> 100% Original Bill

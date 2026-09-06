@@ -24,9 +24,9 @@ export async function generateMetadata(): Promise<Metadata> {
     });
 
     return {
-      title: settings?.metaTitle || "Jijau Computers - Computer & Laptop Store Pune",
+      title: settings?.metaTitle || "Jijau Computers - Computer & Laptop Store",
       description: settings?.metaDescription || "Shop gaming PCs, laptops, components and repair services at Jijau Computers.",
-      keywords: settings?.metaKeywords || "computer store, gaming pc, laptops, pc repair pune",
+      keywords: settings?.metaKeywords || "computer store, gaming pc, laptops, pc repair, computer accessories",
       icons: {
         icon: "/favicon.png",
         apple: "/favicon.png",
@@ -34,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   } catch (e) {
     return {
-      title: "Jijau Computers - Computer & Laptop Store Pune",
+      title: "Jijau Computers - Computer & Laptop Store",
       description: "Shop gaming PCs, laptops, components and repair services at Jijau Computers.",
       icons: {
         icon: "/favicon.png",

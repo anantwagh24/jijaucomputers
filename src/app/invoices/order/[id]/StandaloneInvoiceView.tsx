@@ -181,7 +181,7 @@ export default function StandaloneInvoiceView({
                 {settings.tagline || "Your Tech Partner"}
               </p>
               <p className="text-[9px] text-slate-600 max-w-sm leading-snug">
-                {settings.address || "Shop No. 12 & 13, Jijau Plaza, Shivajinagar, Pune, Maharashtra 411005"}
+                {settings.address || "Station Road, Maharashtra"}
               </p>
               <p className="text-[9px] text-slate-600 font-mono">
                 Phone: {settings.phone || "+91 88056 07908"} | Email: {settings.email || "sales@jijaucomputers.in"}
@@ -228,7 +228,7 @@ export default function StandaloneInvoiceView({
               Payment Mode: <span className="font-bold text-slate-900">{order.paymentMode}</span>
             </p>
             <p className="text-[9px] text-slate-700 font-semibold">
-              Place of Supply: <span className="font-bold text-slate-900">Pune, Maharashtra (27)</span>
+              Place of Supply: <span className="font-bold text-slate-900">Maharashtra (27)</span>
             </p>
           </div>
         </div>
@@ -288,7 +288,7 @@ export default function StandaloneInvoiceView({
                 Bank & UPI Payment Details:
               </span>
               <p className="text-slate-700 font-mono text-[8.5px] leading-tight">
-                {settings.invoiceBankDetails || "Bank: HDFC Bank Ltd | A/C: 50200012345678 | IFSC: HDFC0001234 | Branch: Station Road, Pune"}
+                {settings.invoiceBankDetails || "Bank: HDFC Bank Ltd | A/C: 50200012345678 | IFSC: HDFC0001234"}
               </p>
               <p className="text-slate-700 font-mono font-bold text-[8.5px]">
                 UPI VPA: <span className="text-blue-700">{settings.upiId || "jijauc@ibl"}</span> ({settings.upiName || "Jijau Computers"})
@@ -324,10 +324,10 @@ export default function StandaloneInvoiceView({
             </span>
             <div className="text-[8px] text-slate-500 whitespace-pre-line leading-tight">
               {settings.invoiceTerms ||
-                "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to Pune Jurisdiction only."}
+                "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to legal jurisdiction only."}
             </div>
             <p className="text-[7.5px] text-slate-400 italic">
-              {settings.invoiceNotes || "Thank you for choosing Jijau Computers Pune - Your Trusted Tech Partner!"}
+              {settings.invoiceNotes || "Thank you for choosing Jijau Computers - Your Trusted Tech Partner!"}
             </p>
           </div>
 

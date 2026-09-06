@@ -20,8 +20,8 @@ if (strlen($phoneClean) === 10) $phoneClean = '91' . $phoneClean;
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title><?= htmlspecialchars($pageTitle ?? ($storeSettings['metaTitle'] ?? 'Jijau Computers - Computer & Laptop Store Pune')) ?></title>
-  <meta name="description" content="<?= htmlspecialchars($storeSettings['metaDescription'] ?? 'Best Computer Store in Pune for Custom Gaming PCs, Laptops, MacBooks, and Repair Services.') ?>">
+  <title><?= htmlspecialchars($pageTitle ?? ($storeSettings['metaTitle'] ?? 'Jijau Computers - Computer & Laptop Store')) ?></title>
+  <meta name="description" content="<?= htmlspecialchars($storeSettings['metaDescription'] ?? 'Best Computer Store for Custom Gaming PCs, Laptops, MacBooks, and Repair Services.') ?>">
   <link rel="icon" href="/public/favicon.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,7 +40,7 @@ if (strlen($phoneClean) === 10) $phoneClean = '91' . $phoneClean;
       <!-- Left: Dealer & Timings -->
       <div style="display: flex; align-items: center; gap: 14px; font-weight: 500;">
         <span style="color: #fbbf24; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-          <span>✨</span> Authorized Computer & Hardware Dealer in Pune
+          <span>✨</span> Authorized Computer & Hardware Dealer
         </span>
         <span style="color: #475569;">|</span>
         <span style="display: flex; align-items: center; gap: 4px; color: #94a3b8;">

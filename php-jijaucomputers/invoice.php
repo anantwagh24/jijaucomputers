@@ -167,7 +167,7 @@ if ($isOrder) {
             <?= htmlspecialchars($settings['tagline'] ?: 'Your Tech Partner') ?>
           </p>
           <p class="text-[9px] text-slate-600 max-w-sm leading-snug">
-            <?= htmlspecialchars($settings['address'] ?: 'Shop No. 12 & 13, Jijau Plaza, Shivajinagar, Pune, Maharashtra 411005') ?>
+            <?= htmlspecialchars($settings['address'] ?: 'Shop No. 12 & 13, Jijau Plaza, Station Road, Maharashtra') ?>
           </p>
           <p class="text-[9px] text-slate-600 font-mono">
             Phone: <?= htmlspecialchars($settings['phone']) ?> | Email: <?= htmlspecialchars($settings['email']) ?>
@@ -196,7 +196,7 @@ if ($isOrder) {
         </span>
         <p class="text-[11px] font-black text-slate-900"><?= htmlspecialchars($isOrder ? $order['customerName'] : $service['customerName']) ?></p>
         <p class="text-[9px] text-slate-600">
-          <?= htmlspecialchars($isOrder ? "{$order['address']}, {$order['city']} - {$order['pincode']}" : "Pune, Maharashtra") ?>
+          <?= htmlspecialchars($isOrder ? "{$order['address']}, {$order['city']} - {$order['pincode']}" : "Maharashtra") ?>
         </p>
         <p class="text-[9px] text-slate-600 font-mono">
           Phone: <?= htmlspecialchars($isOrder ? $order['phone'] : $service['phone']) ?> <?= !empty($isOrder ? $order['email'] : $service['email']) ? '| Email: ' . htmlspecialchars($isOrder ? $order['email'] : $service['email']) : '' ?>
@@ -214,7 +214,7 @@ if ($isOrder) {
           <?= $isOrder ? 'Payment Mode:' : 'Device Model:' ?> <span class="font-bold text-slate-900"><?= htmlspecialchars($isOrder ? $order['paymentMode'] : "{$service['brand']} {$service['model']}") ?></span>
         </p>
         <p class="text-[9px] text-slate-700 font-semibold">
-          Place of Supply: <span class="font-bold text-slate-900">Pune, Maharashtra (27)</span>
+          Place of Supply: <span class="font-bold text-slate-900">Maharashtra (27)</span>
         </p>
       </div>
     </div>
@@ -274,7 +274,7 @@ if ($isOrder) {
             Official Bank & UPI Payment Details:
           </span>
           <p class="text-slate-700 font-mono text-[8.5px] leading-tight">
-            <?= htmlspecialchars($settings['invoiceBankDetails'] ?: 'Bank: HDFC Bank Ltd | A/C: 50200012345678 | IFSC: HDFC0001234 | Branch: Station Road, Pune') ?>
+            <?= htmlspecialchars($settings['invoiceBankDetails'] ?: 'Bank: HDFC Bank Ltd | A/C: 50200012345678 | IFSC: HDFC0001234 | Branch: Station Road') ?>
           </p>
           <p class="text-slate-700 font-mono font-bold text-[8.5px]">
             UPI VPA: <span class="text-blue-700"><?= htmlspecialchars($settings['upiId'] ?: 'jijauc@ibl') ?></span> (<?= htmlspecialchars($settings['upiName'] ?: 'Jijau Computers') ?>)
@@ -309,10 +309,10 @@ if ($isOrder) {
           Terms & Warranty Conditions:
         </span>
         <div class="text-[8px] text-slate-500 whitespace-pre-line leading-tight">
-          <?= htmlspecialchars($settings['invoiceTerms'] ?: "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to Pune Jurisdiction only.") ?>
+          <?= htmlspecialchars($settings['invoiceTerms'] ?: "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to legal jurisdiction only.") ?>
         </div>
         <p class="text-[7.5px] text-slate-400 italic">
-          <?= htmlspecialchars($settings['invoiceNotes'] ?: 'Thank you for choosing Jijau Computers Pune - Your Trusted Tech Partner!') ?>
+          <?= htmlspecialchars($settings['invoiceNotes'] ?: 'Thank you for choosing Jijau Computers - Your Trusted Tech Partner!') ?>
         </p>
       </div>
 

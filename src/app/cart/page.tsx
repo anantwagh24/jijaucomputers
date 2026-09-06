@@ -286,7 +286,7 @@ export default function CartPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Truck className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Same-Day Pune Store Pickup / Express Courier</span>
+                  <span>Fast Store Pickup / Express Courier</span>
                 </div>
               </div>
             </div>

@@ -51,7 +51,7 @@ const STATUS_CONFIG: Record<
     getWaMessage: (ord) =>
       `Hello *${ord.customerName}*,\n\nYour order *#${ord.orderNumber}* for *${formatPrice(
         ord.total
-      )}* has been received at *Jijau Computers Pune* and is currently *PENDING* verification.\n\n📦 *Items:* ${ord.items
+      )}* has been received at *Jijau Computers* and is currently *PENDING* verification.\n\n📦 *Items:* ${ord.items
         ?.map((i: any) => `${i.name} (Qty: ${i.quantity})`)
         .join(", ")}\n\n🔍 *Live Tracking:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(ord.orderNumber)}\n\nThank you for choosing Jijau Computers!`,
   },
@@ -65,7 +65,7 @@ const STATUS_CONFIG: Record<
     dotColor: "bg-blue-400",
     icon: CheckCircle2,
     getWaMessage: (ord) =>
-      `Hello *${ord.customerName}*,\n\nGreat news! Your order *#${ord.orderNumber}* has been *CONFIRMED* by *Jijau Computers Pune*.\n\n📦 *Ordered Items:* ${ord.items
+      `Hello *${ord.customerName}*,\n\nGreat news! Your order *#${ord.orderNumber}* has been *CONFIRMED* by *Jijau Computers*.\n\n📦 *Ordered Items:* ${ord.items
         ?.map((i: any) => `${i.name} (x${i.quantity})`)
         .join(", ")}\n💰 *Total Amount:* ${formatPrice(ord.total)} (${ord.paymentMode})\n📍 *Delivery To:* ${ord.address}, ${ord.city} - ${ord.pincode}\n\n🔍 *Live Tracking:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(ord.orderNumber)}\n\nOur team is currently preparing and testing your hardware. Thank you!`,
   },
@@ -91,7 +91,7 @@ const STATUS_CONFIG: Record<
     dotColor: "bg-sky-400",
     icon: Truck,
     getWaMessage: (ord) =>
-      `Hello *${ord.customerName}*,\n\n🚀 Your order *#${ord.orderNumber}* has been *SHIPPED / DISPATCHED*!\n\n📍 *Destination:* ${ord.address}, ${ord.city} - ${ord.pincode}\n💰 *Amount to Pay:* ${formatPrice(ord.total)} (${ord.paymentMode})\n\n🔍 *Live Courier & Order Tracking:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(ord.orderNumber)}\n\nPlease ensure someone is available at the delivery address. For assistance, reply to this WhatsApp message anytime.\n\n*Jijau Computers Pune*`,
+      `Hello *${ord.customerName}*,\n\n🚀 Your order *#${ord.orderNumber}* has been *SHIPPED / DISPATCHED*!\n\n📍 *Destination:* ${ord.address}, ${ord.city} - ${ord.pincode}\n💰 *Amount to Pay:* ${formatPrice(ord.total)} (${ord.paymentMode})\n\n🔍 *Live Courier & Order Tracking:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(ord.orderNumber)}\n\nPlease ensure someone is available at the delivery address. For assistance, reply to this WhatsApp message anytime.\n\n*Jijau Computers*`,
   },
   DELIVERED: {
     label: "DELIVERED",
@@ -103,7 +103,7 @@ const STATUS_CONFIG: Record<
     dotColor: "bg-emerald-400",
     icon: CheckCircle2,
     getWaMessage: (ord) =>
-      `Dear *${ord.customerName}*,\n\n🎉 Your order *#${ord.orderNumber}* has been successfully *DELIVERED*!\n\nWe hope you love your new hardware. All items are backed by official manufacturer warranty.\n\n🔍 *View & Download Tax Invoice:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(ord.orderNumber)}\n\nIf you ever need technical support, component upgrades, or servicing in Pune, Jijau Computers is always here to assist you!\n\nHave a wonderful day! ⭐`,
+      `Dear *${ord.customerName}*,\n\n🎉 Your order *#${ord.orderNumber}* has been successfully *DELIVERED*!\n\nWe hope you love your new hardware. All items are backed by official manufacturer warranty.\n\n🔍 *View & Download Tax Invoice:* https://jijaucomputers.in/track-service?q=${encodeURIComponent(ord.orderNumber)}\n\nIf you ever need technical support, component upgrades, or servicing, Jijau Computers is always here to assist you!\n\nHave a wonderful day! ⭐`,
   },
   CANCELLED: {
     label: "CANCELLED",

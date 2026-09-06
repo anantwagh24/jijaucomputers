@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="space-y-2 text-xs">
                             <input type="text" id="cust-name" required placeholder="Full Name *" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-blue-500" />
                             <input type="tel" id="cust-phone" required placeholder="10-digit WhatsApp Mobile Number *" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-blue-500 font-mono" />
-                            <textarea id="cust-address" rows="2" placeholder="Delivery Address in Pune / Maharashtra *" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-blue-500"></textarea>
+                            <textarea id="cust-address" rows="2" placeholder="Delivery Address *" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:border-blue-500"></textarea>
                         </div>
                     </div>
 
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <input type="radio" name="payment_opt" value="Cash on Store Pickup / Delivery" class="text-blue-600" />
                             <div>
                                 <span class="text-xs font-bold text-white block">Pay on Store Pickup / Cash</span>
-                                <span class="text-[10px] text-slate-400">Jafrabad / Pune Hardware Hub</span>
+                                <span class="text-[10px] text-slate-400">Store Pickup / Cash on Delivery</span>
                             </div>
                         </label>
                     </div>
