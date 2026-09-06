@@ -62,6 +62,25 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/terms-and-conditions",
+        destination: "/terms",
+        permanent: true,
+      },
+      {
+        source: "/privacy-policy",
+        destination: "/privacy",
+        permanent: true,
+      },
+      {
+        source: "/warranty-guidelines",
+        destination: "/warranty",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

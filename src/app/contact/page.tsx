@@ -7,6 +7,7 @@ import WhatsAppFloating from "@/components/layout/WhatsAppFloating";
 import CartDrawer from "@/components/layout/CartDrawer";
 import { useSettings } from "@/context/SettingsContext";
 import { generateWhatsAppUrl } from "@/lib/utils";
+import { StoreBranch } from "@/lib/types";
 import {
   MapPin,
   Phone,
@@ -17,10 +18,40 @@ import {
   CheckCircle2,
   ExternalLink,
   Sparkles,
+  Building2,
+  Navigation,
 } from "lucide-react";
 
 export default function ContactPage() {
   const { settings } = useSettings();
+
+  let branches: StoreBranch[] = [];
+  if (settings.branchesJson) {
+    try {
+      const parsed = JSON.parse(settings.branchesJson);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        branches = parsed;
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  if (branches.length === 0) {
+    branches = [
+      {
+        id: "main",
+        name: "Head Office & Main Store",
+        address: settings.address,
+        phone: settings.phone,
+        whatsapp: settings.whatsapp,
+        email: settings.email,
+        mapUrl: settings.googleMapsUrl || "https://maps.app.goo.gl/UjCXouqaC9ufVJNTA",
+        isMain: true,
+        timings: settings.openingHours,
+      },
+    ];
+  }
 
   const [formData, setFormData] = useState({
     name: "",
@@ -69,15 +100,104 @@ export default function ContactPage() {
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-500/20 text-blue-700 text-xs font-bold uppercase tracking-wider border border-blue-500/30">
-            <MapPin className="w-3.5 h-3.5" />
-            <span>Store Location & Contact</span>
+            <Building2 className="w-3.5 h-3.5" />
+            <span>{branches.length} Branches & Service Centers</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Get in Touch with Jijau Computers
           </h1>
           <p className="text-sm text-slate-600">
-            Visit our retail store, call our support desk, or send an instant enquiry through the form below.
+            Visit any of our retail store branches, call our support desk, or send an instant enquiry through the form below.
           </p>
+        </div>
+
+        {/* 3+ Branches Showcase Cards */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-blue-600" />
+              Our Store Branches & Service Locations
+            </h2>
+            <span className="text-xs font-bold text-slate-500">
+              {branches.length} Locations Active
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {branches.map((branch, idx) => (
+              <div
+                key={branch.id || idx}
+                className={`rounded-3xl p-6 border transition-all flex flex-col justify-between space-y-4 ${
+                  branch.isMain
+                    ? "bg-white border-blue-200 shadow-md ring-2 ring-blue-500/20"
+                    : "bg-white border-slate-200 shadow-sm hover:shadow-md"
+                }`}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Branch #{idx + 1}
+                      </span>
+                      <h3 className="text-base font-bold text-slate-900 leading-snug">
+                        {branch.name}
+                      </h3>
+                    </div>
+                    {branch.isMain && (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 text-[10px] font-bold shrink-0">
+                        Main Head Office
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {branch.address}
+                  </p>
+
+                  <div className="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <a
+                        href={`tel:${(branch.phone || settings.phone).replace(/[^0-9+]/g, "")}`}
+                        className="hover:text-blue-600 font-semibold"
+                      >
+                        {branch.phone || settings.phone}
+                      </a>
+                    </div>
+                    {branch.timings && (
+                      <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                        <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <span>{branch.timings}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <a
+                    href={branch.mapUrl || settings.googleMapsUrl || "https://maps.google.com"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-blue-50 text-blue-700 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 border border-slate-200"
+                  >
+                    <Navigation className="w-3.5 h-3.5" />
+                    <span>Get Directions</span>
+                  </a>
+                  <a
+                    href={`https://wa.me/${(branch.whatsapp || settings.whatsapp || "918805607908").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+                      `Hello Jijau Computers, I am contacting you regarding your ${branch.name}.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition-colors flex items-center justify-center"
+                    title="WhatsApp Branch"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* 2-Column Contact Info & Form */}
@@ -86,35 +206,16 @@ export default function ContactPage() {
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
               <h2 className="text-lg font-black text-slate-900">
-                Store Contact Information
+                Central Customer Helpline
               </h2>
 
               <div className="space-y-4 text-xs text-slate-700">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="font-bold text-slate-900 block text-sm">Store Address</span>
-                    <p className="text-slate-600 mt-0.5 leading-relaxed">{settings.address}</p>
-                    <a
-                      href={settings.googleMapsUrl || "https://maps.google.com"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-blue-600 font-bold text-xs mt-1 hover:underline"
-                    >
-                      <span>Open in Google Maps</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                </div>
-
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
                     <Phone className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="font-bold text-slate-900 block text-sm">Phone Helpline</span>
+                    <span className="font-bold text-slate-900 block text-sm">Store Helpline</span>
                     <a
                       href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`}
                       className="text-slate-700 font-semibold hover:text-blue-600 transition-colors"
@@ -129,7 +230,7 @@ export default function ContactPage() {
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="font-bold text-slate-900 block text-sm">Email Address</span>
+                    <span className="font-bold text-slate-900 block text-sm">Email Support</span>
                     <a
                       href={`mailto:${settings.email}`}
                       className="text-slate-700 font-semibold hover:text-blue-600 transition-colors"
@@ -144,7 +245,7 @@ export default function ContactPage() {
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="font-bold text-slate-900 block text-sm">Business Timings</span>
+                    <span className="font-bold text-slate-900 block text-sm">Working Hours</span>
                     <p className="text-slate-600 mt-0.5">{settings.openingHours}</p>
                   </div>
                 </div>
@@ -155,12 +256,12 @@ export default function ContactPage() {
             <div className="bg-emerald-600 text-white rounded-3xl p-6 shadow-xl space-y-3">
               <h3 className="text-base font-black">Need Quick Help on WhatsApp?</h3>
               <p className="text-xs text-emerald-100 leading-relaxed">
-                Connect directly with our store sales manager for instant price checks and stock verification.
+                Connect directly with our store sales manager for instant price checks and stock verification across all branches.
               </p>
               <button
                 type="button"
                 onClick={handleDirectWhatsApp}
-                className="w-full py-3 rounded-xl bg-white text-emerald-800 font-black text-xs shadow hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-white text-emerald-800 font-black text-xs shadow hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <MessageSquare className="w-4 h-4 text-emerald-600" />
                 <span>Start WhatsApp Chat</span>

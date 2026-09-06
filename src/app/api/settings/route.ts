@@ -59,6 +59,7 @@ export async function POST(req: Request) {
         metaTitle: data.metaTitle,
         metaDescription: data.metaDescription,
         metaKeywords: data.metaKeywords,
+        branchesJson: typeof data.branchesJson === "string" ? data.branchesJson : JSON.stringify(data.branchesJson || []),
         invoiceTerms: data.invoiceTerms,
         invoiceBankDetails: data.invoiceBankDetails,
         invoiceHsnCode: data.invoiceHsnCode,
@@ -67,6 +68,7 @@ export async function POST(req: Request) {
       create: {
         id: "default",
         ...data,
+        branchesJson: typeof data.branchesJson === "string" ? data.branchesJson : JSON.stringify(data.branchesJson || []),
       },
     });
 

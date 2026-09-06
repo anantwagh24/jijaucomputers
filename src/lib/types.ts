@@ -1,3 +1,15 @@
+export interface StoreBranch {
+  id: string;
+  name: string;
+  address: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  mapUrl?: string;
+  isMain?: boolean;
+  timings?: string;
+}
+
 export interface WebsiteSettingsData {
   id: string;
   storeName: string;
@@ -23,6 +35,7 @@ export interface WebsiteSettingsData {
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
+  branchesJson?: string;
   invoiceTerms?: string;
   invoiceBankDetails?: string;
   invoiceHsnCode?: string;

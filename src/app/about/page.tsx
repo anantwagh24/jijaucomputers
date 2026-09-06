@@ -56,14 +56,18 @@ export default function AboutPage() {
               We believe every PC build should be a masterpiece. We hand-select high-grade silicon, design optimal airflow dynamics, execute clean hidden cable management, and stress-test every setup under maximum thermal load before handover.
             </p>
 
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-                <span className="text-2xl sm:text-3xl font-black text-blue-600 block">15,000+</span>
-                <span className="text-xs text-slate-500 font-semibold">Systems Delivered</span>
+            <div className="grid grid-cols-3 gap-3 pt-4">
+              <div className="p-3 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-center">
+                <span className="text-xl sm:text-2xl font-black text-blue-600 block">15,000+</span>
+                <span className="text-[10px] sm:text-xs text-slate-500 font-semibold">Systems Delivered</span>
               </div>
-              <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-                <span className="text-2xl sm:text-3xl font-black text-amber-500 block">4.9 ★</span>
-                <span className="text-xs text-slate-500 font-semibold">Customer Rating</span>
+              <div className="p-3 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-center">
+                <span className="text-xl sm:text-2xl font-black text-emerald-600 block">3+</span>
+                <span className="text-[10px] sm:text-xs text-slate-500 font-semibold">Store Branches</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm text-center">
+                <span className="text-xl sm:text-2xl font-black text-amber-500 block">4.9 ★</span>
+                <span className="text-[10px] sm:text-xs text-slate-500 font-semibold">Customer Rating</span>
               </div>
             </div>
           </div>

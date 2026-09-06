@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSettings } from "@/context/SettingsContext";
+import { StoreBranch } from "@/lib/types";
 import {
   Settings,
   Save,
@@ -25,12 +26,53 @@ import {
   RotateCcw,
   Eye,
   EyeOff,
+  Plus,
+  Trash2,
+  Check,
 } from "lucide-react";
+
+const initialDefaultBranches: StoreBranch[] = [
+  {
+    id: "branch-1",
+    name: "Head Office & Main Branch (Jafrabad)",
+    address: "Jijau Computer Sales & Service, Opposite SBI Bank, Main Road, Jafrabad, Dist. Jalna, Maharashtra - 431206",
+    phone: "+91 88056 07908",
+    whatsapp: "918805607908",
+    email: "sales@jijaucomputers.in",
+    mapUrl: "https://maps.app.goo.gl/UjCXouqaC9ufVJNTA",
+    isMain: true,
+    timings: "Mon - Sat: 10:00 AM - 9:00 PM | Sun: 11:00 AM - 6:00 PM",
+  },
+  {
+    id: "branch-2",
+    name: "Branch 2 - Laptop & Service Hub",
+    address: "Jijau Computers Branch 2, Near Bus Stand, Market Yard Road, Maharashtra",
+    phone: "+91 88056 07908",
+    whatsapp: "918805607908",
+    email: "support@jijaucomputers.in",
+    mapUrl: "https://maps.app.goo.gl/UjCXouqaC9ufVJNTA",
+    isMain: false,
+    timings: "Mon - Sat: 10:00 AM - 8:30 PM",
+  },
+  {
+    id: "branch-3",
+    name: "Branch 3 - CCTV & Gaming Experience Center",
+    address: "Jijau Tech Center, Shivaji Chowk, Commercial Complex, Maharashtra",
+    phone: "+91 88056 07908",
+    whatsapp: "918805607908",
+    email: "gaming@jijaucomputers.in",
+    mapUrl: "https://maps.app.goo.gl/UjCXouqaC9ufVJNTA",
+    isMain: false,
+    timings: "Mon - Sat: 10:00 AM - 9:00 PM",
+  },
+];
 
 export default function AdminSettingsPage() {
   const { settings, refreshSettings } = useSettings();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
+
+  const [branches, setBranches] = useState<StoreBranch[]>(initialDefaultBranches);
 
   const [formData, setFormData] = useState({
     storeName: "",
@@ -114,15 +156,15 @@ export default function AdminSettingsPage() {
         whatsapp: settings.whatsapp || "918805607908",
         email: settings.email || "sales@jijaucomputers.in",
         address: settings.address || "",
-        googleMapsUrl: settings.googleMapsUrl || "",
+        googleMapsUrl: settings.googleMapsUrl || "https://maps.app.goo.gl/UjCXouqaC9ufVJNTA",
         openingHours: settings.openingHours || "",
         gstin: settings.gstin || "27AABCJ1234F1Z9",
         upiId: settings.upiId || "jijauc@ibl",
         upiName: settings.upiName || "Jijau Computers",
-        facebookUrl: settings.facebookUrl || "",
-        instagramUrl: settings.instagramUrl || "",
-        youtubeUrl: settings.youtubeUrl || "",
-        linkedinUrl: settings.linkedinUrl || "",
+        facebookUrl: settings.facebookUrl || "https://facebook.com/jijaucomputers",
+        instagramUrl: settings.instagramUrl || "https://www.instagram.com/jijau_computers_jafrabad",
+        youtubeUrl: settings.youtubeUrl || "https://www.youtube.com/@Pavan_Kad_JAFRBAD",
+        linkedinUrl: settings.linkedinUrl || "https://linkedin.com/company/jijaucomputers",
         metaTitle: settings.metaTitle || "",
         metaDescription: settings.metaDescription || "",
         metaKeywords: settings.metaKeywords || "",
@@ -131,12 +173,23 @@ export default function AdminSettingsPage() {
           "1. Warranty valid only with official serial number and intact warranty seals.\n2. Goods once sold are subject to manufacturer standard warranty policy.\n3. Physical damage, liquid spillage, or unauthorized modifications are not covered under warranty.\n4. Disputes subject to legal jurisdiction only.",
         invoiceBankDetails:
           settings.invoiceBankDetails ||
-          "Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234",
+          "Bank: HDFC Bank Ltd | A/C No: 50200012345678 | IFSC: HDFC0001234 | Branch: Jafrabad",
         invoiceHsnCode: settings.invoiceHsnCode || "84713010",
         invoiceNotes:
           settings.invoiceNotes ||
           "Thank you for choosing Jijau Computers - Your Trusted Tech Partner!",
       });
+
+      if (settings.branchesJson) {
+        try {
+          const parsed = JSON.parse(settings.branchesJson);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setBranches(parsed);
+          }
+        } catch (e) {
+          // ignore error
+        }
+      }
     }
   }, [settings]);
 
@@ -179,14 +232,55 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const addBranch = () => {
+    const newBranch: StoreBranch = {
+      id: `branch-${Date.now()}`,
+      name: `Branch ${branches.length + 1}`,
+      address: "Enter detailed branch address, landmark, and pincode",
+      phone: formData.phone || "+91 88056 07908",
+      whatsapp: formData.whatsapp || "918805607908",
+      email: formData.email || "sales@jijaucomputers.in",
+      mapUrl: "https://maps.app.goo.gl/UjCXouqaC9ufVJNTA",
+      isMain: branches.length === 0,
+      timings: "Mon - Sat: 10:00 AM - 9:00 PM | Sun: 11:00 AM - 6:00 PM",
+    };
+    setBranches((prev) => [...prev, newBranch]);
+  };
+
+  const updateBranch = (id: string, field: keyof StoreBranch, value: any) => {
+    setBranches((prev) =>
+      prev.map((b) => {
+        if (b.id === id) {
+          return { ...b, [field]: value };
+        }
+        if (field === "isMain" && value === true) {
+          return { ...b, isMain: false };
+        }
+        return b;
+      })
+    );
+  };
+
+  const removeBranch = (id: string) => {
+    if (branches.length <= 1) {
+      alert("At least 1 branch location must remain in your store settings.");
+      return;
+    }
+    setBranches((prev) => prev.filter((b) => b.id !== id));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setSaving(true);
+      const payload = {
+        ...formData,
+        branchesJson: JSON.stringify(branches),
+      };
       const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -637,12 +731,146 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        {/* 4. SOCIAL MEDIA & SEO */}
+        {/* 4. MULTIPLE STORE BRANCHES & SERVICE LOCATIONS */}
+        <div className="bg-slate-950 rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-amber-400" />
+              <div>
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">
+                  4. Store Branches & Multiple Locations ({branches.length} Branches)
+                </h2>
+                <p className="text-[11px] text-slate-400">
+                  Manage all retail shop branches and service centers. Add unlimited branches anytime.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={addBranch}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition-colors self-start sm:self-auto cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add New Branch</span>
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {branches.map((branch, idx) => (
+              <div
+                key={branch.id || idx}
+                className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4 hover:border-slate-700 transition-colors"
+              >
+                <div className="flex items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-6 h-6 rounded-full bg-slate-800 text-amber-400 text-xs font-bold flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <input
+                      type="text"
+                      value={branch.name}
+                      onChange={(e) => updateBranch(branch.id, "name", e.target.value)}
+                      placeholder="e.g. Head Office / Branch Name"
+                      className="font-bold text-sm text-white bg-transparent border-b border-transparent hover:border-slate-700 focus:border-blue-500 outline-none px-1 py-0.5"
+                    />
+                    {branch.isMain && (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
+                        Main Branch
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateBranch(branch.id, "isMain", true)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors ${
+                        branch.isMain
+                          ? "bg-emerald-500/20 text-emerald-300 cursor-default"
+                          : "bg-slate-800 text-slate-400 hover:text-white"
+                      }`}
+                      title="Set as Main Branch"
+                    >
+                      {branch.isMain ? "★ Main Store" : "Set as Main"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeBranch(branch.id)}
+                      className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                      title="Delete Branch"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div className="sm:col-span-2">
+                    <label className="font-bold text-slate-300 block mb-1">Branch Detailed Address *</label>
+                    <textarea
+                      rows={2}
+                      value={branch.address}
+                      onChange={(e) => updateBranch(branch.id, "address", e.target.value)}
+                      placeholder="Full shop address with landmark, town/city, and pincode"
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-300 block mb-1">Branch Contact Phone</label>
+                    <input
+                      type="text"
+                      value={branch.phone || ""}
+                      onChange={(e) => updateBranch(branch.id, "phone", e.target.value)}
+                      placeholder="+91 88056 07908"
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-300 block mb-1">Branch WhatsApp Number</label>
+                    <input
+                      type="text"
+                      value={branch.whatsapp || ""}
+                      onChange={(e) => updateBranch(branch.id, "whatsapp", e.target.value)}
+                      placeholder="918805607908"
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-emerald-400 font-mono outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-300 block mb-1">Google Maps Link</label>
+                    <input
+                      type="url"
+                      value={branch.mapUrl || ""}
+                      onChange={(e) => updateBranch(branch.id, "mapUrl", e.target.value)}
+                      placeholder="https://maps.app.goo.gl/..."
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-300 block mb-1">Branch Timings</label>
+                    <input
+                      type="text"
+                      value={branch.timings || ""}
+                      onChange={(e) => updateBranch(branch.id, "timings", e.target.value)}
+                      placeholder="Mon - Sat: 10:00 AM - 9:00 PM"
+                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 5. SOCIAL MEDIA & SEO */}
         <div className="bg-slate-950 rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
           <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
             <Globe className="w-4 h-4 text-sky-500" />
             <h2 className="text-sm font-black text-white uppercase tracking-wider">
-              4. Social Media Links & SEO
+              5. Social Media Presence & SEO
             </h2>
           </div>
 
@@ -690,12 +918,12 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        {/* 5. ADMIN ACCOUNT SECURITY & PASSWORD CHANGE */}
+        {/* 6. ADMIN ACCOUNT SECURITY & PASSWORD CHANGE */}
         <div className="bg-slate-950 rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
           <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <h2 className="text-sm font-black text-white uppercase tracking-wider">
-              5. Admin Security & Password Protection
+              6. Admin Security & Password Protection
             </h2>
           </div>
 
