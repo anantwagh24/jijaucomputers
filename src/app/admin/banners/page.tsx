@@ -26,7 +26,10 @@ export default function AdminBannersPage() {
   const fetchBanners = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/banners");
+      const res = await fetch("/api/banners", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       const data = await res.json();
       if (Array.isArray(data)) setBanners(data);
     } catch (e) {
@@ -321,7 +324,7 @@ export default function AdminBannersPage() {
                 <label className="font-bold text-slate-300 block mb-1">Banner Background Image URL *</label>
                 <div className="flex gap-2">
                   <input
-                    type="url"
+                    type="text"
                     required
                     value={formData.imageUrl}
                     onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}

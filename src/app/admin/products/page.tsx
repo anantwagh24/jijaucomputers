@@ -59,9 +59,9 @@ export default function AdminProductsPage() {
     try {
       setLoading(true);
       const [prodRes, catRes, brandRes] = await Promise.all([
-        fetch("/api/products"),
-        fetch("/api/categories"),
-        fetch("/api/brands"),
+        fetch("/api/products", { cache: "no-store", headers: { "Cache-Control": "no-cache" } }),
+        fetch("/api/categories", { cache: "no-store", headers: { "Cache-Control": "no-cache" } }),
+        fetch("/api/brands", { cache: "no-store", headers: { "Cache-Control": "no-cache" } }),
       ]);
 
       const [pData, cData, bData] = await Promise.all([
@@ -532,10 +532,10 @@ export default function AdminProductsPage() {
                 {/* Direct Image URL input */}
                 <div className="flex gap-2">
                   <input
-                    type="url"
+                    type="text"
                     value={formData.imageUrl}
                     onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="Paste external image URL (e.g. https://...)"
+                    placeholder="Paste external image URL or /uploads/..."
                     className="flex-1 px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 text-xs"
                   />
                   <button

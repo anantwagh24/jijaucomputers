@@ -4,6 +4,9 @@ import { generateOrderNumber } from "@/lib/utils";
 import { hashPassword, normalizePhone } from "@/lib/auth";
 import { getAdminSession, getCustomerSession } from "@/lib/session";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(req: Request) {
   try {
     const adminSession = await getAdminSession(req);
@@ -28,7 +31,11 @@ export async function GET(req: Request) {
         items: true,
       },
     });
-    return NextResponse.json(orders);
+    return NextResponse.json(orders, {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error) {
     console.error("Error fetching orders:", error);
     return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });

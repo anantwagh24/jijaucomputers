@@ -2,12 +2,19 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/session";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const banners = await prisma.banner.findMany({
       orderBy: { order: "asc" },
     });
-    return NextResponse.json(banners);
+    return NextResponse.json(banners, {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error) {
     console.error("Error fetching banners:", error);
     return NextResponse.json({ error: "Failed to fetch banners" }, { status: 500 });

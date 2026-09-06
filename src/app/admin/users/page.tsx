@@ -39,9 +39,12 @@ export default function AdminUsersPage() {
 
   // Modals
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [userToDelete, setUserToDelete] = useState<any | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Edit / Create Form state
   const [formData, setFormData] = useState({
@@ -55,12 +58,16 @@ export default function AdminUsersPage() {
     isVerified: true,
   });
   const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/admin/users");
+      const res = await fetch("/api/admin/users", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       const data = await res.json();
       if (res.ok) {
         setUsers(data.users || []);
@@ -89,6 +96,7 @@ export default function AdminUsersPage() {
       isVerified: true,
     });
     setFormError("");
+    setFormSuccess("");
     setIsCreateOpen(true);
   };
 
@@ -105,12 +113,18 @@ export default function AdminUsersPage() {
       isVerified: user.isVerified ?? true,
     });
     setFormError("");
+    setFormSuccess("");
     setIsEditOpen(true);
   };
 
   const handleOpenView = (user: any) => {
     setSelectedUser(user);
     setIsViewOpen(true);
+  };
+
+  const handleOpenDeleteConfirm = (user: any) => {
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
   };
 
   const handleSaveCreate = async (e: React.FormEvent) => {
@@ -169,24 +183,35 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleDeleteUser = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete customer "${name}"? This action cannot be undone.`)) {
-      return;
-    }
+  const handleConfirmPermanentDelete = async () => {
+    if (!userToDelete) return;
+    setIsDeleting(true);
 
     try {
-      const res = await fetch(`/api/admin/users?id=${encodeURIComponent(id)}`, {
+      const res = await fetch(`/api/admin/users?id=${encodeURIComponent(userToDelete.id)}`, {
         method: "DELETE",
       });
 
       if (res.ok) {
-        await fetchUsers();
+        // Optimistically remove from state immediately
+        setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+        setStats((prev) => ({
+          ...prev,
+          totalUsers: Math.max(0, prev.totalUsers - 1),
+        }));
+        setIsDeleteModalOpen(false);
+        setUserToDelete(null);
+        // Also revalidate with server
+        fetchUsers();
       } else {
-        alert("Failed to delete user profile.");
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || "Failed to delete user profile.");
       }
     } catch (err) {
       console.error(err);
       alert("Error deleting user.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -412,8 +437,8 @@ export default function AdminUsersPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDeleteUser(user.id, user.name)}
-                          title="Delete User"
+                          onClick={() => handleOpenDeleteConfirm(user)}
+                          title="Permanently Delete User"
                           className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -427,6 +452,67 @@ export default function AdminUsersPage() {
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && userToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative bg-slate-950 rounded-3xl border border-rose-500/30 p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center gap-3 text-rose-400 border-b border-slate-800 pb-3">
+              <div className="p-3 bg-rose-500/10 rounded-2xl border border-rose-500/20">
+                <Trash2 className="w-6 h-6 text-rose-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-base">Permanently Delete User?</h3>
+                <p className="text-xs text-slate-400">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-300">
+              <p>
+                Are you sure you want to permanently delete the customer account for{" "}
+                <span className="font-bold text-white">{userToDelete.name}</span> ({userToDelete.phone})?
+              </p>
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1 text-[11px] text-slate-400">
+                <div>• Customer login credentials will be removed.</div>
+                <div>• The user will no longer appear in registered users list.</div>
+                <div>• Any existing past orders will be archived safely.</div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-3 border-t border-slate-800">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setUserToDelete(null);
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmPermanentDelete}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-rose-600/30 transition-all disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Permanently Delete</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* View Customer Details Modal */}
       {isViewOpen && selectedUser && (
@@ -582,6 +668,7 @@ export default function AdminUsersPage() {
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono"
                   />
+                  <span className="text-[10px] text-slate-500 block mt-0.5">Used for customer login</span>
                 </div>
 
                 <div>
@@ -622,7 +709,7 @@ export default function AdminUsersPage() {
                   <label className="font-bold text-slate-300 block mb-1">Pincode</label>
                   <input
                     type="text"
-                    placeholder="e.g. 411001"
+                    placeholder="e.g. 431206"
                     value={formData.pincode}
                     onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono"
@@ -632,15 +719,20 @@ export default function AdminUsersPage() {
 
               <div>
                 <label className="font-bold text-slate-300 block mb-1">
-                  {isCreateOpen ? "Account Password (Default is phone number)" : "Reset Password (Optional)"}
+                  {isCreateOpen ? "Account Password (Default is mobile number)" : "Reset Password (Optional)"}
                 </label>
                 <input
                   type="password"
-                  placeholder={isCreateOpen ? "Leave blank to use phone number" : "Enter new password if resetting"}
+                  placeholder={isCreateOpen ? "Default will be their 10-digit mobile number" : "Enter new password if resetting"}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
                 />
+                {isCreateOpen && (
+                  <p className="text-[11px] text-blue-400 mt-1">
+                    💡 Customer can immediately log in on the store using their 10-digit mobile number and their phone number as the password.
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-2 pt-2 border-t border-slate-800">

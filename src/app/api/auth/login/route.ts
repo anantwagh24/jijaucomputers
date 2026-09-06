@@ -4,6 +4,9 @@ import { normalizePhone, verifyPassword, hashPassword } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { setCustomerSessionCookie } from "@/lib/session";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req);
@@ -26,16 +29,19 @@ export async function POST(req: Request) {
       );
     }
 
-    const rawInput = identifier.trim();
+    const rawInput = String(identifier).trim();
     const cleanEmail = rawInput.toLowerCase();
     const cleanPhone = normalizePhone(rawInput);
+    const last10Digits = cleanPhone.length >= 10 ? cleanPhone.slice(-10) : cleanPhone;
 
-    // Search user by email OR by normalized mobile number
+    // Search user by email OR by normalized mobile number or last 10 digits
     const user = await prisma.user.findFirst({
       where: {
         OR: [
           { email: cleanEmail },
           ...(cleanPhone ? [{ phone: cleanPhone }] : []),
+          ...(last10Digits ? [{ phone: last10Digits }] : []),
+          { phone: rawInput },
         ],
       },
     });

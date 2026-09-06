@@ -24,7 +24,10 @@ export default function AdminOffersPage() {
   const fetchOffers = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/offers");
+      const res = await fetch("/api/offers", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       const data = await res.json();
       if (Array.isArray(data)) setOffers(data);
     } catch (e) {
@@ -270,7 +273,7 @@ export default function AdminOffersPage() {
                 <label className="font-bold text-slate-300 block mb-1">Offer Banner (Upload from Device or Paste URL)</label>
                 <div className="flex gap-2">
                   <input
-                    type="url"
+                    type="text"
                     value={formData.bannerUrl}
                     onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })}
                     placeholder="https://... or /uploads/..."

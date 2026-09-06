@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -44,14 +47,21 @@ export async function GET(req: Request) {
     const districts = Array.from(new Set(allActive.map((c) => c.district).filter(Boolean)));
     const cities = Array.from(new Set(allActive.map((c) => c.city).filter(Boolean)));
 
-    return NextResponse.json({
-      success: true,
-      customers,
-      filters: {
-        districts,
-        cities,
+    return NextResponse.json(
+      {
+        success: true,
+        customers,
+        filters: {
+          districts,
+          cities,
+        },
       },
-    });
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
   } catch (error) {
     console.error("Fetch happy customers error:", error);
     return NextResponse.json(

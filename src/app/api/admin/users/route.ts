@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, normalizePhone } from "@/lib/auth";
+import { hashPassword, normalizePhone, validateIndianMobile } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(req: Request) {
   try {
@@ -60,15 +63,22 @@ export async function GET(req: Request) {
     const totalSpendAll = enrichedUsers.reduce((sum, u) => sum + u.totalSpent, 0);
     const totalOrdersCount = enrichedUsers.reduce((sum, u) => sum + u.ordersCount, 0);
 
-    return NextResponse.json({
-      users: enrichedUsers,
-      stats: {
-        totalUsers,
-        verifiedUsers,
-        totalSpendAll,
-        totalOrdersCount,
+    return NextResponse.json(
+      {
+        users: enrichedUsers,
+        stats: {
+          totalUsers,
+          verifiedUsers,
+          totalSpendAll,
+          totalOrdersCount,
+        },
       },
-    });
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("Error fetching users:", error);
     return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
@@ -87,9 +97,16 @@ export async function POST(req: Request) {
     }
 
     const cleanPhone = normalizePhone(data.phone);
+    if (!validateIndianMobile(cleanPhone)) {
+      return NextResponse.json(
+        { error: "Please provide a valid 10-digit Indian mobile number." },
+        { status: 400 }
+      );
+    }
+
     const cleanEmail = (data.email || `${cleanPhone}@customer.jijaucomputers.com`).trim().toLowerCase();
 
-    // Check existing
+    // Check existing by phone or email
     const existing = await prisma.user.findFirst({
       where: {
         OR: [{ phone: cleanPhone }, { email: cleanEmail }],
@@ -168,6 +185,12 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
+    // Safely decouple any orders linked to this user
+    await prisma.order.updateMany({
+      where: { userId: id },
+      data: { userId: null },
+    });
+
     await prisma.user.delete({
       where: { id },
     });
@@ -175,6 +198,6 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("Error deleting user:", error);
-    return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to delete user" }, { status: 500 });
   }
 }

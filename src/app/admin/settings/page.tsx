@@ -709,7 +709,7 @@ export default function AdminSettingsPage() {
             <div>
               <label className="font-bold text-slate-300 block mb-1">Google Maps Direct / Location URL</label>
               <input
-                type="url"
+                type="text"
                 value={formData.googleMapsUrl}
                 onChange={(e) => setFormData({ ...formData, googleMapsUrl: e.target.value })}
                 className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
@@ -841,7 +841,7 @@ export default function AdminSettingsPage() {
                   <div>
                     <label className="font-bold text-slate-300 block mb-1">Google Maps Link</label>
                     <input
-                      type="url"
+                      type="text"
                       value={branch.mapUrl || ""}
                       onChange={(e) => updateBranch(branch.id, "mapUrl", e.target.value)}
                       placeholder="https://maps.app.goo.gl/..."
@@ -878,7 +878,7 @@ export default function AdminSettingsPage() {
             <div>
               <label className="font-bold text-slate-300 block mb-1">Instagram URL</label>
               <input
-                type="url"
+                type="text"
                 value={formData.instagramUrl}
                 onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })}
                 className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
@@ -887,7 +887,7 @@ export default function AdminSettingsPage() {
             <div>
               <label className="font-bold text-slate-300 block mb-1">YouTube Channel URL</label>
               <input
-                type="url"
+                type="text"
                 value={formData.youtubeUrl}
                 onChange={(e) => setFormData({ ...formData, youtubeUrl: e.target.value })}
                 className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"

@@ -47,9 +47,13 @@ export default function AdminHappyCustomersPage() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<HappyCustomer | null>(null);
+  const [customerToDelete, setCustomerToDelete] = useState<HappyCustomer | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [uploadSuccess, setUploadSuccess] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form State
@@ -70,6 +74,10 @@ export default function AdminHappyCustomersPage() {
 
   const districtsList = [
     "Maharashtra",
+    "Jalna",
+    "Jafrabad",
+    "Chhatrapati Sambhajinagar",
+    "Buldhana",
     "Satara",
     "Ahmednagar",
     "Solapur",
@@ -78,14 +86,16 @@ export default function AdminHappyCustomersPage() {
     "Sangli",
     "Thane",
     "Mumbai",
-    "Chhatrapati Sambhajinagar",
     "Other",
   ];
 
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/admin/happy-customers?search=${encodeURIComponent(search)}`);
+      const res = await fetch(`/api/admin/happy-customers?search=${encodeURIComponent(search)}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       const data = await res.json();
       if (data.success) {
         setCustomers(data.customers || []);
@@ -118,6 +128,7 @@ export default function AdminHappyCustomersPage() {
       isActive: true,
     });
     setError("");
+    setUploadSuccess("");
     setIsModalOpen(true);
   };
 
@@ -138,11 +149,14 @@ export default function AdminHappyCustomersPage() {
       isActive: c.isActive,
     });
     setError("");
+    setUploadSuccess("");
     setIsModalOpen(true);
   };
 
   const handleFileUpload = async (file: File) => {
     setUploadingPhoto(true);
+    setError("");
+    setUploadSuccess("");
     try {
       const form = new FormData();
       form.append("file", file);
@@ -151,10 +165,11 @@ export default function AdminHappyCustomersPage() {
         body: form,
       });
       const data = await res.json();
-      if (data.url) {
+      if (res.ok && data.url) {
         setFormData((prev) => ({ ...prev, photoUrl: data.url }));
+        setUploadSuccess(`Photo uploaded successfully! (${file.name})`);
       } else {
-        setError("Failed to upload photo. Please provide a photo URL.");
+        setError(data.error || "Failed to upload photo. Please provide an image file (JPG, PNG, WEBP).");
       }
     } catch {
       setError("Network error uploading photo.");
@@ -168,7 +183,7 @@ export default function AdminHappyCustomersPage() {
     setError("");
 
     if (!formData.name || !formData.city || !formData.productName || !formData.photoUrl) {
-      setError("Please fill in Customer Name, City, Product Name, and Photo.");
+      setError("Please fill in Customer Name, City, Product Name, and choose/upload a Photo.");
       return;
     }
 
@@ -184,7 +199,7 @@ export default function AdminHappyCustomersPage() {
         const data = await res.json();
         if (res.ok && data.success) {
           setIsModalOpen(false);
-          fetchCustomers();
+          await fetchCustomers();
         } else {
           setError(data.error || "Failed to update record.");
         }
@@ -198,7 +213,7 @@ export default function AdminHappyCustomersPage() {
         const data = await res.json();
         if (res.ok && data.success) {
           setIsModalOpen(false);
-          fetchCustomers();
+          await fetchCustomers();
         } else {
           setError(data.error || "Failed to create record.");
         }
@@ -210,30 +225,53 @@ export default function AdminHappyCustomersPage() {
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete ${name}'s customer story?`)) return;
+  const handleOpenDeleteConfirm = (c: HappyCustomer) => {
+    setCustomerToDelete(c);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmPermanentDelete = async () => {
+    if (!customerToDelete) return;
+    setIsDeleting(true);
     try {
-      const res = await fetch(`/api/admin/happy-customers/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/happy-customers/${customerToDelete.id}`, { method: "DELETE" });
       if (res.ok) {
+        // Optimistically remove
+        setCustomers((prev) => prev.filter((c) => c.id !== customerToDelete.id));
+        setIsDeleteModalOpen(false);
+        setCustomerToDelete(null);
         fetchCustomers();
+      } else {
+        alert("Failed to delete customer story.");
       }
     } catch (err) {
       console.error("Delete error:", err);
+      alert("Error deleting customer story.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   const handleToggleActive = async (c: HappyCustomer) => {
+    const updatedStatus = !c.isActive;
+    // Optimistically update
+    setCustomers((prev) =>
+      prev.map((item) => (item.id === c.id ? { ...item, isActive: updatedStatus } : item))
+    );
+
     try {
       const res = await fetch(`/api/admin/happy-customers/${c.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !c.isActive }),
+        body: JSON.stringify({ isActive: updatedStatus }),
       });
-      if (res.ok) {
+      if (!res.ok) {
+        // revert on failure
         fetchCustomers();
       }
     } catch (err) {
       console.error("Toggle error:", err);
+      fetchCustomers();
     }
   };
 
@@ -424,9 +462,9 @@ export default function AdminHappyCustomersPage() {
                           <Edit className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(c.id, c.name)}
+                          onClick={() => handleOpenDeleteConfirm(c)}
                           className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors"
-                          title="Delete"
+                          title="Permanently Delete Story"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -439,6 +477,56 @@ export default function AdminHappyCustomersPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && customerToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative bg-slate-950 rounded-3xl border border-rose-500/30 p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center gap-3 text-rose-400 border-b border-slate-800 pb-3">
+              <div className="p-3 bg-rose-500/10 rounded-2xl border border-rose-500/20">
+                <Trash2 className="w-6 h-6 text-rose-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-base">Permanently Delete Story?</h3>
+                <p className="text-xs text-slate-400">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-300">
+              <p>
+                Are you sure you want to delete the Happy Customer photo and story for{" "}
+                <span className="font-bold text-white">{customerToDelete.name}</span> ({customerToDelete.city})?
+              </p>
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1 text-[11px] text-slate-400">
+                <div>• This customer story will be permanently removed from the public website.</div>
+                <div>• It will no longer appear in the customer gallery or homepage banner.</div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-3 border-t border-slate-800">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setCustomerToDelete(null);
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmPermanentDelete}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-rose-600/30 transition-all disabled:opacity-50"
+              >
+                {isDeleting ? "Deleting..." : "Permanently Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add / Edit Modal */}
       {isModalOpen && (
@@ -461,7 +549,13 @@ export default function AdminHappyCustomersPage() {
 
             {error && (
               <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs rounded-xl font-bold">
-                {error}
+                ⚠️ {error}
+              </div>
+            )}
+
+            {uploadSuccess && (
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-xl font-bold">
+                ✓ {uploadSuccess}
               </div>
             )}
 
@@ -515,18 +609,18 @@ export default function AdminHappyCustomersPage() {
                     required
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    placeholder="Enter city or town"
+                    placeholder="e.g. Jafrabad, Jalna"
                     className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-300 block mb-1">Village / Area</label>
+                  <label className="font-bold text-slate-300 block mb-1">Village / Locality</label>
                   <input
                     type="text"
                     value={formData.village}
                     onChange={(e) => setFormData({ ...formData, village: e.target.value })}
-                    placeholder="Enter area / locality"
+                    placeholder="e.g. Main Market, Temblai"
                     className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
                   />
                 </div>
@@ -540,63 +634,79 @@ export default function AdminHappyCustomersPage() {
                   required
                   value={formData.productName}
                   onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
-                  placeholder="e.g. Jijau Custom RTX 4080 Super Battlestation / Apple MacBook Air M3"
+                  placeholder="e.g. Jijau Custom RTX 4080 Gaming Rig / Apple MacBook Air M3 / Dell Core i5 Laptop"
                   className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
                 />
               </div>
 
-              {/* Customer Photo Upload / URL */}
-              <div>
-                <label className="font-bold text-slate-300 block mb-1">Customer Photo URL *</label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    required
-                    value={formData.photoUrl}
-                    onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
-                    placeholder="https://images.unsplash.com/... or /uploads/..."
-                    className="flex-1 px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono text-[11px]"
-                  />
+              {/* Customer Photo Upload (Local file or URL) */}
+              <div className="space-y-2 p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800">
+                <label className="font-bold text-white block">Customer Photo *</label>
+                
+                {/* 1. Direct Local File Upload Button */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                   <input
                     type="file"
                     ref={fileInputRef}
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
                     onChange={(e) => {
                       if (e.target.files?.[0]) handleFileUpload(e.target.files[0]);
                     }}
                     className="hidden"
                   />
+                  
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingPhoto}
-                    className="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold flex items-center gap-1.5"
+                    className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow transition-all disabled:opacity-50"
                   >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{uploadingPhoto ? "Uploading..." : "Upload"}</span>
+                    <Upload className="w-4 h-4" />
+                    <span>{uploadingPhoto ? "Uploading Image..." : "📁 Choose Image from Computer / Phone"}</span>
                   </button>
+
+                  <span className="text-[11px] text-slate-400 text-center sm:text-left">
+                    {formData.photoUrl ? "Image ready!" : "Or paste image URL below"}
+                  </span>
+                </div>
+
+                {/* 2. Direct text / relative path input */}
+                <div>
+                  <input
+                    type="text"
+                    required
+                    value={formData.photoUrl}
+                    onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
+                    placeholder="e.g. /uploads/products/xyz.png or https://images.unsplash.com/..."
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono text-[11px]"
+                  />
                 </div>
 
                 {formData.photoUrl && (
-                  <div className="mt-2 flex items-center gap-3">
-                    <img
-                      src={formData.photoUrl}
-                      alt="Preview"
-                      className="w-12 h-12 rounded-xl object-cover border border-slate-700"
-                    />
-                    <span className="text-[11px] text-slate-400">Photo preview loaded</span>
+                  <div className="pt-2 flex items-center gap-3">
+                    <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-950 border border-emerald-500/50 shadow">
+                      <img
+                        src={formData.photoUrl}
+                        alt="Customer Photo Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-emerald-400 block">✓ Photo Selected</span>
+                      <span className="text-[10px] text-slate-400 font-mono break-all line-clamp-1">{formData.photoUrl}</span>
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Review / Testimonial */}
               <div>
-                <label className="font-bold text-slate-300 block mb-1">Customer Feedback / Review</label>
+                <label className="font-bold text-slate-300 block mb-1">Customer Feedback / Review (Optional)</label>
                 <textarea
                   rows={3}
                   value={formData.review}
                   onChange={(e) => setFormData({ ...formData, review: e.target.value })}
-                  placeholder="e.g. Assembled my dream gaming PC with full brand warranty and same-day delivery."
+                  placeholder="e.g. Assembled my dream gaming PC with full brand warranty and same-day delivery in Jafrabad."
                   className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
                 />
               </div>
@@ -622,7 +732,7 @@ export default function AdminHappyCustomersPage() {
                     type="text"
                     value={formData.purchaseDate}
                     onChange={(e) => setFormData({ ...formData, purchaseDate: e.target.value })}
-                    placeholder="e.g. Aug 2026"
+                    placeholder="e.g. Sep 2026"
                     className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
                   />
                 </div>
@@ -638,7 +748,7 @@ export default function AdminHappyCustomersPage() {
                   className="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-800"
                 />
                 <label htmlFor="isActiveToggle" className="text-slate-300 font-bold cursor-pointer">
-                  Display publicly on website
+                  Display publicly on website (Homepage & Customer Gallery)
                 </label>
               </div>
 

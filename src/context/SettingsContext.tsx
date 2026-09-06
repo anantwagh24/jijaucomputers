@@ -98,7 +98,10 @@ export function SettingsProvider({
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/settings");
+      const res = await fetch("/api/settings", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       if (res.ok) {
         const data = await res.json();
         if (data && data.storeName) {

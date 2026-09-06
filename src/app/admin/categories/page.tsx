@@ -24,7 +24,10 @@ export default function AdminCategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/categories");
+      const res = await fetch("/api/categories", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       const data = await res.json();
       if (Array.isArray(data)) setCategories(data);
     } catch (e) {
@@ -257,7 +260,7 @@ export default function AdminCategoriesPage() {
                 <label className="font-bold text-slate-300 block mb-1">Cover Image (Upload from Device or Paste URL)</label>
                 <div className="flex gap-2">
                   <input
-                    type="url"
+                    type="text"
                     value={formData.imageUrl}
                     onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                     placeholder="https://... or /uploads/..."

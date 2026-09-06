@@ -2,12 +2,19 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/session";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const offers = await prisma.offer.findMany({
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(offers);
+    return NextResponse.json(offers, {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error) {
     console.error("Error fetching offers:", error);
     return NextResponse.json({ error: "Failed to fetch offers" }, { status: 500 });

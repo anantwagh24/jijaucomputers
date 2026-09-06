@@ -21,7 +21,10 @@ export default function AdminBrandsPage() {
   const fetchBrands = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/brands");
+      const res = await fetch("/api/brands", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       const data = await res.json();
       if (Array.isArray(data)) setBrands(data);
     } catch (e) {
@@ -206,7 +209,7 @@ export default function AdminBrandsPage() {
                 <label className="font-bold text-slate-300 block mb-1">Brand Logo (Upload from Device or Paste URL)</label>
                 <div className="flex gap-2">
                   <input
-                    type="url"
+                    type="text"
                     value={formData.logoUrl}
                     onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
                     placeholder="https://... or /uploads/..."
