@@ -189,23 +189,52 @@ export default function AdminProductsPage() {
     });
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
+  const [formError, setFormError] = useState("");
+  const [formLoading, setFormLoading] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<any | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleOpenDeleteConfirm = (p: any) => {
+    setProductToDelete(p);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmPermanentDelete = async () => {
+    if (!productToDelete) return;
+    setIsDeleting(true);
     try {
-      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/products/${productToDelete.id}`, { method: "DELETE" });
       if (res.ok) {
-        setProducts((prev) => prev.filter((p) => p.id !== id));
+        setProducts((prev) => prev.filter((p) => p.id !== productToDelete.id));
+        setIsDeleteModalOpen(false);
+        setProductToDelete(null);
+        fetchData();
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || "Failed to delete product.");
       }
     } catch (e) {
       console.error(e);
+      alert("Error deleting product.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const allImages = formData.images && formData.images.length > 0
-      ? formData.images
-      : (formData.imageUrl ? [formData.imageUrl] : []);
+    setFormError("");
+
+    if (!formData.name || !formData.price) {
+      setFormError("Product Title and Price are required.");
+      return;
+    }
+
+    const allImages = [...(formData.images || [])];
+    if (formData.imageUrl && !allImages.includes(formData.imageUrl)) {
+      allImages.unshift(formData.imageUrl);
+    }
 
     const payload = {
       ...formData,
@@ -213,15 +242,19 @@ export default function AdminProductsPage() {
     };
 
     try {
+      setFormLoading(true);
       if (editingId) {
         const res = await fetch(`/api/products/${editingId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+        const data = await res.json();
         if (res.ok) {
           await fetchData();
           setModalOpen(false);
+        } else {
+          setFormError(data.error || "Failed to update product.");
         }
       } else {
         const res = await fetch("/api/products", {
@@ -229,13 +262,19 @@ export default function AdminProductsPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+        const data = await res.json();
         if (res.ok) {
           await fetchData();
           setModalOpen(false);
+        } else {
+          setFormError(data.error || "Failed to create product.");
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      setFormError("Network error while saving product.");
+    } finally {
+      setFormLoading(false);
     }
   };
 
@@ -367,9 +406,9 @@ export default function AdminProductsPage() {
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => handleDelete(p.id)}
+                            onClick={() => handleOpenDeleteConfirm(p)}
                             className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-900/60 text-rose-400 hover:text-rose-200 transition-colors"
-                            title="Delete"
+                            title="Permanently Delete Product"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -384,6 +423,56 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && productToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative bg-slate-950 rounded-3xl border border-rose-500/30 p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center gap-3 text-rose-400 border-b border-slate-800 pb-3">
+              <div className="p-3 bg-rose-500/10 rounded-2xl border border-rose-500/20">
+                <Trash2 className="w-6 h-6 text-rose-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-base">Permanently Delete Product?</h3>
+                <p className="text-xs text-slate-400">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-300">
+              <p>
+                Are you sure you want to permanently delete{" "}
+                <span className="font-bold text-white">{productToDelete.name}</span> ({formatPrice(productToDelete.price)})?
+              </p>
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-1 text-[11px] text-slate-400">
+                <div>• This product will be immediately removed from the catalog.</div>
+                <div>• It will no longer appear in search, category pages, or the storefront.</div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-3 border-t border-slate-800">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setProductToDelete(null);
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmPermanentDelete}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-rose-600/30 transition-all disabled:opacity-50"
+              >
+                {isDeleting ? "Deleting..." : "Permanently Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Create / Edit Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -391,8 +480,8 @@ export default function AdminProductsPage() {
             className="fixed inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setModalOpen(false)}
           />
-          <div className="relative bg-slate-950 rounded-3xl border border-slate-800 p-6 sm:p-8 max-w-3xl w-full shadow-2xl z-10 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+          <div className="relative bg-slate-950 rounded-3xl border border-slate-800 p-6 sm:p-8 max-w-3xl w-full shadow-2xl z-10 max-h-[90vh] overflow-y-auto space-y-4">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <h3 className="text-lg font-black text-white">
                 {editingId ? "Edit Product" : "Add New Hardware Product"}
               </h3>
@@ -403,6 +492,12 @@ export default function AdminProductsPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {formError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold">
+                ⚠️ {formError}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div>
@@ -708,9 +803,10 @@ export default function AdminProductsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow transition-colors"
+                  disabled={formLoading}
+                  className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow transition-colors disabled:opacity-50"
                 >
-                  {editingId ? "Update Product" : "Create Product"}
+                  {formLoading ? "Saving Product..." : editingId ? "Update Product" : "Create Product"}
                 </button>
               </div>
             </form>

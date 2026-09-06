@@ -111,19 +111,49 @@ export async function POST(req: Request) {
     }
 
     const data = await req.json();
-    const slug = data.slug ? slugify(data.slug) : slugify(data.name);
+    if (!data.name || !data.price) {
+      return NextResponse.json(
+        { error: "Product title and price are required." },
+        { status: 400 }
+      );
+    }
+
+    // Ensure categoryId is valid
+    let categoryId = data.categoryId;
+    if (!categoryId) {
+      const firstCat = await prisma.category.findFirst();
+      if (firstCat) categoryId = firstCat.id;
+      else {
+        return NextResponse.json(
+          { error: "Please create at least one category before adding products." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Generate unique slug
+    let baseSlug = data.slug ? slugify(data.slug) : slugify(data.name);
+    if (!baseSlug) baseSlug = "product-" + Date.now();
+    let finalSlug = baseSlug;
+
+    const existingSlug = await prisma.product.findUnique({
+      where: { slug: finalSlug },
+    });
+    if (existingSlug) {
+      finalSlug = `${baseSlug}-${Math.random().toString(36).substring(2, 7)}`;
+    }
 
     const product = await prisma.product.create({
       data: {
-        name: data.name,
-        slug: slug,
-        sku: data.sku || undefined,
-        description: data.description,
-        shortDesc: data.shortDesc,
-        price: parseFloat(data.price),
+        name: data.name.trim(),
+        slug: finalSlug,
+        sku: data.sku?.trim() || undefined,
+        description: data.description || data.name,
+        shortDesc: data.shortDesc || null,
+        price: parseFloat(data.price) || 0,
         salePrice: data.salePrice ? parseFloat(data.salePrice) : null,
         stock: parseInt(data.stock) || 0,
-        inStock: data.inStock !== undefined ? data.inStock : true,
+        inStock: data.inStock !== undefined ? Boolean(data.inStock) : true,
         warranty: data.warranty || "1 Year Brand Warranty",
         isFeatured: Boolean(data.isFeatured),
         isBestseller: Boolean(data.isBestseller),
@@ -133,25 +163,27 @@ export async function POST(req: Request) {
         videoUrl: data.videoUrl || null,
         sliderSeconds: data.sliderSeconds ? parseInt(data.sliderSeconds) : 5,
         specsJson: data.specsJson || null,
-        categoryId: data.categoryId,
+        categoryId: categoryId,
         brandId: data.brandId || null,
       },
     });
 
-    // Save images
-    if (data.images && Array.isArray(data.images)) {
-      for (let i = 0; i < data.images.length; i++) {
-        const imgUrl = typeof data.images[i] === "string" ? data.images[i] : data.images[i].url;
-        if (imgUrl) {
-          await prisma.productImage.create({
-            data: {
-              url: imgUrl,
-              isPrimary: i === 0,
-              order: i,
-              productId: product.id,
-            },
-          });
-        }
+    // Save images (handle both data.images array and data.imageUrl string)
+    const rawImages = Array.isArray(data.images) && data.images.length > 0
+      ? data.images
+      : (data.imageUrl ? [data.imageUrl] : []);
+
+    for (let i = 0; i < rawImages.length; i++) {
+      const imgUrl = typeof rawImages[i] === "string" ? rawImages[i] : rawImages[i]?.url;
+      if (imgUrl && typeof imgUrl === "string" && imgUrl.trim() !== "") {
+        await prisma.productImage.create({
+          data: {
+            url: imgUrl.trim(),
+            isPrimary: i === 0,
+            order: i,
+            productId: product.id,
+          },
+        });
       }
     }
 
@@ -165,8 +197,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(fullProduct);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating product:", error);
-    return NextResponse.json({ error: "Failed to create product" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to create product" }, { status: 500 });
   }
 }
