@@ -18,8 +18,16 @@ import CartDrawer from "@/components/layout/CartDrawer";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [banners, categories, brands, allProducts, featuredProducts, gamingDeals, happyCustomers] =
-    await Promise.all([
+  let banners: any[] = [];
+  let categories: any[] = [];
+  let brands: any[] = [];
+  let allProducts: any[] = [];
+  let featuredProducts: any[] = [];
+  let gamingDeals: any[] = [];
+  let happyCustomers: any[] = [];
+
+  try {
+    const res = await Promise.all([
       prisma.banner.findMany({
         where: { isActive: true },
         orderBy: { order: "asc" },
@@ -54,6 +62,17 @@ export default async function HomePage() {
         take: 8,
       }),
     ]);
+
+    banners = res[0] || [];
+    categories = res[1] || [];
+    brands = res[2] || [];
+    allProducts = res[3] || [];
+    featuredProducts = res[4] || [];
+    gamingDeals = res[5] || [];
+    happyCustomers = res[6] || [];
+  } catch (err) {
+    console.error("Homepage data fetch error:", err);
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc]">
