@@ -38,7 +38,7 @@ export default function HappyCustomersBanner({ customers = [] }: HappyCustomersB
             </h2>
 
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              Explore 150+ verified photos of custom gaming rigs, laptops, and Apple MacBooks delivered to happy customers.
+              Explore verified photos of custom gaming rigs, laptops, and Apple MacBooks delivered to satisfied customers across Maharashtra.
             </p>
 
             {/* Feature Highlights */}
@@ -58,36 +58,8 @@ export default function HappyCustomersBanner({ customers = [] }: HappyCustomersB
             </div>
           </div>
 
-          {/* Right Column: Customer Photo Strip & CTA */}
+          {/* Right Column: CTA */}
           <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-5">
-            {/* Customer Avatars Preview Stack */}
-            {customers.length > 0 && (
-              <div className="flex items-center gap-3 bg-slate-950/60 border border-slate-800/80 p-3 rounded-2xl backdrop-blur-md">
-                <div className="flex -space-x-3 overflow-hidden">
-                  {customers.slice(0, 5).map((c) => (
-                    <img
-                      key={c.id}
-                      src={c.photoUrl}
-                      alt={c.name}
-                      className="inline-block h-11 w-11 rounded-full ring-2 ring-indigo-500 object-cover"
-                    />
-                  ))}
-                </div>
-                <div className="text-left">
-                  <div className="flex items-center gap-1 text-amber-400">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
-                    ))}
-                    <span className="text-xs font-black text-white ml-1">5.0</span>
-                  </div>
-                  <div className="text-[11px] font-bold text-slate-400">
-                    100% Genuine Tech Verified
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Direct Link to Happy Customers Gallery */}
             <Link
               href="/happy-customers"
               className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/25 transition-all hover:scale-105 active:scale-95"
@@ -98,6 +70,47 @@ export default function HappyCustomersBanner({ customers = [] }: HappyCustomersB
             </Link>
           </div>
         </div>
+
+        {/* Real Customer Cards Showcase Grid */}
+        {customers.length > 0 && (
+          <div className="mt-8 pt-8 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+            {customers.slice(0, 6).map((c) => (
+              <Link
+                key={c.id}
+                href="/happy-customers"
+                className="group relative rounded-2xl overflow-hidden bg-slate-950/70 border border-slate-800 hover:border-amber-400/60 transition-all hover:shadow-xl hover:-translate-y-1 block"
+              >
+                <div className="aspect-square w-full relative overflow-hidden bg-slate-900">
+                  <img
+                    src={c.photoUrl}
+                    alt={c.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+                  
+                  <div className="absolute top-2 right-2 bg-amber-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-md">
+                    <Star className="w-2.5 h-2.5 fill-slate-950" />
+                    <span>{c.rating || 5}.0</span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 space-y-1">
+                  <h4 className="text-white font-bold text-xs truncate group-hover:text-amber-300 transition-colors">
+                    {c.name}
+                  </h4>
+                  <div className="flex items-center gap-1 text-[11px] text-slate-400 truncate">
+                    <MapPin className="w-3 h-3 text-indigo-400 shrink-0" />
+                    <span className="truncate">{c.city || c.district}</span>
+                  </div>
+                  <p className="text-[10px] text-amber-400/90 truncate font-semibold">
+                    {c.productName}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

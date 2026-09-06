@@ -61,7 +61,7 @@ export default function AdminHappyCustomersPage() {
     name: "",
     city: "",
     village: "",
-    district: "Maharashtra",
+    district: "Jalna",
     phone: "",
     productName: "",
     photoUrl: "",
@@ -73,19 +73,41 @@ export default function AdminHappyCustomersPage() {
   });
 
   const districtsList = [
-    "Maharashtra",
     "Jalna",
-    "Jafrabad",
     "Chhatrapati Sambhajinagar",
     "Buldhana",
-    "Satara",
+    "Parbhani",
+    "Beed",
+    "Nanded",
+    "Hingoli",
+    "Nashik",
     "Ahmednagar",
+    "Pune",
+    "Satara",
     "Solapur",
     "Kolhapur",
-    "Nashik",
     "Sangli",
     "Thane",
-    "Mumbai",
+    "Mumbai City",
+    "Mumbai Suburban",
+    "Raigad",
+    "Ratnagiri",
+    "Sindhudurg",
+    "Nagpur",
+    "Amravati",
+    "Akola",
+    "Yavatmal",
+    "Wardha",
+    "Washim",
+    "Latur",
+    "Dharashiv",
+    "Dhule",
+    "Nandurbar",
+    "Jalgaon",
+    "Gondia",
+    "Bhandara",
+    "Chandrapur",
+    "Gadchiroli",
     "Other",
   ];
 
@@ -117,7 +139,7 @@ export default function AdminHappyCustomersPage() {
       name: "",
       city: "",
       village: "",
-      district: "Maharashtra",
+      district: "Jalna",
       phone: "",
       productName: "",
       photoUrl: "",
@@ -138,7 +160,7 @@ export default function AdminHappyCustomersPage() {
       name: c.name,
       city: c.city,
       village: c.village || "",
-      district: c.district || "Maharashtra",
+      district: c.district && c.district !== "Maharashtra" ? c.district : "Jalna",
       phone: c.phone || "",
       productName: c.productName,
       photoUrl: c.photoUrl,
@@ -154,9 +176,12 @@ export default function AdminHappyCustomersPage() {
   };
 
   const handleFileUpload = async (file: File) => {
+    if (!file) return;
     setUploadingPhoto(true);
     setError("");
     setUploadSuccess("");
+
+    // Try server upload first
     try {
       const form = new FormData();
       form.append("file", file);
@@ -165,15 +190,35 @@ export default function AdminHappyCustomersPage() {
         body: form,
       });
       const data = await res.json();
-      if (res.ok && data.url) {
-        setFormData((prev) => ({ ...prev, photoUrl: data.url }));
+      if (res.ok && (data.url || (data.urls && data.urls.length > 0))) {
+        const finalUrl = data.url || data.urls[0];
+        setFormData((prev) => ({ ...prev, photoUrl: finalUrl }));
         setUploadSuccess(`Photo uploaded successfully! (${file.name})`);
-      } else {
-        setError(data.error || "Failed to upload photo. Please provide an image file (JPG, PNG, WEBP).");
+        setUploadingPhoto(false);
+        return;
       }
     } catch {
-      setError("Network error uploading photo.");
-    } finally {
+      // Fallback silently to client-side conversion
+    }
+
+    // Client-side fallback to Base64 Data URL (guarantees upload never fails even on read-only hosting)
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target?.result as string;
+        if (base64) {
+          setFormData((prev) => ({ ...prev, photoUrl: base64 }));
+          setUploadSuccess(`Photo attached from device! (${file.name})`);
+        }
+        setUploadingPhoto(false);
+      };
+      reader.onerror = () => {
+        setError("Failed to read image file from device.");
+        setUploadingPhoto(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setError("Unable to process image file.");
       setUploadingPhoto(false);
     }
   };

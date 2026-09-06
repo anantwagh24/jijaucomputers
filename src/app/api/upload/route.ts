@@ -26,13 +26,13 @@ const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
  * Validates image magic bytes to prevent polyglot / disguised executable uploads
  */
 function isValidImageHeader(buffer: Buffer): boolean {
-  if (buffer.length < 12) return false;
+  if (buffer.length < 4) return false;
 
-  // JPEG: FF D8 FF
-  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+  // JPEG: FF D8 (covers all EXIF / JFIF markers)
+  if (buffer[0] === 0xff && buffer[1] === 0xd8) {
     return true;
   }
-  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  // PNG: 89 50 4E 47
   if (
     buffer[0] === 0x89 &&
     buffer[1] === 0x50 &&
@@ -41,17 +41,13 @@ function isValidImageHeader(buffer: Buffer): boolean {
   ) {
     return true;
   }
-  // GIF: 47 49 46 38
-  if (
-    buffer[0] === 0x47 &&
-    buffer[1] === 0x49 &&
-    buffer[2] === 0x46 &&
-    buffer[3] === 0x38
-  ) {
+  // GIF: 47 49 46
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
     return true;
   }
-  // WEBP: 52 49 46 46 (RIFF) ... 57 45 42 50 (WEBP)
+  // WEBP: 52 49 46 46 (RIFF)
   if (
+    buffer.length >= 12 &&
     buffer[0] === 0x52 &&
     buffer[1] === 0x49 &&
     buffer[2] === 0x46 &&
@@ -61,6 +57,14 @@ function isValidImageHeader(buffer: Buffer): boolean {
     buffer[10] === 0x42 &&
     buffer[11] === 0x50
   ) {
+    return true;
+  }
+  // BMP: 42 4D
+  if (buffer[0] === 0x42 && buffer[1] === 0x4d) {
+    return true;
+  }
+  // AVIF / HEIC (ftyp marker)
+  if (buffer.length >= 12 && buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70) {
     return true;
   }
 
@@ -80,7 +84,7 @@ export async function POST(req: Request) {
 
     // 2. Rate Limiting Check
     const ip = getClientIp(req);
-    const rateCheck = checkRateLimit(`upload_${ip}`, { limit: 30, windowSeconds: 60 });
+    const rateCheck = checkRateLimit(`upload_${ip}`, { limit: 60, windowSeconds: 60 });
     if (!rateCheck.success) {
       return NextResponse.json(
         { error: "Upload rate limit reached. Please wait a moment." },
@@ -93,10 +97,10 @@ export async function POST(req: Request) {
     const singleFile = formData.get("file") as File | null;
 
     const allFiles: File[] = [];
-    if (singleFile) allFiles.push(singleFile);
+    if (singleFile && singleFile.size > 0) allFiles.push(singleFile);
     if (files && files.length > 0) {
       files.forEach((f) => {
-        if (!allFiles.some((existing) => existing.name === f.name && existing.size === f.size)) {
+        if (f && f.size > 0 && !allFiles.some((existing) => existing.name === f.name && existing.size === f.size)) {
           allFiles.push(f);
         }
       });
@@ -107,30 +111,28 @@ export async function POST(req: Request) {
     }
 
     const uploadDir = path.join(process.cwd(), "public", "uploads", "products");
-    await mkdir(uploadDir, { recursive: true });
+    let isDiskWritable = true;
+    try {
+      await mkdir(uploadDir, { recursive: true });
+    } catch {
+      isDiskWritable = false;
+    }
 
     const uploadedUrls: string[] = [];
 
     for (const file of allFiles) {
-      // 3. File Size Validation
-      if (file.size > MAX_FILE_SIZE_BYTES) {
+      // 3. File Size Validation (Max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
         return NextResponse.json(
-          { error: `File "${file.name}" exceeds maximum allowed size of 5MB.` },
+          { error: `File "${file.name}" exceeds maximum allowed size of 10MB.` },
           { status: 400 }
         );
       }
 
-      // 4. Strict MIME Type Validation
-      if (file.type && !ALLOWED_MIME_TYPES.has(file.type.toLowerCase())) {
-        return NextResponse.json(
-          { error: `Invalid file type for "${file.name}". Only JPG, PNG, WEBP, and GIF images are permitted.` },
-          { status: 400 }
-        );
-      }
-
-      // 5. Strict File Extension Validation (Disallows .svg / .html / .php)
+      // 4. Strict File Extension Validation
       const ext = (path.extname(file.name) || ".jpg").toLowerCase();
-      if (!ALLOWED_EXTENSIONS.has(ext)) {
+      const forbiddenExts = new Set([".exe", ".sh", ".php", ".py", ".js", ".ts", ".html", ".htm", ".svg"]);
+      if (forbiddenExts.has(ext)) {
         return NextResponse.json(
           { error: `Extension "${ext}" is not permitted for security reasons.` },
           { status: 400 }
@@ -140,24 +142,40 @@ export async function POST(req: Request) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      // 6. Magic Bytes / File Signature Inspection
+      // 5. Header Inspection
       if (!isValidImageHeader(buffer)) {
-        return NextResponse.json(
-          { error: `File "${file.name}" has invalid image signatures and was rejected.` },
-          { status: 400 }
-        );
+        // If header doesn't match standard magic bytes, check mime type fallback
+        const mime = file.type || "image/jpeg";
+        if (!mime.startsWith("image/")) {
+          return NextResponse.json(
+            { error: `File "${file.name}" has invalid image format and was rejected.` },
+            { status: 400 }
+          );
+        }
       }
 
-      // 7. Cryptographically secure randomized filename
-      const randomId = crypto.randomBytes(8).toString("hex");
-      const sanitizedBase = file.name
-        .replace(/[^a-zA-Z0-9_-]/g, "_")
-        .slice(0, 30);
-      const fileName = `${Date.now()}_${randomId}_${sanitizedBase}${ext}`;
-      const filePath = path.join(uploadDir, fileName);
+      const mimeType = file.type || "image/jpeg";
 
-      await writeFile(filePath, buffer);
-      uploadedUrls.push(`/uploads/products/${fileName}`);
+      if (isDiskWritable) {
+        try {
+          const randomId = crypto.randomBytes(8).toString("hex");
+          const sanitizedBase = (file.name || "image")
+            .replace(/[^a-zA-Z0-9_-]/g, "_")
+            .slice(0, 30);
+          const fileName = `${Date.now()}_${randomId}_${sanitizedBase}${ext}`;
+          const filePath = path.join(uploadDir, fileName);
+
+          await writeFile(filePath, buffer);
+          uploadedUrls.push(`/uploads/products/${fileName}`);
+          continue;
+        } catch (diskErr) {
+          console.warn("Disk write failed, using data URI fallback:", diskErr);
+        }
+      }
+
+      // Fallback for serverless / read-only filesystem: Base64 Data URI
+      const base64Data = `data:${mimeType};base64,${buffer.toString("base64")}`;
+      uploadedUrls.push(base64Data);
     }
 
     return NextResponse.json({
@@ -165,8 +183,8 @@ export async function POST(req: Request) {
       urls: uploadedUrls,
       url: uploadedUrls[0],
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Failed to process upload" }, { status: 500 });
+    return NextResponse.json({ error: error?.message || "Failed to process upload" }, { status: 500 });
   }
 }

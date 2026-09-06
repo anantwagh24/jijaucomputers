@@ -72,7 +72,10 @@ export default function HappyCustomersPage() {
         if (selectedCity !== "All") queryParams.append("city", selectedCity);
         if (searchQuery.trim()) queryParams.append("search", searchQuery.trim());
 
-        const res = await fetch(`/api/happy-customers?${queryParams.toString()}`);
+        const res = await fetch(`/api/happy-customers?${queryParams.toString()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" },
+        });
         const data = await res.json();
         if (data.success) {
           setCustomers(data.customers || []);
