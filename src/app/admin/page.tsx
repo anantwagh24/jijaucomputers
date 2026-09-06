@@ -22,29 +22,53 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const [
-    totalProducts,
-    totalCategories,
-    totalOffers,
-    serviceRequests,
-    customPcRequests,
-    quotations,
-    enquiries,
-    orders,
-    totalVisitors,
-  ] = await Promise.all([
-    prisma.product.count(),
-    prisma.category.count(),
-    prisma.offer.count({ where: { isActive: true } }),
-    prisma.serviceRequest.findMany({ take: 5, orderBy: { createdAt: "desc" } }),
-    prisma.customPcRequest.findMany({ take: 5, orderBy: { createdAt: "desc" } }),
-    prisma.quotationRequest.findMany({ take: 5, orderBy: { createdAt: "desc" } }),
-    prisma.enquiry.findMany({ take: 5, orderBy: { createdAt: "desc" } }),
-    prisma.order.findMany({ take: 5, orderBy: { createdAt: "desc" } }),
-    prisma.visitorLog.count(),
-  ]);
+  let totalProducts = 0;
+  let totalCategories = 0;
+  let totalOffers = 0;
+  let serviceRequests: any[] = [];
+  let customPcRequests: any[] = [];
+  let quotations: any[] = [];
+  let enquiries: any[] = [];
+  let orders: any[] = [];
+  let totalVisitors = 0;
 
-  const totalOrdersAmount = orders.reduce((acc, o) => acc + o.total, 0);
+  try {
+    const [
+      tp,
+      tc,
+      to,
+      sr,
+      cpc,
+      qr,
+      enq,
+      ord,
+      tv,
+    ] = await Promise.all([
+      prisma.product.count().catch(() => 0),
+      prisma.category.count().catch(() => 0),
+      prisma.offer.count({ where: { isActive: true } }).catch(() => 0),
+      prisma.serviceRequest.findMany({ take: 5, orderBy: { createdAt: "desc" } }).catch(() => []),
+      prisma.customPcRequest.findMany({ take: 5, orderBy: { createdAt: "desc" } }).catch(() => []),
+      prisma.quotationRequest.findMany({ take: 5, orderBy: { createdAt: "desc" } }).catch(() => []),
+      prisma.enquiry.findMany({ take: 5, orderBy: { createdAt: "desc" } }).catch(() => []),
+      prisma.order.findMany({ take: 5, orderBy: { createdAt: "desc" } }).catch(() => []),
+      prisma.visitorLog.count().catch(() => 0),
+    ]);
+
+    totalProducts = tp ?? 0;
+    totalCategories = tc ?? 0;
+    totalOffers = to ?? 0;
+    serviceRequests = sr ?? [];
+    customPcRequests = cpc ?? [];
+    quotations = qr ?? [];
+    enquiries = enq ?? [];
+    orders = ord ?? [];
+    totalVisitors = tv ?? 0;
+  } catch (err) {
+    console.error("Admin dashboard fetch error:", err);
+  }
+
+  const totalOrdersAmount = orders.reduce((acc, o) => acc + (o?.total || 0), 0);
 
   const stats = [
     { label: "Total Visitors", count: totalVisitors, icon: Users, href: "/admin/visitors", color: "from-amber-600 to-amber-700" },
