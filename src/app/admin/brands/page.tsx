@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Tags, Plus, Edit2, Trash2, Check, X } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Tags, Plus, Edit2, Trash2, Check, X, Upload } from "lucide-react";
 
 export default function AdminBrandsPage() {
   const [brands, setBrands] = useState<any[]>([]);
@@ -9,6 +9,8 @@ export default function AdminBrandsPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -32,6 +34,29 @@ export default function AdminBrandsPage() {
   useEffect(() => {
     fetchBrands();
   }, []);
+
+  const handleFileUpload = async (file: File) => {
+    try {
+      setUploadingLogo(true);
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (data.url) {
+        setFormData((prev) => ({ ...prev, logoUrl: data.url }));
+      } else if (data.error) {
+        alert(data.error);
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Failed to upload brand logo. Please try again.");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   const handleOpenCreate = () => {
     setEditingId(null);
@@ -178,14 +203,40 @@ export default function AdminBrandsPage() {
               </div>
 
               <div>
-                <label className="font-bold text-slate-300 block mb-1">Brand Logo Image URL</label>
-                <input
-                  type="url"
-                  value={formData.logoUrl}
-                  onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500"
-                />
+                <label className="font-bold text-slate-300 block mb-1">Brand Logo (Upload from Device or Paste URL)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={formData.logoUrl}
+                    onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                    placeholder="https://... or /uploads/..."
+                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-blue-500 font-mono text-[11px]"
+                  />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) handleFileUpload(e.target.files[0]);
+                    }}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingLogo}
+                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold flex items-center gap-1.5 cursor-pointer text-xs"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-blue-400" />
+                    <span>{uploadingLogo ? "Uploading..." : "Upload"}</span>
+                  </button>
+                </div>
+                {formData.logoUrl && (
+                  <div className="mt-2 flex items-center gap-2 p-1.5 bg-slate-900/60 rounded-xl border border-slate-800">
+                    <img src={formData.logoUrl} alt="Preview" className="w-10 h-10 rounded-lg object-contain bg-white/10 p-1 border border-slate-700" />
+                    <span className="text-[11px] text-slate-400 font-mono truncate flex-1">{formData.logoUrl}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2 pt-3">
