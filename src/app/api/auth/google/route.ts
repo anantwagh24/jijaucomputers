@@ -4,6 +4,9 @@ import { hashPassword, normalizePhone } from "@/lib/auth";
 import { setCustomerSessionCookie } from "@/lib/session";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface GoogleIdTokenPayload {
   iss: string;
   sub: string;
@@ -59,7 +62,7 @@ function decodeGoogleIdToken(token: string): GoogleIdTokenPayload | null {
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req);
-    const rateCheck = checkRateLimit(`google_auth_${ip}`, { limit: 10, windowSeconds: 60 });
+    const rateCheck = checkRateLimit(`google_auth_${ip}`, { limit: 20, windowSeconds: 60 });
     if (!rateCheck.success) {
       return NextResponse.json(
         { error: "Too many sign-in attempts. Please wait a moment." },
@@ -99,8 +102,10 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      // Auto-generate phone placeholder for first-time Google sign-ups
-      const dummyPhone = normalizePhone(`99${Math.floor(10000000 + Math.random() * 90000000)}`);
+      // Auto-generate a unique 10-digit phone for first-time Google sign-ups
+      const uniqueSuffix = Math.floor(10000000 + Math.random() * 90000000);
+      const dummyPhone = `98${uniqueSuffix}`.slice(0, 10);
+
       user = await prisma.user.create({
         data: {
           name: displayName,
