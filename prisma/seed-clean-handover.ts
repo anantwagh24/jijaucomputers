@@ -19,12 +19,31 @@ async function main() {
 
   console.log("✅ Cleared old transaction & product tables");
 
-  // 2. Fetch existing categories and map them
-  const existingCategories = await prisma.category.findMany();
+  // 2. Fetch or create Categories
+  const categoriesData = [
+    { name: "Laptop", slug: "laptops", iconName: "Laptop", description: "Gaming, Ultrabooks, Business & Student Laptops", order: 1, imageUrl: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400&auto=format&fit=crop&q=80" },
+    { name: "Mobile", slug: "mobiles", iconName: "Smartphone", description: "5G Smartphones, Flagships, Gaming Phones & Tablets", order: 2, imageUrl: "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=400&auto=format&fit=crop&q=80" },
+    { name: "Printer", slug: "printers", iconName: "Printer", description: "Ink Tank, Laser, All-in-One Wireless Printers & Scanners", order: 3, imageUrl: "https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=400&auto=format&fit=crop&q=80" },
+    { name: "CCTV Camera", slug: "cctv-camera", iconName: "Camera", description: "HD IP Cameras, ColorVu Night Vision, WiFi PTZ & NVRs", order: 4, imageUrl: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=400&auto=format&fit=crop&q=80" },
+    { name: "Custom Gaming PCs", slug: "custom-gaming-pcs", iconName: "Cpu", description: "Extreme Performance custom liquid-cooled RGB Battle-stations", order: 5, imageUrl: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=400&auto=format&fit=crop&q=80" },
+    { name: "Desktop PC", slug: "desktops", iconName: "Monitor", description: "All-in-One and Tower Desktop Computers", order: 6, imageUrl: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=400&auto=format&fit=crop&q=80" },
+    { name: "Processors (CPU)", slug: "processors", iconName: "Cpu", description: "Intel Core & AMD Ryzen processors", order: 7, imageUrl: "https://images.unsplash.com/photo-1555618568-9a3d4608c0ff?w=400&auto=format&fit=crop&q=80" },
+    { name: "Graphics Cards (GPU)", slug: "graphics-cards", iconName: "Tv", description: "NVIDIA GeForce RTX & AMD Radeon RX series", order: 8, imageUrl: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&auto=format&fit=crop&q=80" },
+    { name: "RAM & Memory", slug: "ram", iconName: "Cpu", description: "DDR4 and DDR5 Gaming & Desktop RAM", order: 9, imageUrl: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=400&auto=format&fit=crop&q=80" },
+    { name: "Storage (SSD / HDD)", slug: "storage", iconName: "Database", description: "NVMe M.2 Gen4 SSDs & High Capacity Hard Drives", order: 10, imageUrl: "https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=400&auto=format&fit=crop&q=80" },
+    { name: "Monitors", slug: "monitors", iconName: "Monitor", description: "Gaming and Professional IPS Monitors", order: 11, imageUrl: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400&auto=format&fit=crop&q=80" },
+    { name: "Accessories", slug: "accessories", iconName: "Headphones", description: "Mechanical Keyboards, Wireless Mice & Accessories", order: 12, imageUrl: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=400&auto=format&fit=crop&q=80" },
+  ];
+
   const categoryMap = new Map<string, string>();
-  for (const c of existingCategories) {
-    categoryMap.set(c.slug, c.id);
-    categoryMap.set(c.name.toLowerCase(), c.id);
+  for (const c of categoriesData) {
+    const cat = await prisma.category.upsert({
+      where: { slug: c.slug },
+      update: { name: c.name, order: c.order, description: c.description, iconName: c.iconName, imageUrl: c.imageUrl },
+      create: c,
+    });
+    categoryMap.set(c.slug, cat.id);
+    categoryMap.set(c.name.toLowerCase(), cat.id);
   }
 
   // 3. Fetch or create Brands
