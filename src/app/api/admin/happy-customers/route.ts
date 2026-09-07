@@ -71,7 +71,7 @@ export async function POST(req: Request) {
         name: name.trim(),
         city: city.trim(),
         village: village ? village.trim() : null,
-        district: district ? district.trim() : "",
+        district: district ? district.trim() : "Jalna",
         phone: phone ? phone.trim() : null,
         productName: productName.trim(),
         photoUrl: photoUrl.trim(),
@@ -85,8 +85,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, customer }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Admin create happy customer error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: error?.message || "Internal server error" }, { status: 500 });
   }
 }
