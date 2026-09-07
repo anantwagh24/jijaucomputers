@@ -9,7 +9,19 @@ import CartDrawer from "@/components/layout/CartDrawer";
 import ProductCard from "@/components/products/ProductCard";
 import ProductDetailClient from "./ProductDetailClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  try {
+    const products = await prisma.product.findMany({
+      select: { slug: true },
+      take: 50,
+    });
+    return products.map((p) => ({ slug: p.slug }));
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({
   params,

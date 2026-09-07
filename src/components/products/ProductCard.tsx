@@ -113,7 +113,7 @@ export default function ProductCard({
       </div>
 
       {/* 3. PRODUCT IMAGE */}
-      <Link href={`/products/${product.slug}`} className="block relative aspect-square p-6 bg-slate-50/50 flex items-center justify-center overflow-hidden">
+      <Link href={`/products/${product.slug}`} prefetch={true} className="block relative aspect-square p-6 bg-slate-50/50 flex items-center justify-center overflow-hidden">
         <img
           src={primaryImage}
           alt={product.name}
@@ -142,7 +142,7 @@ export default function ProductCard({
           </div>
 
           {/* Title */}
-          <Link href={`/products/${product.slug}`}>
+          <Link href={`/products/${product.slug}`} prefetch={true}>
             <h3 className="text-xs sm:text-sm font-bold text-slate-900 hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
               {product.name}
             </h3>

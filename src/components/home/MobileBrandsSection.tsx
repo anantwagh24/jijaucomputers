@@ -96,6 +96,7 @@ export default function MobileBrandsSection({ products = [] }: { products?: Prod
           <Link
             key={b.id}
             href={b.href}
+            prefetch={true}
             className="w-[135px] sm:w-[155px] shrink-0 snap-start group relative flex flex-col items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-blue-400 transition-all duration-300 active:scale-95 text-center cursor-pointer overflow-hidden"
           >
             {/* Mobile Image */}
