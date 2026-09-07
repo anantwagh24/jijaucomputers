@@ -102,15 +102,11 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      // Auto-generate a unique 10-digit phone for first-time Google sign-ups
-      const uniqueSuffix = Math.floor(10000000 + Math.random() * 90000000);
-      const dummyPhone = `98${uniqueSuffix}`.slice(0, 10);
-
       user = await prisma.user.create({
         data: {
           name: displayName,
           email: cleanEmail,
-          phone: dummyPhone,
+          phone: null,
           password: hashPassword("google_oauth_" + payload.sub),
           avatarUrl: avatarUrl,
           isVerified: payload.email_verified ?? true,

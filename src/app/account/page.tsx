@@ -176,7 +176,7 @@ export default function AccountDashboardPage() {
                   )}
                 </div>
                 <p className="text-xs text-slate-400 font-mono">
-                  {user.email} • +91 {user.phone}
+                  {user.email} {user.phone ? `• +91 ${user.phone}` : "• Mobile not linked"}
                 </p>
               </div>
             </div>
