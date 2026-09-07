@@ -117,6 +117,12 @@ if (!function_exists('jijau_get_full_store_database')) {
             array('id' => 'br-9', 'name' => 'Epson', 'slug' => 'epson', 'isActive' => true, 'logoUrl' => '', 'category' => 'Printer'),
             array('id' => 'br-10', 'name' => 'Canon', 'slug' => 'canon', 'isActive' => true, 'logoUrl' => '', 'category' => 'Printer'),
             array('id' => 'br-11', 'name' => 'Brother', 'slug' => 'brother', 'isActive' => true, 'logoUrl' => '', 'category' => 'Printer'),
+        ),
+        'banners' => array(
+            array(
+                'id' => 'ban-1',
+                'title' => 'Custom Gaming PC Builds',
+                'subtitle' => 'Liquid-cooled high performance battlestations',
                 'imageUrl' => 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=1400&auto=format&fit=crop&q=80',
                 'ctaText' => 'Build Custom PC',
                 'ctaLink' => '/custom-pc',
