@@ -148,7 +148,7 @@ export default function Header() {
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group min-w-0">
+            <Link href="/" prefetch={true} className="flex items-center gap-2.5 sm:gap-3 group min-w-0">
               <div className="relative shrink-0 flex items-center justify-center">
                 <img
                   src={settings.logoUrl || "/images/jijau-logo.jpg"}

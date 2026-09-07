@@ -15,15 +15,13 @@ import Footer from "@/components/layout/Footer";
 import WhatsAppFloating from "@/components/layout/WhatsAppFloating";
 import CartDrawer from "@/components/layout/CartDrawer";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function HomePage() {
   let banners: any[] = [];
   let categories: any[] = [];
   let brands: any[] = [];
   let allProducts: any[] = [];
-  let featuredProducts: any[] = [];
-  let gamingDeals: any[] = [];
   let happyCustomers: any[] = [];
 
   try {
@@ -46,16 +44,6 @@ export default async function HomePage() {
         orderBy: { createdAt: "desc" },
         include: { category: true, brand: true, images: { orderBy: { order: "asc" } } },
       }),
-      prisma.product.findMany({
-        where: { isFeatured: true, inStock: true },
-        take: 8,
-        include: { category: true, brand: true, images: { orderBy: { order: "asc" } } },
-      }),
-      prisma.product.findMany({
-        where: { isGamingDeal: true },
-        take: 4,
-        include: { category: true, brand: true, images: { orderBy: { order: "asc" } } },
-      }),
       prisma.happyCustomer.findMany({
         where: { isActive: true },
         orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
@@ -67,9 +55,7 @@ export default async function HomePage() {
     categories = res[1] || [];
     brands = res[2] || [];
     allProducts = res[3] || [];
-    featuredProducts = res[4] || [];
-    gamingDeals = res[5] || [];
-    happyCustomers = res[6] || [];
+    happyCustomers = res[4] || [];
   } catch (err) {
     console.error("Homepage data fetch error:", err);
   }

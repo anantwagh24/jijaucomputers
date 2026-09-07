@@ -22,6 +22,7 @@ export default function MobileBottomNav() {
       {/* 1. Home */}
       <Link
         href="/"
+        prefetch={true}
         onClick={() => setIsCartOpen(false)}
         className={`flex flex-col items-center justify-center transition-all ${
           isHome ? "text-purple-400 font-black" : "text-slate-400 hover:text-white"
