@@ -50,34 +50,62 @@ export default function AccountDashboardPage() {
       }
     }
 
-    // Fetch orders
-    fetch("/api/orders")
+    if (!user) {
+      setOrders([]);
+      setQuotes([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    // Fetch strictly current authenticated user's orders
+    fetch("/api/orders", { cache: "no-store", headers: { "Cache-Control": "no-cache" } })
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          // If user logged in, match by email or phone or show user orders
-          if (user) {
-            const userOrders = data.filter(
-              (o) =>
-                (user.email && o.email?.toLowerCase() === user.email.toLowerCase()) ||
-                (user.phone && o.phone?.replace(/\D/g, "").includes(user.phone.replace(/\D/g, "")))
-            );
-            setOrders(userOrders.length > 0 ? userOrders : data.slice(0, 5));
-          } else {
-            setOrders(data.slice(0, 5));
-          }
+          const cleanUserPhone = user.phone ? user.phone.replace(/\D/g, "") : "";
+          const cleanUserEmail = user.email ? user.email.toLowerCase().trim() : "";
+
+          const userOrders = data.filter((o) => {
+            const isMatchUserId = o.userId && o.userId === user.id;
+            const isMatchEmail = cleanUserEmail && o.email && o.email.toLowerCase().trim() === cleanUserEmail;
+            const isMatchPhone = cleanUserPhone && o.phone && o.phone.replace(/\D/g, "") === cleanUserPhone;
+            return isMatchUserId || isMatchEmail || isMatchPhone;
+          });
+          setOrders(userOrders);
+        } else {
+          setOrders([]);
         }
       })
-      .catch(console.error)
+      .catch((err) => {
+        console.error("Failed to load user orders:", err);
+        setOrders([]);
+      })
       .finally(() => setLoading(false));
 
-    // Fetch quotations
-    fetch("/api/quotations")
+    // Fetch strictly current authenticated user's quotations
+    fetch("/api/quotations", { cache: "no-store", headers: { "Cache-Control": "no-cache" } })
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) setQuotes(data);
+        if (Array.isArray(data)) {
+          const cleanUserPhone = user.phone ? user.phone.replace(/\D/g, "") : "";
+          const cleanUserEmail = user.email ? user.email.toLowerCase().trim() : "";
+
+          const userQuotes = data.filter((q) => {
+            const isMatchEmail = cleanUserEmail && q.email && q.email.toLowerCase().trim() === cleanUserEmail;
+            const isMatchPhone = cleanUserPhone && q.phone && q.phone.replace(/\D/g, "") === cleanUserPhone;
+            return isMatchEmail || isMatchPhone;
+          });
+          setQuotes(userQuotes);
+        } else {
+          setQuotes([]);
+        }
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error("Failed to load user quotations:", err);
+        setQuotes([]);
+      });
   }, [user]);
 
   return (

@@ -20,9 +20,20 @@ export async function GET(req: Request) {
     }
 
     // Admin can see all orders; Customer can only see their own orders
-    const whereClause = adminSession
-      ? {}
-      : { userId: customerSession!.sub };
+    let whereClause: any = {};
+    if (!adminSession) {
+      const user = await prisma.user.findUnique({ where: { id: customerSession!.sub } });
+      const userPhone = user?.phone ? normalizePhone(user.phone) : "";
+      const userEmail = user?.email?.toLowerCase().trim();
+
+      whereClause = {
+        OR: [
+          { userId: customerSession!.sub },
+          ...(userPhone ? [{ phone: userPhone }] : []),
+          ...(userEmail ? [{ email: userEmail }] : []),
+        ],
+      };
+    }
 
     const orders = await prisma.order.findMany({
       where: whereClause,
