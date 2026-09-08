@@ -5,7 +5,6 @@ import { verifyPassword, hashPassword } from "@/lib/auth";
 import { setAdminSessionCookie } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 export async function POST(req: Request) {
   try {

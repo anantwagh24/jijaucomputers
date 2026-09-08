@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 // Location generator for realistic Indian visitor IP lookups
 function guessLocation(ip: string): string {

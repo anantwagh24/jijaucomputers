@@ -9,7 +9,7 @@ import CartDrawer from "@/components/layout/CartDrawer";
 import ProductCard from "@/components/products/ProductCard";
 import ProductDetailClient from "./ProductDetailClient";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   try {

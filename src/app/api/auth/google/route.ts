@@ -5,7 +5,6 @@ import { setCustomerSessionCookie } from "@/lib/session";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 interface GoogleIdTokenPayload {
   iss: string;

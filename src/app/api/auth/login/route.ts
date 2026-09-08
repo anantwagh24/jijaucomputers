@@ -5,7 +5,6 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { setCustomerSessionCookie } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 export async function POST(req: Request) {
   try {
