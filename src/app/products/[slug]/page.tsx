@@ -48,35 +48,43 @@ export default async function ProductDetailPage({
 }) {
   const { slug } = await params;
 
-  const product = await prisma.product.findUnique({
-    where: { slug },
-    include: {
-      category: true,
-      brand: true,
-      images: {
-        orderBy: { order: "asc" },
+  let product: any = null;
+  let relatedProducts: any[] = [];
+
+  try {
+    product = await prisma.product.findUnique({
+      where: { slug },
+      include: {
+        category: true,
+        brand: true,
+        images: {
+          orderBy: { order: "asc" },
+        },
       },
-    },
-  });
+    });
+
+    if (product) {
+      relatedProducts = await prisma.product.findMany({
+        where: {
+          categoryId: product.categoryId,
+          id: { not: product.id },
+          inStock: true,
+        },
+        take: 4,
+        include: {
+          category: true,
+          brand: true,
+          images: { orderBy: { order: "asc" } },
+        },
+      });
+    }
+  } catch (err) {
+    console.error("Product detail fetch error:", err);
+  }
 
   if (!product) {
     notFound();
   }
-
-  // Fetch related products
-  const relatedProducts = await prisma.product.findMany({
-    where: {
-      categoryId: product.categoryId,
-      id: { not: product.id },
-      inStock: true,
-    },
-    take: 4,
-    include: {
-      category: true,
-      brand: true,
-      images: { orderBy: { order: "asc" } },
-    },
-  });
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc]">

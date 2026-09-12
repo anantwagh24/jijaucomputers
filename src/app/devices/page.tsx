@@ -15,24 +15,35 @@ export const metadata = {
 };
 
 export default async function DevicesPage() {
-  const [categories, products, brands] = await Promise.all([
-    prisma.category.findMany({
-      where: { isActive: true },
-      orderBy: { order: "asc" },
-    }),
-    prisma.product.findMany({
-      include: {
-        images: { orderBy: { order: "asc" } },
-        category: true,
-        brand: true,
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.brand.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-    }),
-  ]);
+  let categories: any[] = [];
+  let products: any[] = [];
+  let brands: any[] = [];
+
+  try {
+    const [fetchedCategories, fetchedProducts, fetchedBrands] = await Promise.all([
+      prisma.category.findMany({
+        where: { isActive: true },
+        orderBy: { order: "asc" },
+      }),
+      prisma.product.findMany({
+        include: {
+          images: { orderBy: { order: "asc" } },
+          category: true,
+          brand: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.brand.findMany({
+        where: { isActive: true },
+        orderBy: { name: "asc" },
+      }),
+    ]);
+    categories = fetchedCategories || [];
+    products = fetchedProducts || [];
+    brands = fetchedBrands || [];
+  } catch (err) {
+    console.error("Devices page fetch error:", err);
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc]">

@@ -91,26 +91,37 @@ export default async function ProductsCatalogPage({
   else if (sort === "price-high") orderBy = { price: "desc" };
   else if (sort === "popular") orderBy = { isBestseller: "desc" };
 
-  const [products, categories, brands] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      orderBy,
-      include: {
-        category: true,
-        brand: true,
-        images: { orderBy: { order: "asc" } },
-      },
-    }),
-    prisma.category.findMany({
-      where: { isActive: true },
-      orderBy: { order: "asc" },
-      include: { _count: { select: { products: true } } },
-    }),
-    prisma.brand.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-    }),
-  ]);
+  let products: any[] = [];
+  let categories: any[] = [];
+  let brands: any[] = [];
+
+  try {
+    const [fetchedProducts, fetchedCategories, fetchedBrands] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy,
+        include: {
+          category: true,
+          brand: true,
+          images: { orderBy: { order: "asc" } },
+        },
+      }),
+      prisma.category.findMany({
+        where: { isActive: true },
+        orderBy: { order: "asc" },
+        include: { _count: { select: { products: true } } },
+      }),
+      prisma.brand.findMany({
+        where: { isActive: true },
+        orderBy: { name: "asc" },
+      }),
+    ]);
+    products = fetchedProducts || [];
+    categories = fetchedCategories || [];
+    brands = fetchedBrands || [];
+  } catch (err) {
+    console.error("Products catalog data fetch error:", err);
+  }
 
   const activeCategoryName = categories.find(
     (c) =>
